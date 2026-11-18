@@ -263,23 +263,23 @@ const NPCS=[
     lines:['ကုမ္ပဏီက စာလာပို့သွားတယ်။ ရက် 30 ပြည့်ရင် ဆုံးဖြတ်ရမယ်တဲ့။','ရွာကို ချစ်တဲ့ လူငယ်တွေ ရှိနေတာ ဝမ်းသာတယ်။','ရွာ့အသင်းကလည်း တတ်နိုင်သလောက် ငွေစုနေတယ်။']},
   {id:'aye',name:'ဒေါ်အေး',role:'ယက်ကန်းသည် အဘွား',home:'h1',head:'BUN',thanaka:true,pal:mkPal('#c99568','#9a948c','#f4efe2','#6a3a5a','#c8a050'),plan:[[370,PLACES.mon[1],80,'up','pray'],[0,HOMES.h1,360,'down','weave']],
     lines:['ငယ်ငယ်တုန်းက ဒီရွာမှာ ပိတောက်ပင်တွေ အများကြီးပဲ။','မင်းအဘိုးနဲ့ ငါတို့ အတူ ကြီးပြင်းခဲ့တာ။','ယက်ကန်းရက်နေတယ်။ ဒီလုံချည်လေး ပြီးရင် ဈေးထဲ ပို့မယ်။']},
-  {id:'mya',name:'မမြ',role:'ပန်းနဲ့ မျိုးစေ့ ရောင်းသူ',home:'florist',head:'BUN',thanaka:true,shop:'florist',pal:mkPal('#dca274','#2a1a12','#ecbcd2','#2f6a4a','#6aaa7a'),plan:[[420,HOMES.florist,600,'down']],
+  {id:'mya',name:'မမြ',role:'ပန်းနဲ့ မျိုးစေ့ ရောင်းသူ',home:'florist',head:'BUN',thanaka:true,shop:'florist',pal:mkPal('#dca274','#2a1a12','#ecbcd2','#2f6a4a','#6aaa7a'),plan:[[420,HOMES.florist,600,'down','work']],
     gift:()=>{const id=seasonCrops(curS())[1];S.seeds[id]+=9;return `${CROPS[id].name} မျိုးစေ့ 9 စေ့ ပေးလိုက်တယ်`},
     lines:['ပန်းခြံထဲက ပိတောက်နဲ့ စံပယ်တွေ လှလား? မျိုးစေ့တွေလည်း ရှိတယ်နော်။','ရာသီအလိုက် မျိုးစေ့ ရွေးစိုက်ရင် အထွက်ကောင်းတယ်။','ဘုရားပန်း ကပ်ဖို့ မနက်စောစော ပန်းခူးရတယ်။'],
     season:['နွေမှာ ပိတောက်ပန်း ပွင့်ပြီ။ သင်္ကြန်ရောက်တော့မယ်နော်။','မိုးတွင်းဆို မျိုးစေ့ပေါက်နှုန်း ကောင်းတယ်။','ဆောင်းမှာ ဂေါ်ဖီထုပ်နဲ့ မုန်လာဥ မျိုးစေ့ ရောင်းကောင်းတယ်။']},
   {id:'kyaw',name:'ဦးကျော်',role:'ငါးဖမ်းသမား',home:'fisher',head:'HAT',rainSkip:true,pal:mkPal('#b07a50','#3a2a1a','#c8b890','#5a4a2a','#8a7a4a'),plan:[[400,PLACES.canal[0],240,'up','fish'],[0,PLACES.teaseat[1],100,'up','sit'],[0,PLACES.river[0],120,'down','fish']],
     gift:()=>{S.produce.fish+=2;return 'ငါး 2 ကောင် ပေးလိုက်တယ်။ ပို့ကုန်ပုံးထဲ ထည့်ရောင်းလို့ရတယ်'},
     lines:['မိုးတွင်းဆို ပုစွန်ထုပ်တွေ မြစ်ထဲ ပိုများတယ်။','ငါးမျှားရင် ဖော့ငုပ်သွားမှ ချက်ချင်းဆွဲ။','အိမ်ရှေ့မှာ ငါးခြောက် လှန်းထားတယ်။ ဆားနယ်ပြီး နေလှန်းရတာ။']},
-  {id:'san',name:'ဒေါ်စန်းစန်း',role:'လက်ဖက်ရည်ဆိုင်ရှင်',home:'tea',head:'BUN',shop:'tea',late:1200,pal:mkPal('#d49c6c','#1e130b','#f6f2e8','#ece4d4','#b8aca0'),plan:[[390,HOMES.tea,800,'down']],
+  {id:'san',name:'ဒေါ်စန်းစန်း',role:'လက်ဖက်ရည်ဆိုင်ရှင်',home:'tea',head:'BUN',shop:'tea',late:1200,pal:mkPal('#d49c6c','#1e130b','#f6f2e8','#ece4d4','#b8aca0'),plan:[[390,HOMES.tea,800,'down','work']],
     gift:()=>{S.tea+=3;return 'လက်ဖက်ရည် 3 ခွက် ပေးလိုက်တယ်'},
     lines:['လက်ဖက်ရည် ပေါ့ဆိမ့် သောက်မလား?','မုန့်ဟင်းခါး မနက်တိုင်း အသစ်ချက်တယ်။','ဆိုင်မှာ ရွာထဲ သတင်းအကုန် ကြားရတယ်။ သူကြီးတောင် မနက်တိုင်း လာထိုင်တယ်။']},
-  {id:'zaw',name:'ကိုဇော်',role:'ကုန်စုံဆိုင်ရှင်',home:'store',head:'SHORT',shop:'store',pal:mkPal('#c99062','#1e130b','#8ab04a','#5a4a3a','#a8906a'),plan:[[470,HOMES.store,240,'down'],[0,PLACES.teaseat[3],40,'up','sit'],[0,HOMES.store,300,'down']],
+  {id:'zaw',name:'ကိုဇော်',role:'ကုန်စုံဆိုင်ရှင်',home:'store',head:'SHORT',shop:'store',pal:mkPal('#c99062','#1e130b','#8ab04a','#5a4a3a','#a8906a'),plan:[[470,HOMES.store,240,'down','work'],[0,PLACES.teaseat[3],40,'up','sit'],[0,HOMES.store,300,'down','work']],
     lines:['ငါးမျှားတံ ရှိတယ်။ မြစ်ထဲမှာ ငါးရံကြီးတွေ ရှိတယ်တဲ့။','စွန်လည်း ရောင်းတယ်။ တောထဲက ကွင်းပြင်မှာ လွှတ်လို့ကောင်းတယ်။','မြို့ကနေ ကုန်ပစ္စည်း အသစ်တွေ ရောက်ထားတယ်။']},
-  {id:'tun',name:'ကိုထွန်း',role:'ပန်းပဲဆရာ',home:'smith',head:'WRAP',shop:'smith',late:1020,pal:mkPal('#b07a50','#1e130b','#6a6a6a','#3a3a3a','#8a6a4a','#c8433a'),plan:[[470,HOMES.smith,550,'down']],
+  {id:'tun',name:'ကိုထွန်း',role:'ပန်းပဲဆရာ',home:'smith',head:'WRAP',shop:'smith',late:1020,pal:mkPal('#b07a50','#1e130b','#6a6a6a','#3a3a3a','#8a6a4a','#c8433a'),plan:[[470,HOMES.smith,550,'down','work']],
     lines:['ပေါက်ပြား ပိုကောင်းချင်ရင် လာခဲ့။ ပိုပေါ့အောင် ထုပေးမယ်။','သံကို ပူတုန်းထုရတယ်။','တူကောင်းရင် ကျောက်တုံးကို တစ်ချက်တည်းနဲ့ ခွဲနိုင်တယ်။']},
   {id:'monk',name:'ဦးဇင်း ဦးပညာ',role:'ဘုန်းကြီးကျောင်း ဆရာတော်',home:'mon',head:'MONK',pal:{...mkPal('#c98e5c','#c98e5c','#9a3a20','#9a3a20','#8a3018'),k:'#c98e5c'},plan:[[380,PLACES.square[2],15,'down'],[0,PLACES.market[2],15,'up'],[0,PLACES.square[3],15,'down'],[0,PLACES.mon[2],5,'down']],
     lines:['ကျန်းမာချမ်းသာကြပါစေ။','ညနေ တရားပွဲမှာ လာနာပါ။ စိတ်ငြိမ်းချမ်းစေတယ်။','ရွာသူရွာသားတွေ ညီညွတ်ရင် အခက်အခဲ ကျော်လွှားနိုင်တယ်။']},
-  {id:'khine',name:'မခိုင်',role:'ဆေးဆိုင်ရှင်၊ သူနာပြု',home:'pharmacy',head:'BUN',shop:'pharmacy',pal:mkPal('#dca274','#1e130b','#ffffff','#2a4a8a','#6a8ad0'),plan:[[480,HOMES.pharmacy,520,'down'],[0,PLACES.teaseat[4],50,'up','sit']],
+  {id:'khine',name:'မခိုင်',role:'ဆေးဆိုင်ရှင်၊ သူနာပြု',home:'pharmacy',head:'BUN',shop:'pharmacy',pal:mkPal('#dca274','#1e130b','#ffffff','#2a4a8a','#6a8ad0'),plan:[[480,HOMES.pharmacy,520,'down','work'],[0,PLACES.teaseat[4],50,'up','sit']],
     lines:['ဆေးဆိုင်မှာ အားဆေးတွေ ရှိတယ်။ ပင်ပန်းရင် လာဝယ်နော်။','နေပူထဲ အကြာကြီး အလုပ်မလုပ်နဲ့။ ရေများများ သောက်။','အိပ်ရေးဝမှ အားအင် ပြည့်မယ်။']},
   {id:'min',name:'ကိုမင်း',role:'ကြက်နွား မွေးမြူရေး',home:'farmyard',head:'HAT',shop:'livestock',pal:mkPal('#c98e5c','#1e130b','#e8e0c8','#2a4a6a','#5a8ab0'),plan:[[450,HOMES.farmyard,240,'down'],[0,PLACES.teaseat[2],60,'up','sit'],[0,HOMES.farmyard,300,'down']],
     lines:['ကြက်မွေးချင်ရင် ကျွန်တော့်ဆီ လာဝယ်ပါ။ ဥကောင်းတဲ့ ကြက်မတွေ။','နွားတွေကို မနက်တိုင်း ကွင်းထဲ ကျောင်းရတယ်။','ကြက်တွေကို နေ့တိုင်း စာကျွေးရင် ဥ နေ့တိုင်းဥတယ်ဗျ။']},
@@ -351,7 +351,11 @@ function tryMove(d){
   if(S.scene==='farm'){
     if(nx<0||ny<0||nx>=MW||ny>=MH){const e=EXITS[S.map].find(e=>e[0]===S.px&&e[1]===S.py&&e[2]===d);if(e)goMap(e[3],e[4],e[5],d);return}
     if(S.map==='farm'&&nx===DOOR[0]&&ny===DOOR[1])return enterHouse();
+    if(d==='up'&&S.map==='village'){const bb=bAt(nx,ny);if(bb&&bb.shop&&SHOP_THEME[bb.shop]&&nx===bb.x+(bb.w>>1)&&ny===bb.y+bb.h-1)return enterShop(bb)}
     if(walkable(nx,ny)){mv={fx:S.px,fy:S.py,t:0};S.px=nx;S.py=ny;stepCount++}
+  }else if(S.scene==='shop'){
+    const c=sTile(nx,ny);if(c==='D')return exitShop();
+    if(!SSOLID.has(c)){mv={fx:S.px,fy:S.py,t:0};S.px=nx;S.py=ny;stepCount++}
   }else{
     const c=hTile(nx,ny);
     if(c==='D')return exitHouse();
@@ -428,7 +432,7 @@ function useTool(){
     if(S.energy>=S.maxE)return toast('အားအင် ပြည့်နေတယ်');
     S.tea--;belt();doAct('tea',()=>{S.energy=Math.min(S.maxE,S.energy+40);toast('လက်ဖက်ရည် ပူပူလေး သောက်လိုက်တယ်။ အားအင် +40')});return;
   }
-  if(S.scene==='house')return toast('အိမ်ထဲမှာ ဒီကိရိယာ မသုံးနိုင်ဘူး');
+  if(S.scene!=='farm')return toast('အိမ်ထဲမှာ ဒီကိရိယာ မသုံးနိုင်ဘူး');
   const [fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.map==='farm'?S.crops[k]:null;
   if(tool==='rod'){
     if(!S.has.rod)return toast('ငါးမျှားတံ မရှိသေးဘူး။ ရွာထဲက ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ ဝယ်ပါ');
@@ -486,6 +490,7 @@ function act(){
   if(paused||mv||CUT||anim)return;
   dirty=true;
   const [fx,fy]=front();
+  if(S.scene==='shop')return actShop(sTile(fx,fy));
   if(S.scene==='house')return actHouse(hTile(fx,fy));
   const t=tileAt(fx,fy),k=fx+','+fy,crop=S.map==='farm'?S.crops[k]:null;
   const ni=npcRT.findIndex(n=>n.active&&n.map===S.map&&n.x===fx&&n.y===fy);
@@ -591,7 +596,8 @@ function intro(){
   show(`<h2 class="big">ရွှေပန်းရွာ ခြံလေး</h2>
   <p>အဘိုး ထားခဲ့တဲ့ ခြံလေးကို ပြန်ရောက်လာပြီ။ ဒါပေမဲ့ မြို့က ကုမ္ပဏီကြီးတစ်ခုက ရွာမြေတွေကို ဝယ်ပြီး စက်ရုံဆောက်တော့မယ်တဲ့။</p>
   <p><b>ရက် 30 အတွင်း ကျပ် 10,000 စုနိုင်ရင်</b> ရွာသားတွေနဲ့ အတူ မြေကို ပြန်ဝယ်ပြီး ရွာကို ကယ်နိုင်မယ်။</p>
-  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ရွာသား 10 ယောက်ရဲ့ အလုပ်နဲ့ ဆိုင်တွေကို သွားလည်ပါ (ပန်းဆိုင်၊ ကြက်နွားခြံ၊ ဆေးဆိုင်၊ လက်ဖက်ရည်ဆိုင်၊ ပန်းပဲဖို၊ ကုန်စုံဆိုင်)</li>
+  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ဆိုင်တံခါးဆီ လျှောက်ရင် ဆိုင်ထဲ ဝင်လို့ရတယ်။ ကောင်တာမှာ B နှိပ်ရင် ဆိုင်ရှင်နဲ့ စကားပြောပြီး ဈေးဝယ်လို့ရတယ်</li>
+  <li>ရွာသား 10 ယောက်ရဲ့ အလုပ်နဲ့ ဆိုင်တွေကို သွားလည်ပါ (ပန်းဆိုင်၊ ကြက်နွားခြံ၊ ဆေးဆိုင်၊ လက်ဖက်ရည်ဆိုင်၊ ပန်းပဲဖို၊ ကုန်စုံဆိုင်)</li>
   <li>နယ်မြေ 3 ခု: ကိုယ့်ခြံ၊ အရှေ့ဘက်က ရွှေပန်းရွာ၊ တောင်ဘက်က တောနဲ့ တောင်ကုန်း (မြစ်၊ ကွင်းပြင်၊ ဂူ)။ မြေပုံအစွန်းက လမ်းအတိုင်း လျှောက်ရင် ကူးမယ်။ ရွာသား 20 ယောက်နဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
   <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button></div>`,c=>{
     const cont=c.querySelector('#mCont');
@@ -995,6 +1001,89 @@ function drawThingyan(cx,cy,now){
   for(const row of [41,48,27]){const y=row*T-cy+2;if(y<-10||y>VH*T)continue;for(let x=-((cx)%12);x<VW*T;x+=12){const sag=Math.round(Math.sin((x+cx)/40)*2);R('#3a2414',x,y+sag,12,1);const c=cols[((x+cx)/12|0)%5];R(c,x+3,y+sag+1,5,2);R(c,x+4,y+sag+3,3,1);R(c,x+5,y+sag+4,1,1)}}
   if(Math.random()<.25){const vis=npcRT.filter(n=>n.active&&n.map==='village');if(vis.length){const n=vis[(Math.random()*vis.length)|0];burst(n.x,n.y-1,'#9fd0ff',6)}}
 }
+/* ---------- shop interiors ---------- */
+const SMAP=["##########","#ssssssss#","#kkkkkkkk#","#.cccccc.#","#........#","#.dd..dd.#","#........#","####D#####"];
+const SSOLID=new Set(['#','s','k','c','d']);
+const sTile=(x,y)=>(y<0||y>=SMAP.length||x<0||x>=10)?'#':SMAP[y][x];
+const SHOPKEEP={pharmacy:'khine',florist:'mya',store:'zaw',tea:'san',smith:'tun'};
+const SHOP_THEME={
+  pharmacy:{wall:'#dfeee6',wall2:'#c8e0d4',floor:'#f2f0ea',floor2:'#e2ded4',counter:'#ffffff',ctop:'#cfe8f2',
+    shelf:['#e2402f','#3a7ad0','#f6f6f6','#3aa060','#f2c14e','#c87ad0'],disp:'ဆေးဘူးတွေ၊ ဆေးပုလင်းတွေ စီထားတယ်။ ဗီတာမင်လည်း ရှိတယ်။',shelfMsg:'ဆေးတွေ အမျိုးအစားလိုက် ခွဲထားတယ်။'},
+  florist:{wall:'#d4b06a',wall2:'#b8924c',floor:'#b5653a',floor2:'#a0552e',counter:'#8a5a30',ctop:'#a8703a',
+    shelf:['#e85aa8','#f6c829','#ffffff','#e2402f','#f08a3a','#c87ad0'],disp:'ပန်းပုံးထဲမှာ စံပယ်၊ နှင်းဆီ၊ ချဉ်ပေါင်ပန်းတွေ ရေစိမ်ထားတယ်။',shelfMsg:'ပန်းအိုးလေးတွေ စီထားတယ်။ မျိုးစေ့ထုပ်တွေလည်း ချိတ်ထားတယ်။'},
+  store:{wall:'#a8794a',wall2:'#8e6238',floor:'#c8a878',floor2:'#b8986a',counter:'#7a4a28',ctop:'#9a6a3c',
+    shelf:['#e2402f','#f2c14e','#3a7ad0','#4fb848','#f6f6f6','#a8643a'],disp:'ဆန်အိတ်တွေ၊ ဆီပုံးတွေ၊ ငါးမျှားတံနဲ့ စွန်တွေ ရှိတယ်။',shelfMsg:'မုန့်ထုပ်၊ ဆပ်ပြာ၊ ငံပြာရည်ပုလင်း အစုံပဲ။'},
+  tea:{wall:'#cfe2d8',wall2:'#b8d0c4',floor:'#d8c8a8',floor2:'#c8b898',counter:'#8a5a30',ctop:'#a8703a',
+    shelf:['#f4efe2','#e8d8b8','#c8a070','#f4efe2','#a8d0e8','#f4efe2'],disp:'ရွာသားတွေ ထိုင်ပြီး စကားပြောနေကြတယ်။',shelfMsg:'လက်ဖက်ရည်ခွက်တွေ၊ မုန့်ပုလင်းတွေ စီထားတယ်။'},
+  smith:{wall:'#5a4a40',wall2:'#4a3c34',floor:'#6a5a4a',floor2:'#5a4a3c',counter:'#3a3a3e',ctop:'#5a5a60',
+    shelf:['#9aa0a6','#c8ccd2','#7a5230','#9aa0a6','#c8ccd2','#7a5230'],disp:'ထုပြီးသား ပေါက်ပြား၊ တံစဉ်၊ ဓားတွေ စီထားတယ်။',shelfMsg:'ကိရိယာတွေ နံရံမှာ ချိတ်ထားတယ်။'},
+};
+function enterShop(b){
+  const sp=SHOPS[b.shop];
+  if(S.min<sp.open||S.min>=sp.close){const f=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;return toast(`${sp.name} ပိတ်ထားတယ်။ ဖွင့်ချိန် ${f(sp.open)} – ${f(sp.close)}`)}
+  S.room={id:b.id,shop:b.shop,ex:b.x+(b.w>>1),ey:b.y+b.h,map:b.map};S.scene='shop';S.px=4;S.py=6;S.dir='up';mv=null;fade=1;kiteRT=null;fishRT=null;
+}
+function exitShop(){const r=S.room;S.scene='farm';setMap(r.map);S.px=r.ex;S.py=r.ey;S.dir='down';mv=null;fade=1}
+function actShop(c){
+  const th=SHOP_THEME[S.room.shop];
+  if(c==='c'||c==='k'){const i=NPCS.findIndex(d=>d.id===SHOPKEEP[S.room.shop]);if(i>=0)return talk(i);return openShop(S.room.shop)}
+  if(c==='d')return toast(th.disp);
+  if(c==='s')return toast(th.shelfMsg);
+}
+function renderShop(now){
+  const W=VW*T,H=VH*T,ox=(W-10*T)>>1,oy=(H-8*T)>>1,th=SHOP_THEME[S.room.shop],X=x=>ox+x*T,Y=y=>oy+y*T;
+  R('#0d0906',0,0,W,H);
+  for(let y=0;y<8;y++)for(let x=0;x<10;x++){const c=sTile(x,y),sx=X(x),sy=Y(y);
+    if(y===0){R('#2e1d10',sx,sy,T,T);R(th.wall2,sx,sy+12,T,4);continue}
+    if(y===1){R(th.wall,sx,sy,T,T);for(let i=0;i<16;i+=6)R(th.wall2,sx+i,sy,1,T);R('rgba(0,0,0,.2)',sx,sy+14,T,2);continue}
+    if(x===0||x===9){R(th.wall2,sx,sy,T,T);R('rgba(0,0,0,.25)',x===0?sx+13:sx,sy,3,T);continue}
+    if(y===7&&c!=='D'){R('#3a2414',sx,sy,T,T);R(th.wall2,sx,sy,T,3);continue}
+    R((x+y)%2?th.floor:th.floor2,sx,sy,T,T);if(y===2)R('rgba(0,0,0,.18)',sx,sy,T,3);
+    if(c==='D'){R('#7a5a38',sx+2,sy+4,12,10);R('#f2e2b0',sx+3,sy+14,10,2)}
+  }
+  // back-wall shelves full of goods
+  const sh=S.room.shop;
+  for(const row of [0,1]){const sy=Y(1)+3+row*6;R('#5a3820',X(1),sy+5,8*T,1);
+    for(let i=0;i<8*T/4-1;i++){const x=X(1)+2+i*4,col=th.shelf[(i+row*3)%th.shelf.length];
+      if(sh==='pharmacy'){R(col,x,sy+1,2,4);R('rgba(255,255,255,.6)',x,sy+1,1,1)}
+      else if(sh==='florist'){R('#b5653a',x,sy+3,3,2);R('#2f7a30',x,sy,3,3);R(col,x+1,sy,1,1)}
+      else if(sh==='store'){if(i%3===0){R(col,x,sy,3,5);R('#ffffff',x,sy+2,3,1)}else{R(col,x,sy+1,3,4);R(sh2(col),x,sy+1,3,1)}}
+      else if(sh==='tea'){R(col,x,sy+2,3,3);if(i%4===0){R('#d8e8f0',x,sy-1,3,6);R('#c8a070',x,sy+1,3,4)}}
+      else{R('#5a3b22',x+1,sy-1,1,6);R(col,x,sy-1,3,2)}}}
+  // counter
+  const cy=Y(3);R('rgba(0,0,0,.25)',X(2),cy+14,6*T,3);OL([[th.counter,X(2),cy+2,6*T,13]],'#1a0e08');R(th.ctop,X(2),cy+2,6*T,3);
+  if(sh==='pharmacy'){R('rgba(200,230,255,.5)',X(2)+2,cy+6,6*T-4,7);for(let i=0;i<14;i++)R(th.shelf[i%6],X(2)+4+i*6,cy+9,3,3)}
+  if(sh==='florist')for(let i=0;i<8;i++){R(th.shelf[i%6],X(2)+4+i*11,cy,6,3);R('#c9a46a',X(2)+4+i*11,cy+2,6,1)}
+  if(sh==='store'){R('#e8e0d0',X(2)+6,cy-2,10,4);R('#2a2a2a',X(2)+8,cy-1,6,2);for(let i=0;i<5;i++)R(th.shelf[i],X(5)+i*5,cy-1,4,3)}
+  if(sh==='tea'){for(let i=0;i<3;i++){const kx=X(2)+10+i*24;disc('#5a5e64',kx,cy+1,5);disc('#c8ccd2',kx,cy,4);R('#5a5e64',kx-1,cy-6,2,2);if(((now/300+i)|0)%2){R('rgba(255,255,255,.6)',kx,cy-10,1,3);R('rgba(255,255,255,.4)',kx+2,cy-13,1,3)}}R('#e2702a',X(6),cy+8,20,3);R('#ffc060',X(6)+2,cy+8,16,1)}
+  if(sh==='smith'){R('#3a3a3e',X(4),cy-4,26,6);R('#5a5a60',X(4)+2,cy-4,22,2);disc('#e2702a',X(7),cy+4,6);disc('#ffc060',X(7),cy+4,3);if(((now/150)|0)%3===0)R('#fff0a0',X(7)+hash(now/150|0,1)%8-4,cy-4,1,1)}
+  // shopkeeper behind the counter
+  const kid=SHOPKEEP[sh];if(kid&&NS[kid]){const kx=X(4)+8,ky=Y(2)-6+(((now/900)|0)%2);C.drawImage(NS[kid].down[0],kx,ky);if(((now/4000)|0)%3===0)speech(kx+8,ky-2,{pharmacy:'ဘာဆေး လိုချင်လဲ?',florist:'ပန်းလေးတွေ လှလား?',store:'ဘာဝယ်မလဲ ဗျ?',tea:'ပေါ့ဆိမ့် တစ်ခွက်လား?',smith:'ကိရိယာ ထုပေးရမလား?'}[sh])}
+  // display tables
+  for(const [dx] of [[2],[6]]){const sx=X(dx),sy=Y(5);R('rgba(0,0,0,.25)',sx,sy+13,2*T,3);OL([[th.counter,sx+1,sy+4,2*T-2,10]],'#1a0e08');R(th.ctop,sx+1,sy+4,2*T-2,2);
+    if(sh==='pharmacy'){for(let i=0;i<6;i++)R(th.shelf[i],sx+3+i*4,sy+1,3,4)}
+    else if(sh==='florist'){for(let i=0;i<4;i++){R('#5a6a74',sx+3+i*7,sy+1,5,5);disc(th.shelf[i],sx+5+i*7,sy,3);disc('#3f8a35',sx+4+i*7,sy+2,1)}}
+    else if(sh==='store'){for(let i=0;i<3;i++){R('#e8dcc0',sx+3+i*9,sy-1,8,7);R('#c8b890',sx+3+i*9,sy-1,8,2);R('#c8433a',sx+5+i*9,sy+2,4,1)}}
+    else if(sh==='smith'){for(let i=0;i<4;i++){R('#7a5230',sx+4+i*7,sy-4,1,9);R('#9aa0a6',sx+3+i*7,sy-5,4,3)}}
+    else{R('#f4efe2',sx+6,sy+2,3,2);R('#f4efe2',sx+20,sy+2,3,2);[0,1].forEach(j=>{const e=EXS[(dx+j)%EXS.length];C.drawImage(e.up[0],0,0,16,16,sx+j*16,sy+8,16,16)})}}
+  if(sh==='tea'&&((now/3500)|0)%2)speech(X(3),Y(5)+4,TEA_TALK[((now/3500)|0)%TEA_TALK.length]);
+  // shop name banner on the wall
+  signBoard(W>>1,Y(0)+2,SIGNS[S.room.id]||SHOPS[sh].name,'#7a3a20');
+  const[rx,ry]=playerPos();drawPlayer(Math.round(ox+rx*T),Math.round(oy+ry*T)-7);
+  if(!paused){const[fx,fy]=front();if(SSOLID.has(sTile(fx,fy))&&fy>0)marker(ox+fx*T,oy+fy*T,now)}
+  vignette();
+}
+const sh2=c=>sh(c,.75);
+/* ---------- big signboards ---------- */
+const SIGNS={tea:'လက်ဖက်ရည်ဆိုင်',store:'ကုန်စုံဆိုင်',smith:'ပန်းပဲဖို',pharmacy:'ဆေးဆိုင်',florist:'ပန်းနဲ့ မျိုးစေ့ဆိုင်',farmyard:'ကြက်နွားခြံ',market:'ရွာဈေး',school:'မူလတန်းကျောင်း',mon:'ဘုန်းကြီးကျောင်း',h4:'သူကြီးရုံး',fisher:'ငါးဖမ်းအိမ်'};
+const SIGN_COL={tea:'#2f6a4a',store:'#2f5a9a',smith:'#4a3a3a',pharmacy:'#2fa060',florist:'#c8437a',farmyard:'#8a5a20',market:'#c8433a',school:'#2a6a3a',mon:'#8a3018',h4:'#2f4a7a',fisher:'#2a5a7a'};
+function signBoard(cx,y,text,col){
+  C.save();C.font='700 9px Padauk, "Noto Sans Myanmar", sans-serif';const w=Math.ceil(C.measureText(text).width)+12,x=Math.round(cx-w/2);
+  R('rgba(0,0,0,.3)',x+2,y+2,w,14);R('#3a2414',x-1,y-1,w+2,16);R(col,x,y,w,14);R(sh(col,1.3),x,y,w,1);R(sh(col,.7),x,y+13,w,1);
+  R('#e0b040',x+2,y+2,2,2);R('#e0b040',x+w-4,y+2,2,2);
+  C.fillStyle='#fffaf0';C.textBaseline='middle';C.textAlign='center';C.fillText(text,cx,y+7.5);C.restore();
+}
+function drawSigns(b,bx,by,sp){const t=SIGNS[b.id];if(!t)return;const fx=bx+sp.ox,fy=by+sp.top;signBoard(fx+b.w*T/2,fy+(b.style==='monastery'?b.h*T-34:b.style==='market'?-10:2),t,SIGN_COL[b.id]||'#5a3a20')}
 /* ---------- HUD & belt ---------- */
 const $=id=>document.getElementById(id);
 const hudCache={};
@@ -1899,6 +1988,7 @@ function renderHouse(now){
 function render(now){
   C=ctx;ctx.setTransform(SCALE,0,0,SCALE,0,0);ctx.imageSmoothingEnabled=false;
   if(!S){R('#3a6b2a',0,0,VW*T,VH*T);return}
+  if(S.scene==='shop'){renderShop(now);if(fade>0)R(`rgba(0,0,0,${fade})`,0,0,VW*T,VH*T);return}
   if(S.scene==='house'){renderHouse(now);if(fade>0){R(`rgba(0,0,0,${fade})`,0,0,VW*T,VH*T)}return}
   if(dirty){buildBG();dirty=false}
   const[rx,ry]=playerPos(),s=curS();
@@ -1925,7 +2015,7 @@ function render(now){
   for(let y=y0;y<=y0+VH+4&&y<MH;y++)for(let x=x0-1;x<=x0+VW&&x<MW;x++){if(x<0||S.tiles[y][x]!==TREE)continue;
     sprites.push({y:y+.9,d:()=>drawTreeAt(x,y,cx,cy,s,now),s:()=>treeShadow(x,y,cx,cy,s)})}
   BUILDINGS.forEach(b=>{if(b.map!==S.map)return;const sp=BSPR[b.id],bx=b.x*T-cx-sp.ox,by=b.y*T-cy-sp.top;if(bx>VW*T||by>VH*T||bx+sp.c.width<0||by+sp.c.height<0)return;
-    sprites.push({y:b.y+b.h-.1,s:()=>castShadow(sp.c,bx,by,sp.c.width,sp.c.height,by+sp.top+b.h*T-3),d:()=>{C.drawImage(sp.c,bx,by);DYN[b.style]&&DYN[b.style](b,bx,by,sp,now);if(!day)sp.wins.forEach(([wx,wy,ww,wh])=>R('#f8d77a',bx+wx,by+wy,ww,wh))}})});
+    sprites.push({y:b.y+b.h-.1,s:()=>castShadow(sp.c,bx,by,sp.c.width,sp.c.height,by+sp.top+b.h*T-3),d:()=>{C.drawImage(sp.c,bx,by);DYN[b.style]&&DYN[b.style](b,bx,by,sp,now);drawSigns(b,bx,by,sp);if(!day)sp.wins.forEach(([wx,wy,ww,wh])=>R('#f8d77a',bx+wx,by+wy,ww,wh))}})});
   if(onFarm&&open){const f=((now/700)|0)%2;sprites.push({y:18.5,d:()=>C.drawImage(MS.down[0],Math.round(24.5*T-cx),18*T-cy-7+f)})}
   if(onFarm)sprites.push({y:19.2,d:()=>{const sx=24*T-cx,sy=19*T-cy;
     OL([['#8a5a30',sx,sy+4,32,10]],'#2e1d10');R('#a8703a',sx,sy+4,32,2);R('#6b4426',sx,sy+9,32,1);R('rgba(0,0,0,.25)',sx,sy+14,32,2);
@@ -1934,7 +2024,7 @@ function render(now){
     R('rgba(0,0,0,.2)',px+2,py+11,8,2);C.drawImage(c.face>0?HENR:HENL,px,py+bob)}}));
   const kites=[];PRAY=[];const SIT=[];
   npcRT.forEach((n,i)=>{if(!n.active||n.map!==S.map)return;const d=NPCS[i],k=n.t,nx=n.fx+(n.x-n.fx)*k,ny=n.fy+(n.y-n.fy)*k;
-    if(n.wait&&!n.path.length&&n.t>=1&&n.act==='pray'){PRAY.push(d);return}
+    if(n.wait&&!n.path.length&&n.t>=1&&(n.act==='pray'||n.act==='work')){if(n.act==='pray')PRAY.push(d);return}
     if(nx<x0-2||nx>x0+VW+2||ny<y0-2||ny>y0+VH+3)return;
     sprites.push({y:ny+.005,s:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),im=NS[d.id][n.dir][n.t<1?(n.steps%2?1:2):0];castShadow(im,px,py,im.width,im.height,gy+15)},d:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),fr=n.t<1?(n.steps%2?1:2):0,idle=n.wait&&!n.path.length&&n.t>=1;
       if(idle&&(n.act==='sit'||n.act==='weave')){const tx=px,ty=gy;if(n.act==='sit')drawTeaTable(tx,ty-2);drawSeated(NS[d.id],tx,ty,n.act==='sit'?'up':'down');SIT.push([tx+8,ty-4]);return}
@@ -1959,6 +2049,7 @@ function render(now){
     if(kiteRT)drawKite(ppx+12,ppy+8,kiteRT.h,now,0)}
   if(onFarm&&(open||!day)){const sx=24*T-cx,sy=18*T-cy;
     R('#5a3b22',sx,sy-6,2,22);R('#5a3b22',sx+30,sy-6,2,22);
+    if(open)signBoard(sx+16,sy-28,'ဒေါ်ခင့်ဆိုင်','#c8433a');
     if(open){R('#3a2414',sx-1,sy-11,34,1);for(let i=0;i<8;i++){const c=i%2?'#f6efe0':'#c8433a';R(c,sx+i*4,sy-10,4,5);R(c,sx+i*4+1,sy-5,2,1)}R('rgba(0,0,0,.25)',sx,sy-4,32,1)}
     const lx=sx+29,ly=sy-3;R('#2a1a10',lx,ly,4,6);R(day?'#c99a40':'#ffd36a',lx+1,ly+1,2,4);R('#2a1a10',lx+1,ly-1,2,1)}
   parts.forEach(p=>{C.globalAlpha=Math.min(1,p.life/250);R(p.col,p.x-cx,p.y-cy,2,2)});C.globalAlpha=1;
