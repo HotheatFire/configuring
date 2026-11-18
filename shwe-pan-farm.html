@@ -116,8 +116,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 <script>
 (()=>{
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-const T=16,VW=15,VH=11,MW=60,MH=36,GOAL=10000,DAYS=30,TICK=300,SLEN=10;
-const G=0,SOIL=1,WEED=2,ROCK=3,TREE=4,WATER=5,PATH=6,FENCE=7,HOUSE=8,BIN=9,TROUGH=10,STALL=11,FLOWER=12,BLD=13,SAND=14,BRIDGE=15,JETTY=16;
+const T=16,VW=15,VH=11,MW=96,MH=58,GOAL=10000,DAYS=30,TICK=300,SLEN=10;
+const G=0,SOIL=1,WEED=2,ROCK=3,TREE=4,WATER=5,PATH=6,FENCE=7,HOUSE=8,BIN=9,TROUGH=10,STALL=11,FLOWER=12,BLD=13,SAND=14,BRIDGE=15,JETTY=16,RAIL=17,PLAT=18,ROAD=19;
 const SOLID=new Set([ROCK,TREE,WATER,FENCE,HOUSE,BIN,TROUGH,STALL,BLD]);
 const SEASONS=[
   {name:'နွေ',rain:.08,grass:'#86a843',gs:['#7c9e3a','#6e8f33','#9cbc55','#b2c866'],path:'#dcb87f',flowers:['#f6c829','#f08a3a','#e2402f','#ffffff']},
@@ -146,7 +146,7 @@ const OPP={up:'down',down:'up',left:'right',right:'left'};
 const YARD={x0:22,x1:27,y0:11,y1:15};
 const FIELD={x0:4,x1:18,y0:9,y1:19};
 const DOOR=[5,5],GATE=[29,20];
-const KEY='shwepan-farm-v1';
+const KEY='shwepan-farm-v2';
 const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt.....#","#.tt...C.#","#........#","####D#####"];
 const HSOLID=new Set(['#','S','w','K','B','t','C']);
 const hTile=(x,y)=>(y<0||y>=HMAP.length||x<0||x>=10)?'#':HMAP[y][x];
@@ -185,39 +185,25 @@ function genMap(seed){
   buildVillage(t);
   return t;
 }
-const BUILDINGS=[
-  {id:'h1',name:'ဦးဘ နဲ့ ဒေါ်အေးတို့ အိမ်',x:31,y:2,w:4,h:3,style:'thatch'},
-  {id:'h2',name:'မမြရဲ့ အိမ်',x:37,y:2,w:4,h:3,style:'bamboo'},
-  {id:'h8',name:'ဆရာမ မဥမ္မာတို့ အိမ်',x:52,y:2,w:4,h:3,style:'zinc'},
-  {id:'h4',name:'သူကြီး ဦးလှမောင်ရဲ့ အိမ်',x:46,y:3,w:5,h:4,style:'tile'},
-  {id:'store',name:'ကိုဇော်ရဲ့ ကုန်စုံဆိုင်',x:32,y:6,w:5,h:4,style:'shop',shop:'store'},
-  {id:'tea',name:'ဒေါ်စန်းစန်းရဲ့ လက်ဖက်ရည်ဆိုင်',x:38,y:6,w:5,h:4,style:'teashop',shop:'tea'},
-  {id:'smith',name:'ကိုထွန်းရဲ့ ပန်းပဲဖို',x:52,y:6,w:4,h:4,style:'smith',shop:'smith'},
-  {id:'h3',name:'ကိုအောင်နဲ့ ဖိုးလေးတို့ အိမ်',x:31,y:12,w:4,h:3,style:'bamboo'},
-  {id:'h9',name:'ဦးကျော်နဲ့ ကိုမင်းတို့ အိမ်',x:37,y:12,w:4,h:3,style:'thatch'},
-  {id:'h10',name:'မနှင်းနဲ့ ကိုစိုးတို့ အိမ်',x:47,y:12,w:4,h:3,style:'zinc'},
-  {id:'h11',name:'ဦးသန်းတို့ အိမ်',x:53,y:12,w:4,h:3,style:'thatch'},
-  {id:'school',name:'ရွာ မူလတန်းကျောင်း',x:33,y:23,w:6,h:4,style:'school'},
-  {id:'mon',name:'ဘုန်းကြီးကျောင်း',x:49,y:22,w:7,h:5,style:'monastery'},
-  {id:'stupa',name:'ရွှေစေတီ',x:56,y:23,w:2,h:3,style:'stupa'},
-  {id:'well',name:'ရွာ့ရေတွင်း',x:42,y:16,w:1,h:1,style:'well'},
-];
+const TOWN_X0=30;
+const TOWN=["....-..HHH-..HHH..T..--.-.....T.....f....T........T...-..f..rr....", "-..---.HHH--.HHH..T---T.-.......Tf....Tf.TTT..........-..T..rr.T..", "----.--HHHf--HHH---.....-..T..HHHHHHH....HH..T.T.T....-.....rrT.T.", "-..HHH-.....-.---..f....-.....HHHHHHHf.T.HH...........-HHHH.fr...T", ".-.HHH--....---.........-.....HHHHHHH....HH........ff.-HHHH..rf...", "---HHH.-T.---....~~~~~~~-~~T..HHHHHHHT................-HHHH~~rf...", "..-.....---f..~~~~~~~~~~-~~T..HHHHHHH....T...f........-...~~~r.T..", "..--...--....~~~~~HHHH..-~~..TT.......f.........T.....-f.~~~~r....", "...-.--....~~~~~..HHHH..-~~.......T.f..T........T.....-~~~~~.r....", "...--T....~~~~HHH.HHHH.T-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-~~~HHHr..ff", ".--.....~~~~~.HHH.......-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-~..HHHr....", "--.....~~~~HHHHHH--------------------------------------.TTHHHr...T", "..f..~~~~~fHHH..--HHHHT.-HHHH.HHHH-....-..T.-HHHH.HHHH-......rHHHH", "....~~~~HHHHHHf--.HHHH.f-HHHH.HHHH-T...-H...-HHHHfHHHH-T....TrHHHH", "..~~~~~.HHH...-HHHHHHHf.-HHHH.HHHH-.TT.-....-HHHH.HHHH-..f.T.rHHHH", "f.~~~HHHHHH.--.HHH....TT-.........-....-....-T........-..f..Tr....", ".~~~.HHH...--.THHH-----------------....-f...-----------......rf...", "~~~..HHH..--..T..---TT..-....-....-....-.f..-....-....-......rrTf.", "~~.......--.....--.-.f..-..f.-.f..-HHHH-....-....-...T-....T.rr...", "~T......--HHH.--HHH-..T.-....-....-HHHH-...T-.T..-T...-....T.rr..f", "---------.HHH--.HHH-..TT.-...-HHHH-HHHH-HHHH-HHHH-....-.THHHHrr..T", "........-.HHH-.THHH-.T...-...-HHHH-f...-HHHH-HHHH-.T..-..HHHHrr...", "........-....-.f...-.T...-...-HHHH-.T.T-HHHH-HHHH-...f-..HHHHrr...", "..f..T..------------HHHH.-HHH---------------------HHHH-.f....rr.f.", "HHHH.HHH-HHHH.HHHH.-HHHH.-HHH-HHHH.HHHH-HHHHfHHHH-HHHH-.HHHHHrr...", "HHHH.HHH-HHHH.HHHH.-HHHH.-HHH-HHHH.HHHH-HHHH.HHHH-HHHH-.HHHHHrrf..", "HHHH.HHH-HHHH.HHHH.-.....-...-HHHH.HHHH-HHHH.HHHH-T...-.HHHHHrr...", "........-..........-....f-...-------------------------------.rr.T.", "------------------------------HHHH.HHHH-HHHH.HHHH-....-..T...Lrf..", "HHHH.HHH-HHHH.HHHHT-.....-.T.-HHHH.HHHH-HHHH.HHHH-....-..f..T.rf.T", "HHHH.HHH-HHHH.HHHH.-..T..-...-HHHH.HHHH-HHHH.HHHH-..T.-....ff.r...", "HHHH.HHH-HHHH.HHHH.-.T...-.T.-T........-.........-....-..f....rTf.", "........-..........-HHHH.-HHH---------------------.T..-T......rTff", "--------------------HHHHT-HHH-HHHH.-HHH-Tf..-THHH-...T-.......r...", "HHH-....-....-HHHHH-HHHH.-HHH-HHHH.-HHH-.T..-.HHH-HHHH-.......r...", "HHH-TT..-....-HHHHH-.....-...-HHHH.-HHH-....-.HHH-HHHH-f....T.r...", "HHH-....-f..f-HHHHH-...f.-...--...f-...--...-....-HHHH-....T..r...", "----HHHH-.HHH-----------------------....-...-----------HHHH...rHHH", "...-HHHH-.HHH-HHHHT......-.....HHHH-T..T-T..-...fHHHH.-HHHH...rHHH", "HHH-HHHH-.HHH-HHHH..HHHH.-HHHHHHHHH-HHHH-HHH-HHHHHHHHT-HHHH..TrHHH", "HHH-....-....-HHHH..HHHH.-HHHHHHHHH-HHHH-HHH-HHHHHHHH.-.......r...", "HHH-....-.T..-f.....HHHH.-HHHHH....-HHHH-HHH-HHHHT...T-.....TTrT..", "...-..============================================================", "==================================================================", "========-...f-HHHH..HHHHf-HHHH.HHHH-.TT.-...-HHHH..HHH-..f..T.r..T", "HHHHHHHH-..T.-HHHH..HHHHT-HHHHTHHHH-..f.-.T.-HHHH..HHH-...T...r...", "HHHHHHHH-T.T.-HHHH.THHHH.-HHHH.HHHH-....-...-HHHH..HHH-.....T.rr.f", "---------....-...........-.........-....-...-.........-...f..Trr..", ".T.f.T..-....-----------------------T...-..T------------......rr..", ".......T-....-f....-.f...-....-....-.f..-...-...T-....-.......rr..", "........-HHHH-..T.f-.....-..T.-f...-HHHH-HHH-.T.f-..f.-...f...rrf.", "....THHH-HHHH-f.T.T-....T-....-....-HHHH-HHH-....-.T..-...T.T.fr..", "...f.HHH-HHHH-...T.-HHHH.-HHHH-HHHH-HHHH-HHH-THHH-HHHH-f....T..r..", "..f.fHHH-....-..Tf.-HHHH.-HHHH-HHHH-f...-...-THHH-HHHH-THHHH..TrT.", "HHHH....-...T-....f-HHHH.-HHHH-HHHH-.T..-...-.HHH-HHHH-.HHHH...rf.", "HHHH....------------.....-....--------------------f...--HHHH...r..", "HHHH....--.........-.....-....-...f.....-........-.T...-....TT.r..", "f...f.T..-f......T.-.....-....-.T....T..-..T.f...-.....-...T...rT."];
+const BUILDINGS=[{"id": "mon", "name": "ဘုန်းကြီးကျောင်း", "x": 30, "y": 2, "w": 7, "h": 5, "style": "monastery"}, {"id": "stupa", "name": "မြို့ဦးစေတီ", "x": 41, "y": 2, "w": 2, "h": 3, "style": "stupa"}, {"id": "station", "name": "ရွှေပန်း ဘူတာရုံ", "x": 56, "y": 24, "w": 5, "h": 3, "style": "station"}, {"id": "school", "name": "အခြေခံပညာ မူလတန်းကျောင်း", "x": 14, "y": 34, "w": 5, "h": 3, "style": "school"}, {"id": "tea", "name": "ဒေါ်စန်းစန်းရဲ့ လက်ဖက်ရည်ဆိုင်", "x": 26, "y": 39, "w": 5, "h": 3, "style": "teashop", "shop": "tea"}, {"id": "store", "name": "ကိုဇော်ရဲ့ ကုန်စုံဆိုင်", "x": 36, "y": 39, "w": 4, "h": 3, "style": "shop", "shop": "store"}, {"id": "smith", "name": "ကိုထွန်းရဲ့ ပန်းပဲဖို", "x": 45, "y": 39, "w": 4, "h": 3, "style": "smith", "shop": "smith"}, {"id": "clinic", "name": "ကျန်းမာရေး ဆေးပေးခန်း", "x": 20, "y": 39, "w": 4, "h": 3, "style": "clinic"}, {"id": "market", "name": "ရွာဈေး", "x": 0, "y": 45, "w": 8, "h": 2, "style": "market", "shop": "market"}, {"id": "well", "name": "ရပ်ကွက် ရေတွင်း", "x": 40, "y": 13, "w": 1, "h": 1, "style": "well"}, {"id": "r1", "name": "", "x": 7, "y": 0, "w": 3, "h": 3, "style": "thatch"}, {"id": "r2", "name": "", "x": 13, "y": 0, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r5", "name": "", "x": 3, "y": 3, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r6", "name": "", "x": 55, "y": 3, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r9", "name": "", "x": 18, "y": 7, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r10", "name": "", "x": 14, "y": 9, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r11", "name": "", "x": 58, "y": 9, "w": 3, "h": 3, "style": "thatch"}, {"id": "r13", "name": "", "x": 11, "y": 11, "w": 3, "h": 3, "style": "thatch"}, {"id": "h9", "name": "ဦးကျော်နဲ့ ကိုမင်းတို့ အိမ်", "x": 18, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "r16", "name": "", "x": 25, "y": 12, "w": 4, "h": 3, "style": "zinc"}, {"id": "r17", "name": "", "x": 30, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "h3", "name": "ကိုအောင်နဲ့ ဖိုးလေးတို့ အိမ်", "x": 45, "y": 12, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r20", "name": "", "x": 50, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "r21", "name": "", "x": 62, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "h1", "name": "ဦးဘ နဲ့ ဒေါ်အေးတို့ အိမ်", "x": 8, "y": 13, "w": 3, "h": 3, "style": "thatch"}, {"id": "r23", "name": "", "x": 15, "y": 14, "w": 3, "h": 3, "style": "thatch"}, {"id": "r26", "name": "", "x": 5, "y": 15, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r36", "name": "", "x": 35, "y": 18, "w": 4, "h": 3, "style": "thatch"}, {"id": "r37", "name": "", "x": 10, "y": 19, "w": 3, "h": 3, "style": "thatch"}, {"id": "r38", "name": "", "x": 16, "y": 19, "w": 3, "h": 3, "style": "thatch"}, {"id": "r42", "name": "", "x": 30, "y": 20, "w": 4, "h": 3, "style": "thatch"}, {"id": "r43", "name": "", "x": 40, "y": 20, "w": 4, "h": 3, "style": "zinc"}, {"id": "r44", "name": "", "x": 45, "y": 20, "w": 4, "h": 3, "style": "thatch"}, {"id": "r46", "name": "", "x": 57, "y": 20, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r50", "name": "", "x": 20, "y": 23, "w": 4, "h": 3, "style": "zinc"}, {"id": "r51", "name": "", "x": 26, "y": 23, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r52", "name": "", "x": 50, "y": 23, "w": 4, "h": 3, "style": "thatch"}, {"id": "r53", "name": "", "x": 0, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r54", "name": "", "x": 5, "y": 24, "w": 3, "h": 3, "style": "thatch"}, {"id": "r55", "name": "", "x": 9, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r56", "name": "", "x": 14, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r57", "name": "", "x": 30, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r58", "name": "", "x": 35, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r59", "name": "", "x": 40, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r60", "name": "", "x": 45, "y": 24, "w": 4, "h": 3, "style": "tile"}, {"id": "h4", "name": "သူကြီး ဦးလှမောင်ရဲ့ အိမ်", "x": 30, "y": 28, "w": 4, "h": 3, "style": "tile"}, {"id": "r63", "name": "", "x": 35, "y": 28, "w": 4, "h": 3, "style": "tile"}, {"id": "r64", "name": "", "x": 40, "y": 28, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r65", "name": "", "x": 45, "y": 28, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r69", "name": "", "x": 0, "y": 29, "w": 4, "h": 3, "style": "tile"}, {"id": "r70", "name": "", "x": 5, "y": 29, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r71", "name": "", "x": 9, "y": 29, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r72", "name": "", "x": 14, "y": 29, "w": 4, "h": 3, "style": "thatch"}, {"id": "r78", "name": "", "x": 20, "y": 32, "w": 4, "h": 3, "style": "thatch"}, {"id": "r79", "name": "", "x": 26, "y": 32, "w": 3, "h": 3, "style": "tile"}, {"id": "r80", "name": "", "x": 30, "y": 33, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r81", "name": "", "x": 36, "y": 33, "w": 3, "h": 3, "style": "zinc"}, {"id": "r83", "name": "", "x": 46, "y": 33, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r84", "name": "", "x": 0, "y": 34, "w": 3, "h": 3, "style": "thatch"}, {"id": "r87", "name": "", "x": 50, "y": 34, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r91", "name": "", "x": 4, "y": 37, "w": 4, "h": 3, "style": "thatch"}, {"id": "r92", "name": "", "x": 10, "y": 37, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r93", "name": "", "x": 55, "y": 37, "w": 4, "h": 3, "style": "thatch"}, {"id": "r94", "name": "", "x": 63, "y": 37, "w": 3, "h": 3, "style": "zinc"}, {"id": "h8", "name": "ဆရာမ မဥမ္မာတို့ အိမ်", "x": 14, "y": 38, "w": 4, "h": 3, "style": "zinc"}, {"id": "r96", "name": "", "x": 31, "y": 38, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r97", "name": "", "x": 49, "y": 38, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r98", "name": "", "x": 0, "y": 39, "w": 3, "h": 3, "style": "tile"}, {"id": "h10", "name": "မနှင်းနဲ့ ကိုစိုးတို့ အိမ်", "x": 41, "y": 39, "w": 3, "h": 3, "style": "zinc"}, {"id": "r101", "name": "", "x": 14, "y": 44, "w": 4, "h": 3, "style": "zinc"}, {"id": "h11", "name": "ဦးသန်းတို့ အိမ်", "x": 20, "y": 44, "w": 4, "h": 3, "style": "thatch"}, {"id": "r103", "name": "", "x": 26, "y": 44, "w": 4, "h": 3, "style": "zinc"}, {"id": "r104", "name": "", "x": 31, "y": 44, "w": 4, "h": 3, "style": "thatch"}, {"id": "r107", "name": "", "x": 45, "y": 44, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r108", "name": "", "x": 51, "y": 44, "w": 3, "h": 3, "style": "zinc"}, {"id": "r121", "name": "", "x": 9, "y": 50, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r122", "name": "", "x": 36, "y": 50, "w": 4, "h": 3, "style": "tile"}, {"id": "r123", "name": "", "x": 41, "y": 50, "w": 3, "h": 3, "style": "tile"}, {"id": "h2", "name": "မမြရဲ့ အိမ်", "x": 5, "y": 51, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r127", "name": "", "x": 20, "y": 52, "w": 4, "h": 3, "style": "thatch"}, {"id": "r128", "name": "", "x": 26, "y": 52, "w": 4, "h": 3, "style": "tile"}, {"id": "r129", "name": "", "x": 31, "y": 52, "w": 4, "h": 3, "style": "thatch"}, {"id": "r130", "name": "", "x": 46, "y": 52, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r131", "name": "", "x": 50, "y": 52, "w": 4, "h": 3, "style": "zinc"}, {"id": "r132", "name": "", "x": 56, "y": 53, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r133", "name": "", "x": 0, "y": 54, "w": 4, "h": 3, "style": "thatch"}].map(b=>({...b,x:b.x+TOWN_X0,name:b.name||"ရွာသား အိမ်"}));
+const HOMES={"h1": [39, 16], "h2": [36, 54], "h3": [77, 15], "h4": [62, 31], "h8": [46, 41], "h9": [50, 15], "h10": [72, 42], "h11": [52, 47], "mon": [63, 7], "station": [88, 27], "school": [46, 37], "tea": [58, 42], "store": [68, 42], "smith": [77, 42], "clinic": [52, 42], "market": [34, 47]};
+const PLACES={"market": [[32, 47], [36, 47], [33, 47], [35, 47], [37, 48]], "tea": [[56, 42], [60, 42], [57, 42], [59, 42], [55, 43], [61, 43]], "store": [[66, 42], [70, 42], [67, 42], [69, 42], [65, 43], [71, 43]], "smith": [[75, 42], [79, 42], [76, 42], [78, 42], [74, 43], [80, 43]], "clinic": [[50, 42], [54, 42], [51, 42], [53, 42], [49, 43], [55, 43]], "school": [[44, 37], [48, 37], [45, 37], [47, 37], [43, 38], [49, 38]], "station": [[86, 27], [90, 27], [87, 27], [89, 27], [85, 28], [91, 28]], "mon": [[61, 7], [65, 7], [62, 7], [64, 7], [60, 8], [66, 8]], "stupa": [[70, 5], [74, 5], [71, 5], [73, 5]], "canal": [[58, 11], [63, 11], [68, 11], [76, 11], [80, 11], [60, 11]], "park": [[44, 49], [47, 49], [45, 50], [48, 50], [44, 52], [45, 53], [48, 53], [46, 54]], "square": [[71, 44], [69, 44], [73, 47], [75, 48]], "platform": [[91, 28], [90, 28]], "farm": [[12, 8]], "bin": [[9, 7]], "farmhouse": [[6, 7]], "stall": [[25, 20], [23, 20]], "yard": [[20, 13]], "pond": [[25, 6]], "meadow": [[8, 24], [10, 26], [14, 27], [18, 30], [6, 33]], "river": [[22, 44], [16, 44]], "jetty": [[20, 46]]};
+const RAILX=[90, 90, 90, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 93, 93, 93, 93, 93, 93, 93];
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 function buildVillage(t){
-  const r=mulberry32(4242);
-  for(let x=20;x<MW-1;x++)t[20][x]=PATH;
-  for(let y=3;y<=30;y++)t[y][44]=PATH;
-  for(let x=30;x<MW-1;x++)t[10][x]=PATH;
-  for(let x=34;x<=54;x++)t[27][x]=PATH;
-  for(let y=21;y<=29;y++)t[y][20]=PATH;
-  for(let x=1;x<MW-1;x++){t[30][x]=SAND;t[31][x]=WATER;t[32][x]=WATER;t[33][x]=WATER;t[34][x]=SAND}
-  t[31][20]=JETTY;t[32][20]=JETTY;
-  for(let y=31;y<=33;y++)t[y][44]=BRIDGE;t[30][44]=PATH;t[34][44]=PATH;
-  BUILDINGS.forEach(b=>{for(let y=b.y;y<b.y+b.h;y++)for(let x=b.x;x<b.x+b.w;x++)t[y][x]=BLD});
-  [[30,3],[36,3],[42,3],[51,8],[57,8],[30,8],[35,17],[45,13],[52,17],[57,17],[42,13],[41,18],[50,18],[3,23],[8,28],[26,23],[16,29],[27,28],[31,29],[40,23],[46,23],[47,29],[57,28],[8,34],[15,34],[30,34],[37,34],[52,34],[56,4]].forEach(([x,y])=>{if(t[y][x]===G)t[y][x]=TREE});
-  for(let i=0;i<120;i++){const x=1+Math.floor(r()*(MW-2)),y=1+Math.floor(r()*(MH-2));if(t[y][x]===G&&(x>=30||y>=22))t[y][x]=FLOWER}
+  const M={'.':G,'-':PATH,'=':ROAD,'~':WATER,'b':BRIDGE,'r':RAIL,'x':RAIL,'L':PLAT,'T':TREE,'f':FLOWER,'H':BLD};
+  TOWN.forEach((row,y)=>{for(let x=0;x<row.length;x++)t[y][x+TOWN_X0]=M[row[x]]??G});
+  const r=mulberry32(99);
+  for(let y=22;y<MH-1;y++)for(let x=1;x<=29;x++)t[y][x]=G;
+  for(let x=1;x<=28;x++){t[44][x]=SAND;t[45][x]=WATER;t[46][x]=WATER;t[47][x]=WATER;t[48][x]=SAND}
+  t[21][20]=PATH;for(let y=22;y<=43;y++)t[y][20]=PATH;t[45][20]=JETTY;t[46][20]=JETTY;
+  for(let x=0;x<30;x++)t[MH-1][x]=TREE;
+  [[3,23],[26,23],[16,29],[27,28],[4,38],[24,36],[12,41],[28,40]].forEach(([x,y])=>t[y][x]=TREE);
+  for(let y=22;y<=43;y++)for(let x=1;x<=28;x++)if(t[y][x]===G&&r()<.07)t[y][x]=FLOWER;
+  for(let y=49;y<MH-1;y++)for(let x=1;x<=29;x++){const q=r();t[y][x]=q<.3?TREE:q<.38?FLOWER:G}
 }
-
 function fresh(){
   const seeds={},produce={};CROP_IDS.forEach(id=>{seeds[id]=0;produce[id]=0});seeds.kangkong=9;for(const id in EXTRA)produce[id]=0;
   return{day:1,min:360,money:500,energy:100,maxE:100,water:30,canMax:30,weather:'sun',tomorrow:Math.random()<SEASONS[0].rain?'rain':'sun',
@@ -230,74 +216,73 @@ function fresh(){
 function migrate(s){
   CROP_IDS.forEach(id=>{s.seeds[id]??=0;s.produce[id]??=0});
   for(const id in EXTRA)s.produce[id]??=0;s.has??={};s.up??={};s.scene??='farm';s.friends??={};s.talked??={};s.gifts??={};s.daily??={};
-  if(s.tiles.length<MH||s.tiles[0].length<MW){const nt=genMap(1),nw=Array.from({length:MH},()=>Array(MW).fill(0));for(let y=0;y<22;y++)for(let x=0;x<30;x++){nt[y][x]=s.tiles[y][x];nw[y][x]=s.wet[y]?s.wet[y][x]:0}s.tiles=nt;s.wet=nw}
-  s.tiles[20][29]=PATH;s.tiles[21][20]=PATH;
+  if(s.tiles.length!==MH||s.tiles[0].length!==MW)return null;
   if(!CROPS[s.seedSel]||CROPS[s.seedSel].s!==seasonOf(s.day))s.seedSel=seasonCrops(seasonOf(s.day))[0];
   return s;
 }
 function save(){if(!S)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function loadSave(){try{const s=localStorage.getItem(KEY);return s?migrate(JSON.parse(s)):null}catch(e){return null}}
+try{localStorage.removeItem('shwepan-farm-v1')}catch(e){}
 function clearSave(){try{localStorage.removeItem(KEY)}catch(e){}}
 function syncChickens(){dirty=true;chickRT=S.chickens.map(c=>({x:c.x,y:c.y,tx:c.x,ty:c.y,wait:Math.random()*2,face:1}));resetNPCs()}
 
 /* ---------- villagers ---------- */
 const sh=(hex,f)=>{const n=parseInt(hex.slice(1),16),c=v=>Math.max(0,Math.min(255,Math.round(v*f)));return '#'+((1<<24)|(c(n>>16)<<16)|(c(n>>8&255)<<8)|c(n&255)).toString(16).slice(1)};
 const mkPal=(s,k,w,l,p,h)=>({o:'#2a1a12',s,S:sh(s,.8),k,e:'#1b120c',w,W:sh(w,.8),l,L:sh(l,.72),p,f:'#7a4a28',h:h||'#e2c27a',H:sh(h||'#e2c27a',.8),j:sh(h||'#e2c27a',1.15),r:'#e2504a',t:'#f2dc9e'});
-const HOMES={h1:[33,5],h2:[39,5],h3:[33,15],h4:[48,7],store:[34,10],tea:[40,10],smith:[54,10],h8:[54,5],h9:[39,15],h10:[49,15],h11:[55,15],mon:[52,27]};
 const SEASON_TALK=[
   ['ဒီနှစ် နွေက တော်တော်ပူတယ်နော်။','သင်္ကြန် နီးလာပြီ။ ရေပက်ဖို့ အဆင်သင့်ပဲလား?','ပိတောက်ပန်းတွေ ပွင့်နေတာ လှလိုက်တာ။'],
   ['မိုးရွာတော့ လယ်ကွင်းတွေ စိမ်းလာပြီ။','ထီးမမေ့နဲ့နော်။','မြစ်ရေ တက်လာပြီ။ ငါးတွေ များလာတယ်။'],
   ['မနက်ဆို အေးတယ်။ မီးလှုံရတာ ကောင်းတယ်။','ဆောင်းတွင်း ကောင်းကင်ကြည်တော့ စွန်လွှတ်လို့ ကောင်းတယ်။','ထမနဲပွဲ လုပ်ကြမယ်နော်။'],
 ];
 const NPCS=[
-  {id:'ba',name:'ဦးဘ',role:'အိမ်နီးချင်း ခြံသမားအို',home:'h1',head:'BALD',pal:mkPal('#c98e5c','#cfcac2','#f2efe6','#7a5a3a','#a8835a'),rainSkip:true,plan:[[480,[12,8],120,'down'],[0,[9,7],40,'up']],
+  {id:'ba',name:'ဦးဘ',role:'အိမ်နီးချင်း ခြံသမားအို',home:'h1',head:'BALD',pal:mkPal('#c98e5c','#cfcac2','#f2efe6','#7a5a3a','#a8835a'),rainSkip:true,plan:[[480,PLACES.farm[0],120,'down'],[0,PLACES.bin[0],40,'up']],
     gift:()=>{const id=seasonCrops(curS())[1];S.seeds[id]+=9;return `${CROPS[id].name} မျိုးစေ့ 9 စေ့ ပေးလိုက်တယ်`},
     lines:['ပေါင်းပင်တွေကို အမြဲရှင်းထားပါကွယ်။ ညတိုင်း နည်းနည်းစီ ပြန်ပေါက်တတ်တယ်။','ရေမလောင်းရတဲ့ နေ့က အပင်တွေ မကြီးဘူးနော်။','မင်းအဘိုးလည်း ဒီမြေမှာ တစ်သက်လုံး စိုက်ခဲ့တာ။ မင်းကို မြင်ရတာ ဝမ်းသာတယ်။'],
     season:['နွေရာသီ ပူတယ်။ ကန်စွန်းက မြန်မြန်ထွက်တယ်၊ ဖရဲသီးက ဈေးကောင်းတယ်။','မိုးရာသီဆို စပါးစိုက်ရမယ်ကွယ်။ မိုးရွာတဲ့နေ့ ရေလောင်းစရာ မလိုဘူး။','ဆောင်းမှာ ဂေါ်ဖီထုပ်နဲ့ အာလူး ကောင်းတယ်။ မနက်ခင်း မြူဆိုင်းနေတာ လှတယ်နော်။']},
-  {id:'aye',name:'ဒေါ်အေး',role:'ဦးဘရဲ့ ဇနီး၊ ယက်ကန်းသည်',home:'h1',head:'BUN',thanaka:true,pal:mkPal('#c99568','#9a948c','#f4efe2','#6a3a5a','#c8a050'),plan:[[600,[31,6],300,'down']],
+  {id:'aye',name:'ဒေါ်အေး',role:'ဦးဘရဲ့ ဇနီး၊ ယက်ကန်းသည်',home:'h1',head:'BUN',thanaka:true,pal:mkPal('#c99568','#9a948c','#f4efe2','#6a3a5a','#c8a050'),plan:[[600,PLACES.market[1],120,'up'],[0,PLACES.square[0],120,'down']],
     lines:['ငယ်ငယ်တုန်းက ဒီရွာမှာ ပိတောက်ပင်တွေ အများကြီးပဲ။','မင်းအဘိုးနဲ့ ငါတို့ အတူ ကြီးပြင်းခဲ့တာ။','ယက်ကန်းရက်နေတယ်။ အကြာကြီး ထိုင်ရတော့ ခါးနာတယ်။']},
-  {id:'mya',name:'မမြ',role:'ရွာက ပန်းသည်',home:'h2',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#fbe7c6','#2f7a5a','#e2b84a'),plan:[[600,[25,20],60,'up'],[0,[20,13],40,'right'],[0,[6,7],30,'up']],
+  {id:'mya',name:'မမြ',role:'ရွာက ပန်းသည်',home:'h2',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#fbe7c6','#2f7a5a','#e2b84a'),plan:[[600,PLACES.stall[0],60,'up'],[0,PLACES.yard[0],40,'right'],[0,PLACES.market[0],90,'up']],
     gift:()=>{S.tea+=3;return 'လက်ဖက်ရည် 3 ခွက် ပေးလိုက်တယ်'},
     lines:['ဒီနေ့ ဈေးထဲမှာ ကြက်ဥ ဈေးကောင်းတယ်တဲ့။','သနပ်ခါး လိမ်းထားတော့ နေပူလည်း အေးတယ်။','ရွာကို ကယ်ဖို့ ငါတို့လည်း ဆုတောင်းပေးနေတယ်နော်။'],
     season:['သင်္ကြန်ရောက်ရင် ရေပက်ကြမယ်နော်။ ပိတောက်ပန်းတွေ ပွင့်နေပြီ။','မိုးတွင်းဆို လမ်းတွေ ရွှံ့ထူတယ်။ ချော်မလဲနဲ့နော်။','ဆောင်းတွင်း မနက်ဆို အေးတယ်။ လက်ဖက်ရည် ပူပူလေး သောက်ရတာ ကောင်းတယ်။']},
-  {id:'aung',name:'ကိုအောင်',role:'ငါးမျှားဝါသနာရှင်',home:'h3',head:'SHORT',pal:mkPal('#d39a68','#1e130b','#5a8ad6','#3a3a5a','#8a7ab8'),rainSkip:true,plan:[[840,[25,6],150,'up','fish']],
+  {id:'aung',name:'ကိုအောင်',role:'ငါးမျှားဝါသနာရှင်',home:'h3',head:'SHORT',pal:mkPal('#d39a68','#1e130b','#5a8ad6','#3a3a5a','#8a7ab8'),rainSkip:true,plan:[[840,PLACES.pond[0],150,'up','fish']],
     gift:()=>{S.produce.fish+=2;return 'ငါး 2 ကောင် ပေးလိုက်တယ်။ ပို့ကုန်ပုံးထဲ ထည့်ရောင်းလို့ရတယ်'},
     lines:['ဒီကန်ထဲမှာ ငါးကြီးတွေ ရှိတယ်ဗျ။','ခြံလုပ်တာ ပင်ပန်းမှာပဲ။ အားမရှိရင် လက်ဖက်ရည် သောက်ဗျာ။','ကုမ္ပဏီက လူတွေ ရွာထဲ လာကြည့်သွားတယ်။ မြန်မြန် လုပ်မှ ဖြစ်မယ်။'],
     season:['နွေရာသီ ကန်ရေ နည်းလာတယ်။ ငါးတွေ အောက်ခြေမှာ ပုန်းနေကြတယ်။','မိုးရွာရင် ငါးမျှားလို့ မကောင်းဘူး။ ဒီနေ့တော့ ကံကောင်းတယ်။','ဆောင်းမှာ ကန်ရေ ကြည်တယ်။ ငါးတွေကို မြင်ရတယ်ဗျ။']},
-  {id:'pho',name:'ဖိုးလေး',role:'ကိုအောင်ရဲ့ ညီလေး',home:'h3',head:'SHORT',kid:true,pal:mkPal('#d8a070','#1e130b','#f2efe6','#3f6a3a','#7aa86a'),rainSkip:true,plan:[[700,[22,30],180,'down','fish']],
+  {id:'pho',name:'ဖိုးလေး',role:'ကိုအောင်ရဲ့ ညီလေး',home:'h3',head:'SHORT',kid:true,pal:mkPal('#d8a070','#1e130b','#f2efe6','#3f6a3a','#7aa86a'),rainSkip:true,plan:[[700,PLACES.river[0],180,'down','fish']],
     lines:['ငါးစာက တီကောင်ပဲ ကောင်းတယ်။','ငါးဖမ်းရင် ချက်ချင်း မဆွဲနဲ့။ ဖော့ငုပ်မှ ဆွဲ။','အစ်ကို ကိုအောင်က ငါ့ထက် ငါးများများ ရတယ်။']},
-  {id:'hla',name:'ဦးလှမောင်',role:'ရွာသူကြီး',home:'h4',head:'WRAP',pal:mkPal('#c98e5c','#8a8a8a','#f4f0e6','#4a3a6a','#8a7ab0','#f4efe2'),plan:[[450,[52,28],60,'up'],[0,[45,11],120,'left'],[0,[41,11],90,'up']],
+  {id:'hla',name:'ဦးလှမောင်',role:'ရွာသူကြီး',home:'h4',head:'WRAP',pal:mkPal('#c98e5c','#8a8a8a','#f4f0e6','#4a3a6a','#8a7ab0','#f4efe2'),plan:[[450,PLACES.stupa[0],60,'up'],[0,PLACES.square[1],120,'down'],[0,PLACES.tea[0],90,'up']],
     lines:['ကုမ္ပဏီက စာလာပို့သွားတယ်။ ရက် 30 ပြည့်ရင် ဆုံးဖြတ်ရမယ်တဲ့။','ရွာကို ချစ်တဲ့ လူငယ်တွေ ရှိနေတာ ဝမ်းသာတယ်။','ရွာ့အသင်းကလည်း တတ်နိုင်သလောက် ငွေစုနေတယ်။']},
-  {id:'san',name:'ဒေါ်စန်းစန်း',role:'လက်ဖက်ရည်ဆိုင်ရှင်',home:'tea',head:'BUN',shop:'tea',late:1200,pal:mkPal('#d49c6c','#1e130b','#f2c4c4','#7a2a3a','#d8a040'),plan:[[390,[40,10],800,'down']],
+  {id:'san',name:'ဒေါ်စန်းစန်း',role:'လက်ဖက်ရည်ဆိုင်ရှင်',home:'tea',head:'BUN',shop:'tea',late:1200,pal:mkPal('#d49c6c','#1e130b','#f2c4c4','#7a2a3a','#d8a040'),plan:[[390,HOMES.tea,800,'down']],
     lines:['လက်ဖက်ရည် ပေါ့ဆိမ့် သောက်မလား?','မုန့်ဟင်းခါး မနက်တိုင်း အသစ်ချက်တယ်။','ဆိုင်မှာ ရွာထဲ သတင်းအကုန် ကြားရတယ်။']},
-  {id:'zaw',name:'ကိုဇော်',role:'ကုန်စုံဆိုင်ရှင်',home:'store',head:'SHORT',shop:'store',pal:mkPal('#c99062','#1e130b','#8ab04a','#5a4a3a','#a8906a'),plan:[[470,[34,10],600,'down']],
+  {id:'zaw',name:'ကိုဇော်',role:'ကုန်စုံဆိုင်ရှင်',home:'store',head:'SHORT',shop:'store',pal:mkPal('#c99062','#1e130b','#8ab04a','#5a4a3a','#a8906a'),plan:[[470,HOMES.store,600,'down']],
     lines:['ငါးမျှားတံ ရှိတယ်။ မြစ်ထဲမှာ ငါးရံကြီးတွေ ရှိတယ်တဲ့။','စွန်လည်း ရောင်းတယ်။ တောင်ဘက်ကွင်းမှာ လွှတ်လို့ကောင်းတယ်။','မြို့ကနေ ကုန်ပစ္စည်း အသစ်တွေ ရောက်ထားတယ်။']},
-  {id:'tun',name:'ကိုထွန်း',role:'ပန်းပဲဆရာ',home:'smith',head:'WRAP',shop:'smith',pal:mkPal('#b07a50','#1e130b','#6a6a6a','#3a3a3a','#8a6a4a','#c8433a'),late:1020,plan:[[470,[54,10],550,'down']],
+  {id:'tun',name:'ကိုထွန်း',role:'ပန်းပဲဆရာ',home:'smith',head:'WRAP',shop:'smith',pal:mkPal('#b07a50','#1e130b','#6a6a6a','#3a3a3a','#8a6a4a','#c8433a'),late:1020,plan:[[470,HOMES.smith,550,'down']],
     lines:['ပေါက်ပြား ပိုကောင်းချင်ရင် လာခဲ့။ ပိုပေါ့အောင် ထုပေးမယ်။','သံကို ပူတုန်းထုရတယ်။','တူကောင်းရင် ကျောက်တုံးကို တစ်ချက်တည်းနဲ့ ခွဲနိုင်တယ်။']},
-  {id:'monk',name:'ဦးဇင်း ဦးပညာ',role:'ဘုန်းကြီးကျောင်း',home:'mon',head:'MONK',pal:{...mkPal('#c98e5c','#c98e5c','#9a3a20','#9a3a20','#8a3018'),k:'#c98e5c'},plan:[[380,[44,20],15,'down'],[0,[36,20],15,'down'],[0,[44,11],15,'down']],
+  {id:'monk',name:'ဦးဇင်း ဦးပညာ',role:'ဘုန်းကြီးကျောင်း',home:'mon',head:'MONK',pal:{...mkPal('#c98e5c','#c98e5c','#9a3a20','#9a3a20','#8a3018'),k:'#c98e5c'},plan:[[380,PLACES.square[2],15,'down'],[0,PLACES.market[2],15,'up'],[0,PLACES.tea[1],15,'up'],[0,PLACES.mon[0],5,'down']],
     lines:['ကျန်းမာချမ်းသာကြပါစေ။','စိတ်ကို အေးအေးထားပြီး ကြိုးစားပါ။','ရွာသူရွာသားတွေ ညီညွတ်ရင် အခက်အခဲ ကျော်လွှားနိုင်တယ်။']},
-  {id:'oo',name:'မဥမ္မာ',role:'ကျောင်းဆရာမ',home:'h8',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),plan:[[500,[37,28],420,'up']],
+  {id:'oo',name:'မဥမ္မာ',role:'ကျောင်းဆရာမ',home:'h8',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),plan:[[500,PLACES.school[0],420,'up']],
     lines:['ကလေးတွေ စာကြိုးစားကြတယ်။','ကျောင်းဆောင်လေးကို ရွာက စုပြီး ဆောက်ပေးခဲ့တာ။','စက်ရုံဆောက်ရင် ကျောင်းလည်း ရွှေ့ရမှာတဲ့။']},
-  {id:'thida',name:'မသီတာ',role:'ဆရာမရဲ့ သမီးလေး',home:'h8',head:'BUN',kid:true,thanaka:true,pal:mkPal('#e0a676','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),rainSkip:true,plan:[[510,[35,28],380,'up'],[0,[10,25],100,'up','kite']],
+  {id:'thida',name:'မသီတာ',role:'ဆရာမရဲ့ သမီးလေး',home:'h8',head:'BUN',kid:true,thanaka:true,pal:mkPal('#e0a676','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),rainSkip:true,plan:[[510,PLACES.school[1],380,'up'],[0,PLACES.meadow[1],100,'up','kite']],
     lines:['စွန်လွှတ်တတ်လား? ငါ့စွန်က လိပ်ပြာပုံလေး။','ဒီနေ့ ဆရာမ ဂဏန်းတွက်ခိုင်းတယ်။','ကြက်ကလေးတွေ ချစ်စရာကောင်းတယ်နော်။']},
-  {id:'mgmg',name:'မောင်မောင်',role:'ကျောင်းသားလေး',home:'h11',head:'SHORT',kid:true,pal:mkPal('#d8a070','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),rainSkip:true,plan:[[520,[38,28],370,'up'],[0,[14,26],110,'up','kite']],
+  {id:'mgmg',name:'မောင်မောင်',role:'ကျောင်းသားလေး',home:'h11',head:'SHORT',kid:true,pal:mkPal('#d8a070','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),rainSkip:true,plan:[[520,PLACES.school[2],370,'up'],[0,PLACES.meadow[2],110,'up','kite']],
     lines:['ငါ့စွန်က ရွာမှာ အမြင့်ဆုံး ပျံတာ!','မြစ်ထဲ ရေမကူးရဘူးလို့ အမေက ပြောတယ်။','ကျောင်းဆင်းရင် ကွင်းထဲ ပြေးမယ်။']},
-  {id:'kyaw',name:'ဦးကျော်',role:'ငါးဖမ်းသမား',home:'h9',head:'HAT',pal:mkPal('#b07a50','#3a2a1a','#c8b890','#5a4a2a','#8a7a4a'),plan:[[420,[20,32],300,'down','fish'],[0,[39,11],90,'up']],
+  {id:'kyaw',name:'ဦးကျော်',role:'ငါးဖမ်းသမား',home:'h9',head:'HAT',pal:mkPal('#b07a50','#3a2a1a','#c8b890','#5a4a2a','#8a7a4a'),plan:[[420,PLACES.canal[0],300,'up','fish'],[0,PLACES.tea[2],90,'up']],
     lines:['မိုးတွင်းဆို ပုစွန်ထုပ်တွေ မြစ်ထဲ ပိုများတယ်။','ငါးမျှားရင် ဖော့ငုပ်သွားမှ ချက်ချင်းဆွဲ။','ဒီမြစ်က ရွာကို အမြဲ ကျွေးမွေးခဲ့တာ။']},
-  {id:'min',name:'ကိုမင်း',role:'လယ်သမား လူငယ်',home:'h9',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#e8e0c8','#2a4a6a','#5a8ab0'),plan:[[470,[8,24],240,'right'],[0,[43,19],60,'left']],
+  {id:'min',name:'ကိုမင်း',role:'လယ်သမား လူငယ်',home:'h9',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#e8e0c8','#2a4a6a','#5a8ab0'),plan:[[470,PLACES.meadow[0],240,'right'],[0,PLACES.park[0],60,'down']],
     lines:['စပါးစိုက်ရင် ရေဝဝ ရှိရမယ်။','မြို့တက်ပြီး အလုပ်လုပ်ဖို့ စဉ်းစားနေတာ။ ဒါပေမဲ့ ရွာကို ချစ်တယ်။','ပေါင်းပင်တွေ ရှင်းရတာ ပင်ပန်းတယ်ဗျာ။']},
-  {id:'hnin',name:'မနှင်း',role:'အပ်ချုပ်သမ',home:'h10',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#b8d8f0','#8a2a5a','#e2b84a'),plan:[[540,[25,22],40,'up'],[0,[47,19],180,'up'],[0,[45,9],60,'left']],
+  {id:'hnin',name:'မနှင်း',role:'အပ်ချုပ်သမ',home:'h10',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#b8d8f0','#8a2a5a','#e2b84a'),plan:[[540,PLACES.market[3],60,'up'],[0,PLACES.station[0],60,'down'],[0,PLACES.park[2],90,'down']],
     lines:['ထဘီ အသစ် ချုပ်နေတယ်။ ပွဲတော်အတွက်လေ။','မင်းလုံချည်လေး လှတယ်နော်။','အပ်ချုပ်စက်သံက ညတိုင်း ကြားရတယ်တဲ့။']},
-  {id:'soe',name:'ကိုစိုး',role:'စာပို့သမား',home:'h10',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#3a6a9a','#3a3a3a','#6a6a8a','#3a5a8a'),plan:[[500,[32,5],5,'up'],[0,[53,5],5,'up'],[0,[47,7],5,'up'],[0,[6,7],10,'up'],[0,[50,15],5,'up']],
+  {id:'soe',name:'ကိုစိုး',role:'စာပို့သမား',home:'h10',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#3a6a9a','#3a3a3a','#6a6a8a','#3a5a8a'),plan:[[500,PLACES.station[1],20,'down'],[0,PLACES.store[0],10,'up'],[0,PLACES.school[3],10,'up'],[0,PLACES.farmhouse[0],10,'up'],[0,PLACES.clinic[0],10,'up']],
     lines:['စာတွေ ပို့နေတယ်။ မြို့က စာ အများကြီးပဲ။','ရွာတစ်ပတ် နေ့တိုင်း လမ်းလျှောက်တော့ ခြေထောက်သန်တယ်။','ကုမ္ပဏီ စာအိတ်ကို သူကြီးအိမ် ပို့ခဲ့ရတယ်။']},
-  {id:'than',name:'ဦးသန်း',role:'ဆိုက်ကားသမား',home:'h11',head:'HAT',pal:mkPal('#b07a50','#4a4a4a','#e8d8b0','#4a5a3a','#7a8a5a'),plan:[[480,[30,20],20,'left'],[0,[44,4],20,'up'],[0,[57,20],20,'right'],[0,[44,29],20,'down'],[0,[31,20],20,'left']],
+  {id:'than',name:'ဦးသန်း',role:'ဆိုက်ကားသမား',home:'h11',head:'HAT',pal:mkPal('#b07a50','#4a4a4a','#e8d8b0','#4a5a3a','#7a8a5a'),plan:[[480,PLACES.station[2],60,'down'],[0,PLACES.market[4],30,'up'],[0,PLACES.square[3],30,'down'],[0,PLACES.station[3],60,'down']],
     lines:['ဆိုက်ကား စီးမလား? ရွာထဲ အနီးလေးပဲ။','ဒီလမ်းတွေ ငါ့ထက် ဘယ်သူမှ ပိုမသိဘူး။','မိုးရွာရင် ဆိုက်ကားနင်းရတာ ခက်တယ်။']},
-  {id:'khine',name:'မခိုင်',role:'သူနာပြု',home:'h11',head:'BUN',pal:mkPal('#dca274','#1e130b','#ffffff','#2a4a8a','#6a8ad0'),plan:[[560,[50,11],240,'down'],[0,[35,11],30,'up']],
+  {id:'khine',name:'မခိုင်',role:'သူနာပြု',home:'h11',head:'BUN',pal:mkPal('#dca274','#1e130b','#ffffff','#2a4a8a','#6a8ad0'),plan:[[560,PLACES.clinic[1],300,'down'],[0,PLACES.store[1],30,'up']],
     lines:['နေပူထဲ အကြာကြီး အလုပ်မလုပ်နဲ့။ ရေများများသောက်။','အိပ်ရေးဝမှ အားအင် ပြည့်မယ်။','ကျန်းမာရေး ဆေးပေးခန်းမှာ ဆေး လာယူလို့ရတယ်။']},
 ];
 function resetNPCs(){npcRT=NPCS.map(d=>{const h=HOMES[d.home];return{active:false,done:false,x:h[0],y:h[1],fx:h[0],fy:h[1],t:1,path:[],leg:0,wait:0,leaving:false,dir:'down',steps:0,act:null}})}
 function bfs(sx,sy,tx,ty){
-  const ok=(x,y)=>{const t=tileAt(x,y);return t===PATH||t===G||t===FLOWER||t===SAND||t===BRIDGE||t===JETTY},key=(x,y)=>y*MW+x,prev=new Map(),q=[[sx,sy]];prev.set(key(sx,sy),-1);
+  const ok=(x,y)=>{const t=tileAt(x,y);return t===PATH||t===ROAD||t===G||t===FLOWER||t===SAND||t===BRIDGE||t===JETTY||t===RAIL||t===PLAT},key=(x,y)=>y*MW+x,prev=new Map(),q=[[sx,sy]];prev.set(key(sx,sy),-1);
   let qi=0;
   while(qi<q.length){const [x,y]=q[qi++];
     if(x===tx&&y===ty){const p=[];let k=key(x,y);while(k!==key(sx,sy)){p.unshift([k%MW,(k/MW)|0]);k=prev.get(k)}return p}
@@ -434,6 +419,8 @@ function act(){
     if(b.shop)return openShop(b.shop);
     if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;S.energy=Math.min(S.maxE,S.energy+15);return toast(`${b.name}မှာ ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +15)`)}
     if(b.style==='well'){S.water=S.canMax;return toast('ရေတွင်းကနေ ရေပုံး ဖြည့်လိုက်တယ်')}
+    if(b.style==='station'){const m=S.min,nx=m<390?390:390+Math.ceil((m-390)/90)*90;return toast(nx>1290?'ဒီနေ့ ရထား မရှိတော့ဘူး။ မနက်ဖြန် 6:30 မှာ ပထမ ရထား လာမယ်':`နောက်ရထား ${Math.floor(nx/60)}:${String(nx%60).padStart(2,'0')} မှာ ဖြတ်မယ်။ ရထားလမ်းဘေးကနေ ကြည့်လို့ရတယ်`)}
+    if(b.style==='clinic'){if(S.daily.clinic)return toast('ဒီနေ့ ဆေးခန်းမှာ နားပြီးပြီ');S.daily.clinic=1;S.energy=Math.min(S.maxE,S.energy+20);return toast('ဆေးခန်းမှာ ခဏ အနားယူပြီး ရေနွေးသောက်လိုက်တယ် (အားအင် +20)')}
     if(b.style==='school')return toast('ရွာ မူလတန်းကျောင်း။ ကလေးတွေ စာအော်ကျက်သံ ကြားနေရတယ်');
     const who=NPCS.filter(d=>d.home===b.id).map(d=>d.name).join('၊ ');
     return toast(`${b.name}${who?' · '+who:''}`)}
@@ -519,7 +506,7 @@ function intro(){
   show(`<h2 class="big">ရွှေပန်းရွာ ခြံလေး</h2>
   <p>အဘိုး ထားခဲ့တဲ့ ခြံလေးကို ပြန်ရောက်လာပြီ။ ဒါပေမဲ့ မြို့က ကုမ္ပဏီကြီးတစ်ခုက ရွာမြေတွေကို ဝယ်ပြီး စက်ရုံဆောက်တော့မယ်တဲ့။</p>
   <p><b>ရက် 30 အတွင်း ကျပ် 10,000 စုနိုင်ရင်</b> ရွာသားတွေနဲ့ အတူ မြေကို ပြန်ဝယ်ပြီး ရွာကို ကယ်နိုင်မယ်။</p>
-  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>အရှေ့ဘက်မှာ ရွာ၊ တောင်ဘက်မှာ စွန်လွှတ်ကွင်းနဲ့ မြစ် ရှိတယ်။ ရွာသား 20 ယောက်နဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
+  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>အရှေ့ဘက်မှာ ရထားဘူတာ၊ ဈေး၊ ဘုရား ရှိတဲ့ ရွာ၊ တောင်ဘက်မှာ စွန်လွှတ်ကွင်းနဲ့ မြစ် ရှိတယ်။ ရွာသား 20 ယောက်နဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
   <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button></div>`,c=>{
     const cont=c.querySelector('#mCont');
     if(cont)cont.onclick=()=>{S=sv;syncChickens();card.dataset.dismiss='';close()};
@@ -591,7 +578,8 @@ function help(){
   <li>ရွာသားတစ်ယောက်ကို နေ့တိုင်း စကားပြောရင် ခင်မင်မှု တက်မယ်။ ♥ 3 ရရင် လက်ဆောင် ပေးမယ်</li>
   <li>ငါးမျှားတံနဲ့ စွန်ကို ရွာထဲက ကုန်စုံဆိုင်မှာ ဝယ်ပါ။ ငါးမျှားရင် ဖော့ငုပ်ပြီး ! ပေါ်တာနဲ့ A နှိပ်ပါ။ စွန်ကို တောင်ဘက်ကွင်းမှာ လွှတ်ပါ</li>
   <li>လက်ဖက်ရည်ဆိုင်မှာ စားရင် အားအင် ပြန်ရမယ်။ ပန်းပဲဖိုမှာ ကိရိယာ အဆင့်မြှင့်လို့ရတယ်။ ဘုန်းကြီးကျောင်းနဲ့ စေတီမှာ ဘုရားဖူးလို့ရတယ်</li>
-  <li>ဒေါ်ခင်ရဲ့ ဈေးဆိုင် ဖွင့်ချိန် 8:00 – 18:00</li></ul>
+  <li>ဒေါ်ခင်ရဲ့ ဈေးဆိုင် ဖွင့်ချိန် 8:00 – 18:00။ ရွာဈေးက 6:00 – 17:00</li>
+  <li>ရွာ မြေပုံကို OpenStreetMap ဒေတာကနေ ပြုလုပ်ထားတယ် (© OpenStreetMap contributors)</li></ul>
   <div class="btns"><button class="bt pri" type="button" id="mC">ရပြီ</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
 const SHOPS={
@@ -601,6 +589,7 @@ const SHOPS={
     {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:50,ok:()=>true,buy:()=>S.feed+=5},
     {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`,price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
   ]},
+  market:{name:'ရွာဈေး',open:360,close:1020,sub:()=>`မနက်စောစော ဖွင့်တဲ့ ဈေး · ${SEASONS[curS()].name}ရာသီ မျိုးစေ့တွေ ရတယ်`,items:()=>SHOPS.stall.items().filter(i=>i.id!=='hen')},
   store:{name:'ကိုဇော်ရဲ့ ကုန်စုံဆိုင်',open:480,close:1080,sub:()=>'ငါးမျှားတံ၊ စွန်နဲ့ အိမ်သုံးပစ္စည်း',items:()=>[
     {id:'rod',label:'ငါးမျှားတံ',desc:'ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး သုံးပါ။ ဖော့ငုပ်ရင် A ချက်ချင်းနှိပ်',price:800,ok:()=>!S.has.rod,buy:()=>{S.has.rod=1;S.tool=6}},
     {id:'kite',label:'စွန်',desc:'ရွာတောင်ဘက်က ကွင်းပြင်မှာ လွှတ်ပါ။ တစ်ရက် တစ်ကြိမ် စိတ်ကြည်လင်ပြီး အားအင် +20',price:300,ok:()=>!S.has.kite,buy:()=>{S.has.kite=1;S.tool=7}},
@@ -639,7 +628,7 @@ function openShop(id){
 
 /* ---------- fishing & kite ---------- */
 let fishRT=null,kiteRT=null;
-const inMeadow=(x,y)=>x>=1&&x<=28&&y>=22&&y<=29;
+const inMeadow=(x,y)=>x>=1&&x<=28&&y>=22&&y<=43;
 function catchFish(){
   const r=Math.random();let id;
   if(!fishRT.river)id=r<.6?'catfish':'carp';
@@ -779,7 +768,7 @@ const STX=SEASONS.map((s,i)=>({
 }));
 const TX={sand:tex('#e2cc96',[['#d4bc84',300,1,1],['#efdcaa',160,1,1],['#c8ae74',40,2,1]],55),dry:tex('#9b6b3e',[['#8a5d34',260,1,1],['#ad7c4b',140,1,1]],33),wet:tex('#5f3c22',[['#54341d',260,1,1],['#6e4829',140,1,1]],44)};
 const tx=(t,x,y,sx,sy)=>{const h=hash(x,y);C.drawImage(t,(h%4)*16,((h>>3)%4)*16,16,16,sx,sy,16,16)};
-const GRASSY=t=>t===BLD||t===G||t===FLOWER||t===WEED||t===ROCK||t===TREE||t===FENCE||t===TROUGH||t===BIN||t===HOUSE;
+const GRASSY=t=>t===BLD||t===PLAT&&false||t===G||t===FLOWER||t===WEED||t===ROCK||t===TREE||t===FENCE||t===TROUGH||t===BIN||t===HOUSE;
 
 /* ----- character sprites ----- */
 const HAT=["......oooo......",".....ojjhho.....","...oojhhhhHoo...",".oojhhhhhhhhHoo.","oHHHHHHHHHHHHHHo"];
@@ -860,7 +849,7 @@ const HOUSE_SPR=(()=>{
 /* ----- village buildings ----- */
 const ROOFS={thatch:['#c79d48','#9c7631','#d7ae55','#e9c77a'],zinc:['#9aa4ac','#7a848c','#b8c0c6','#d0d6da'],red:['#b5463a','#8a3028','#c85a4a','#e07a68'],tile:['#a8502f','#7a3a20','#c06a40','#d88a5a'],green:['#4a8a5a','#336a44','#5a9a68','#7ab888']};
 const BSTYLE={thatch:{roof:'thatch',wall:'#a8794a',stilts:1},bamboo:{roof:'thatch',wall:'#d4b06a',weave:1,stilts:1},zinc:{roof:'zinc',wall:'#8e6a48'},tile:{roof:'tile',wall:'#e6dccb'},
-  shop:{roof:'red',wall:'#a8794a',awn:['#2f6aa8','#f6efe0'],sign:'bag'},teashop:{roof:'zinc',wall:'#c9a06a',awn:['#2f7a4a','#f6efe0'],sign:'cup'},smith:{roof:'zinc',wall:'#6a5444',sign:'anvil',dark:1},school:{roof:'green',wall:'#ece6d8'}};
+  shop:{roof:'red',wall:'#a8794a',awn:['#2f6aa8','#f6efe0'],sign:'bag'},teashop:{roof:'zinc',wall:'#c9a06a',awn:['#2f7a4a','#f6efe0'],sign:'cup'},smith:{roof:'zinc',wall:'#6a5444',sign:'anvil',dark:1},station:{roof:'red',wall:'#efe6d0',sign:'train'},clinic:{roof:'zinc',wall:'#f2f2ee',sign:'cross'},school:{roof:'green',wall:'#ece6d8'}};
 function roof(ox,y0,y1,W,type,inF=.3){
   const p=ROOFS[type],rh=Math.max(1,y1-y0);
   for(let r=0;r<=rh;r++){const k=r/rh,ins=Math.round((1-k)*W*inF),x0=ox-4+ins,w=W+8-2*ins,y=y0+r;
@@ -872,7 +861,21 @@ function roof(ox,y0,y1,W,type,inF=.3){
       R(c,x,y,1,1)}}
   R('#2e1d10',ox-5,y1+1,W+10,1);R(p[1],ox-4,y1,W+8,1);
 }
+function makeMarket(b){
+  const W=b.w*T,H=b.h*T,top=10,ox=4,oy=top,c=mk(W+8,H+top+2),cols=[['#c8433a','#f6efe0'],['#2f6aa8','#f6efe0'],['#3a8a4a','#f2c14e'],['#e2a03a','#f6efe0']];
+  withC(c.getContext('2d'),()=>{
+    R('rgba(0,0,0,.22)',ox,oy+H-4,W,5);
+    for(let s=0;s<b.w/2;s++){const sx=ox+s*32,p=cols[s%4];
+      OL([['#8a5a30',sx+2,oy+H-14,28,12]],'#2e1d10');R('#a8703a',sx+2,oy+H-14,28,2);
+      [['#e2402f',4],['#f2cf3a',11],['#4fb848',18],['#c49a5a',24]].forEach(([col,o],i)=>{OL([['#b08a50',sx+o,oy+H-17,5,4]],'#4a3416');R(CROPS[seasonCrops(0)[i%3]]?col:col,sx+o+1,oy+H-18,3,2)});
+      R('#5a3b22',sx+3,oy+4,2,H-18);R('#5a3b22',sx+27,oy+4,2,H-18);
+      for(let i=0;i<28;i+=4){R(p[(i/4)%2],sx+2+i,oy-2,4,7);R(p[(i/4)%2],sx+3+i,oy+5,2,1)}R('#2e1d10',sx+1,oy-3,30,1);R('rgba(0,0,0,.2)',sx+2,oy+6,28,1);
+    }
+  });
+  return{c,ox,top,wins:[],lights:[[ox+W/2,oy+H-8,40]]};
+}
 function makeBuilding(b){
+  if(b.style==='market')return makeMarket(b);
   if(b.style==='stupa')return makeStupa(b);if(b.style==='monastery')return makeMonastery(b);if(b.style==='well')return makeWell();
   const st=BSTYLE[b.style],W=b.w*T,H=b.h*T,top=12,ox=6,oy=top,c=mk(W+12,H+top+2),wins=[],lights=[];
   withC(c.getContext('2d'),()=>{
@@ -895,6 +898,8 @@ function makeBuilding(b){
     if(st.sign){const sx=(ox+W/2-9)|0,sy=roofB-11;OL([['#f4efe2',sx,sy,18,8]],'#3a2414');
       if(st.sign==='cup'){R('#f6f6f6',sx+6,sy+2,6,5);R('#b5763a',sx+6,sy+2,6,2);R('#d8d8d8',sx+12,sy+3,2,2);R('#c8433a',sx+2,sy+2,2,4)}
       else if(st.sign==='bag'){R('#e2b84a',sx+5,sy+3,8,4);R('#8a6a20',sx+7,sy+1,4,2);R('#3a9a4a',sx+6,sy+4,2,2);R('#e2402f',sx+10,sy+4,2,2)}
+      else if(st.sign==='train'){R('#2f5a9a',sx+4,sy+2,10,4);R('#f0e6c8',sx+5,sy+3,2,1);R('#f0e6c8',sx+8,sy+3,2,1);R('#2a1a12',sx+5,sy+6,2,1);R('#2a1a12',sx+11,sy+6,2,1)}
+      else if(st.sign==='cross'){R('#e2402f',sx+8,sy+1,3,6);R('#e2402f',sx+6,sy+3,7,2)}
       else{R('#5a5a60',sx+4,sy+2,10,2);R('#5a5a60',sx+7,sy+4,4,2);R('#5a5a60',sx+5,sy+6,8,1);R('#e2702a',sx+14,sy+1,2,2)}}
   });
   return{c,ox,top,wins,lights};
@@ -952,6 +957,21 @@ function drawKite(hx,hy,h,now,i){
   R('#2a1a12',kx,ky-4,1,8);R('#2a1a12',kx-3,ky-1,7,1);
   for(let j=1;j<5;j++)R(j%2?cols[0]:cols[1],kx+Math.round(Math.sin(t*3+j)*2)-j,ky+4+j*3,2,1);
 }
+function trainPos(){
+  if(!S)return null;const m=S.min+acc/TICK;if(m<390||m>1300)return null;
+  const k=Math.floor((m-390)/90),dt=m-(390+k*90);if(dt>26)return null;
+  const dir=k%2?-1:1,p=dt*3-8;return{y:dir>0?p:MH+8-p,dir};
+}
+function drawTrain(cx,cy,day){
+  const tr=trainPos();if(!tr)return;
+  for(let c=0;c<4;c++){const yy=tr.y-tr.dir*c*3.1,ty=Math.max(0,Math.min(MH-1,Math.floor(yy))),sx=RAILX[ty]*T-cx+1,sy=Math.round(yy*T)-cy-24;
+    if(sx<-20||sx>VW*T+20||sy<-60||sy>VH*T+20)continue;
+    R('rgba(0,0,0,.25)',sx+2,sy+4,14,46);
+    OL([[c===0?'#24477a':'#2f5a9a',sx,sy,14,46]],'#141e30');R('#8a96a0',sx+3,sy+2,8,42);R('#a8b2ba',sx+4,sy+2,2,42);
+    for(let i=0;i<5;i++){const wc=day?'#9fc6e0':'#ffe08a';R(wc,sx,sy+4+i*8,1,5);R(wc,sx+13,sy+4+i*8,1,5)}
+    R('#f0e6c8',sx,sy+44,14,1);
+    if(c===0){const fy=tr.dir>0?sy+44:sy;R('#f2c14e',sx+2,fy,3,2);R('#f2c14e',sx+9,fy,3,2);R('#e2402f',sx+5,tr.dir>0?sy+40:sy+2,4,4)}}
+}
 function bubble(px,py){R('#ffffff',px+6,py-12,9,7);R('#ffffff',px+8,py-5,2,2);R('#2a1a12',px+8,py-9,1,1);R('#2a1a12',px+10,py-9,1,1);R('#2a1a12',px+12,py-9,1,1)}
 
 const ICON={};['hoe','can','sickle','hammer'].forEach(id=>{const c=mk(16,16);drawIcon(c.getContext('2d'),id);ICON[id]=c});
@@ -997,6 +1017,12 @@ function drawGround(t,x,y,sx,sy){
   case TREE:grass(sx,sy,x,y);R('rgba(0,0,0,.25)',sx+1,sy+11,14,4);R('rgba(0,0,0,.18)',sx,sy+12,16,2);break;
   case WATER:R('#3f86c9',sx,sy,T,T);break;
   case BLD:grass(sx,sy,x,y);break;
+  case ROAD:{R('#6e6964',sx,sy,T,T);const h=hash(x,y);R('#7c7772',sx+h%13,sy+(h>>4)%13,2,1);R('#5f5a56',sx+(h>>8)%13,sy+(h>>12)%13,2,1);
+    if(tileAt(x,y-1)!==ROAD){R('#b8b2a8',sx,sy,T,1);R('#4f4b47',sx,sy+1,T,1)}if(tileAt(x,y+1)!==ROAD){R('#4f4b47',sx,sy+14,T,1);R('#b8b2a8',sx,sy+15,T,1)}
+    if(tileAt(x,y+1)===ROAD&&tileAt(x,y-1)!==ROAD&&x%2)R('#f2e6b0',sx+2,sy+15,8,1);break}
+  case RAIL:{const under=tileAt(x-1,y)===ROAD||tileAt(x+1,y)===ROAD;if(under)R('#6e6964',sx,sy,T,T);else{R('#8a8270',sx,sy,T,T);for(let i=0;i<20;i++){const h=hash(x*20+i,y);R(h%2?'#a09a88':'#6e685a',sx+h%16,sy+(h>>5)%16,1,1)}}
+    for(let r=1;r<16;r+=4)R('#6b4426',sx+1,sy+r,14,2);R('#c8ccd2',sx+4,sy,1,T);R('#c8ccd2',sx+11,sy,1,T);R('#7a7e86',sx+5,sy,1,T);R('#7a7e86',sx+12,sy,1,T);break}
+  case PLAT:{R('#cfcabd',sx,sy,T,T);R('#b8b2a4',sx,sy+7,T,1);R('#b8b2a4',sx+7,sy,1,T);if(tileAt(x+1,y)===RAIL||tileAt(x-1,y)===RAIL)R('#f2c14e',tileAt(x+1,y)===RAIL?sx+14:sx,sy,2,T);break}
   case SAND:tx(TX.sand,x,y,sx,sy);if(GRASSY(tileAt(x,y-1)))lip(sx,sy,x,y,0,GC,'rgba(90,70,30,.3)');if(GRASSY(tileAt(x,y+1)))lip(sx,sy,x,y,1,GC,'rgba(90,70,30,.3)');break;
   case BRIDGE:R('#2e1d10',sx,sy,T,T);for(let r=0;r<16;r+=4){R('#a8783f',sx+1,sy+r,14,3);R('#c99058',sx+1,sy+r,14,1)}R('#6b4426',sx,sy,2,T);R('#6b4426',sx+14,sy,2,T);R('#4a2f1c',sx,sy+6,2,2);R('#4a2f1c',sx+14,sy+6,2,2);break;
   case JETTY:R('#3f86c9',sx,sy,T,T);R('#2e1d10',sx+2,sy,12,T);for(let i=0;i<12;i+=4){R('#a8783f',sx+3+i,sy,3,T);R('#c99058',sx+3+i,sy,1,T)}R('#4a2f1c',sx+1,sy+11,2,5);R('#4a2f1c',sx+13,sy+11,2,5);break;
@@ -1204,6 +1230,7 @@ function render(now){
   sprites.push({y:ry+.01,d:()=>drawPlayer(Math.round(rx*T-cx),Math.round(ry*T-cy)-7)});
   sprites.sort((a,b)=>a.y-b.y).forEach(sp=>sp.d());
   kites.forEach(([hx,hy,i])=>drawKite(hx,hy,1,now,i));
+  drawTrain(cx,cy,day);
   {const ppx=Math.round(rx*T-cx),ppy=Math.round(ry*T-cy)-7;
     if(fishRT){const bite=fishRT.phase==='bite';drawRod(ppx,ppy,S.dir,fishRT.x*T+8-cx,fishRT.y*T+8-cy,bite);
       if(bite){R('#2a1a12',ppx+4,ppy-14,8,11);R('#ffffff',ppx+5,ppy-13,6,9);R('#e2402f',ppx+7,ppy-12,2,4);R('#e2402f',ppx+7,ppy-7,2,2)}}
