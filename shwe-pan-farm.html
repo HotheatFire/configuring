@@ -146,7 +146,7 @@ const OPP={up:'down',down:'up',left:'right',right:'left'};
 const YARD={x0:22,x1:27,y0:11,y1:15};
 const FIELD={x0:4,x1:18,y0:9,y1:19};
 const DOOR=[5,5],GATE=[29,20];
-const KEY='shwepan-farm-v2';
+const KEY='shwepan-farm-v3';
 const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt.....#","#.tt...C.#","#........#","####D#####"];
 const HSOLID=new Set(['#','S','w','K','B','t','C']);
 const hTile=(x,y)=>(y<0||y>=HMAP.length||x<0||x>=10)?'#':HMAP[y][x];
@@ -181,16 +181,16 @@ function genMap(seed){
   for(let y=10;y<=16;y++){t[y][21]=FENCE;t[y][28]=FENCE}
   t[13][21]=PATH;t[11][22]=TROUGH;t[19][24]=STALL;t[19][25]=STALL;
   for(let y=FIELD.y0;y<=FIELD.y1;y++)for(let x=FIELD.x0;x<=FIELD.x1;x++){const r=rnd();t[y][x]=r<.3?WEED:r<.42?ROCK:G}
-  for(let i=0;i<40;i++){const x=1+Math.floor(rnd()*28),y=1+Math.floor(rnd()*20);if(t[y][x]===G&&!inField(x,y)&&!(x>=21&&y>=10&&y<=16))t[y][x]=FLOWER}
+  for(let i=0;i<110;i++){const x=1+Math.floor(rnd()*28),y=1+Math.floor(rnd()*20);if(t[y][x]===G&&!inField(x,y)&&!(x>=21&&y>=10&&y<=16))t[y][x]=FLOWER}
   buildVillage(t);
   return t;
 }
 const TOWN_X0=30;
-const TOWN=["....-..HHH-..HHH..T..--.-.....T.....f....T........T...-..f..rr....", "-..---.HHH--.HHH..T---T.-.......Tf....Tf.TTT..........-..T..rr.T..", "----.--HHHf--HHH---.....-..T..HHHHHHH....HH..T.T.T....-.....rrT.T.", "-..HHH-.....-.---..f....-.....HHHHHHHf.T.HH...........-HHHH.fr...T", ".-.HHH--....---.........-.....HHHHHHH....HH........ff.-HHHH..rf...", "---HHH.-T.---....~~~~~~~-~~T..HHHHHHHT................-HHHH~~rf...", "..-.....---f..~~~~~~~~~~-~~T..HHHHHHH....T...f........-...~~~r.T..", "..--...--....~~~~~HHHH..-~~..TT.......f.........T.....-f.~~~~r....", "...-.--....~~~~~..HHHH..-~~.......T.f..T........T.....-~~~~~.r....", "...--T....~~~~HHH.HHHH.T-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-~~~HHHr..ff", ".--.....~~~~~.HHH.......-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-~..HHHr....", "--.....~~~~HHHHHH--------------------------------------.TTHHHr...T", "..f..~~~~~fHHH..--HHHHT.-HHHH.HHHH-....-..T.-HHHH.HHHH-......rHHHH", "....~~~~HHHHHHf--.HHHH.f-HHHH.HHHH-T...-H...-HHHHfHHHH-T....TrHHHH", "..~~~~~.HHH...-HHHHHHHf.-HHHH.HHHH-.TT.-....-HHHH.HHHH-..f.T.rHHHH", "f.~~~HHHHHH.--.HHH....TT-.........-....-....-T........-..f..Tr....", ".~~~.HHH...--.THHH-----------------....-f...-----------......rf...", "~~~..HHH..--..T..---TT..-....-....-....-.f..-....-....-......rrTf.", "~~.......--.....--.-.f..-..f.-.f..-HHHH-....-....-...T-....T.rr...", "~T......--HHH.--HHH-..T.-....-....-HHHH-...T-.T..-T...-....T.rr..f", "---------.HHH--.HHH-..TT.-...-HHHH-HHHH-HHHH-HHHH-....-.THHHHrr..T", "........-.HHH-.THHH-.T...-...-HHHH-f...-HHHH-HHHH-.T..-..HHHHrr...", "........-....-.f...-.T...-...-HHHH-.T.T-HHHH-HHHH-...f-..HHHHrr...", "..f..T..------------HHHH.-HHH---------------------HHHH-.f....rr.f.", "HHHH.HHH-HHHH.HHHH.-HHHH.-HHH-HHHH.HHHH-HHHHfHHHH-HHHH-.HHHHHrr...", "HHHH.HHH-HHHH.HHHH.-HHHH.-HHH-HHHH.HHHH-HHHH.HHHH-HHHH-.HHHHHrrf..", "HHHH.HHH-HHHH.HHHH.-.....-...-HHHH.HHHH-HHHH.HHHH-T...-.HHHHHrr...", "........-..........-....f-...-------------------------------.rr.T.", "------------------------------HHHH.HHHH-HHHH.HHHH-....-..T...Lrf..", "HHHH.HHH-HHHH.HHHHT-.....-.T.-HHHH.HHHH-HHHH.HHHH-....-..f..T.rf.T", "HHHH.HHH-HHHH.HHHH.-..T..-...-HHHH.HHHH-HHHH.HHHH-..T.-....ff.r...", "HHHH.HHH-HHHH.HHHH.-.T...-.T.-T........-.........-....-..f....rTf.", "........-..........-HHHH.-HHH---------------------.T..-T......rTff", "--------------------HHHHT-HHH-HHHH.-HHH-Tf..-THHH-...T-.......r...", "HHH-....-....-HHHHH-HHHH.-HHH-HHHH.-HHH-.T..-.HHH-HHHH-.......r...", "HHH-TT..-....-HHHHH-.....-...-HHHH.-HHH-....-.HHH-HHHH-f....T.r...", "HHH-....-f..f-HHHHH-...f.-...--...f-...--...-....-HHHH-....T..r...", "----HHHH-.HHH-----------------------....-...-----------HHHH...rHHH", "...-HHHH-.HHH-HHHHT......-.....HHHH-T..T-T..-...fHHHH.-HHHH...rHHH", "HHH-HHHH-.HHH-HHHH..HHHH.-HHHHHHHHH-HHHH-HHH-HHHHHHHHT-HHHH..TrHHH", "HHH-....-....-HHHH..HHHH.-HHHHHHHHH-HHHH-HHH-HHHHHHHH.-.......r...", "HHH-....-.T..-f.....HHHH.-HHHHH....-HHHH-HHH-HHHHT...T-.....TTrT..", "...-..============================================================", "==================================================================", "========-...f-HHHH..HHHHf-HHHH.HHHH-.TT.-...-HHHH..HHH-..f..T.r..T", "HHHHHHHH-..T.-HHHH..HHHHT-HHHHTHHHH-..f.-.T.-HHHH..HHH-...T...r...", "HHHHHHHH-T.T.-HHHH.THHHH.-HHHH.HHHH-....-...-HHHH..HHH-.....T.rr.f", "---------....-...........-.........-....-...-.........-...f..Trr..", ".T.f.T..-....-----------------------T...-..T------------......rr..", ".......T-....-f....-.f...-....-....-.f..-...-...T-....-.......rr..", "........-HHHH-..T.f-.....-..T.-f...-HHHH-HHH-.T.f-..f.-...f...rrf.", "....THHH-HHHH-f.T.T-....T-....-....-HHHH-HHH-....-.T..-...T.T.fr..", "...f.HHH-HHHH-...T.-HHHH.-HHHH-HHHH-HHHH-HHH-THHH-HHHH-f....T..r..", "..f.fHHH-....-..Tf.-HHHH.-HHHH-HHHH-f...-...-THHH-HHHH-THHHH..TrT.", "HHHH....-...T-....f-HHHH.-HHHH-HHHH-.T..-...-.HHH-HHHH-.HHHH...rf.", "HHHH....------------.....-....--------------------f...--HHHH...r..", "HHHH....--.........-.....-....-...f.....-........-.T...-....TT.r..", "f...f.T..-f......T.-.....-....-.T....T..-..T.f...-.....-...T...rT."];
-const BUILDINGS=[{"id": "mon", "name": "ဘုန်းကြီးကျောင်း", "x": 30, "y": 2, "w": 7, "h": 5, "style": "monastery"}, {"id": "stupa", "name": "မြို့ဦးစေတီ", "x": 41, "y": 2, "w": 2, "h": 3, "style": "stupa"}, {"id": "station", "name": "ရွှေပန်း ဘူတာရုံ", "x": 56, "y": 24, "w": 5, "h": 3, "style": "station"}, {"id": "school", "name": "အခြေခံပညာ မူလတန်းကျောင်း", "x": 14, "y": 34, "w": 5, "h": 3, "style": "school"}, {"id": "tea", "name": "ဒေါ်စန်းစန်းရဲ့ လက်ဖက်ရည်ဆိုင်", "x": 26, "y": 39, "w": 5, "h": 3, "style": "teashop", "shop": "tea"}, {"id": "store", "name": "ကိုဇော်ရဲ့ ကုန်စုံဆိုင်", "x": 36, "y": 39, "w": 4, "h": 3, "style": "shop", "shop": "store"}, {"id": "smith", "name": "ကိုထွန်းရဲ့ ပန်းပဲဖို", "x": 45, "y": 39, "w": 4, "h": 3, "style": "smith", "shop": "smith"}, {"id": "clinic", "name": "ကျန်းမာရေး ဆေးပေးခန်း", "x": 20, "y": 39, "w": 4, "h": 3, "style": "clinic"}, {"id": "market", "name": "ရွာဈေး", "x": 0, "y": 45, "w": 8, "h": 2, "style": "market", "shop": "market"}, {"id": "well", "name": "ရပ်ကွက် ရေတွင်း", "x": 40, "y": 13, "w": 1, "h": 1, "style": "well"}, {"id": "r1", "name": "", "x": 7, "y": 0, "w": 3, "h": 3, "style": "thatch"}, {"id": "r2", "name": "", "x": 13, "y": 0, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r5", "name": "", "x": 3, "y": 3, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r6", "name": "", "x": 55, "y": 3, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r9", "name": "", "x": 18, "y": 7, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r10", "name": "", "x": 14, "y": 9, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r11", "name": "", "x": 58, "y": 9, "w": 3, "h": 3, "style": "thatch"}, {"id": "r13", "name": "", "x": 11, "y": 11, "w": 3, "h": 3, "style": "thatch"}, {"id": "h9", "name": "ဦးကျော်နဲ့ ကိုမင်းတို့ အိမ်", "x": 18, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "r16", "name": "", "x": 25, "y": 12, "w": 4, "h": 3, "style": "zinc"}, {"id": "r17", "name": "", "x": 30, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "h3", "name": "ကိုအောင်နဲ့ ဖိုးလေးတို့ အိမ်", "x": 45, "y": 12, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r20", "name": "", "x": 50, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "r21", "name": "", "x": 62, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "h1", "name": "ဦးဘ နဲ့ ဒေါ်အေးတို့ အိမ်", "x": 8, "y": 13, "w": 3, "h": 3, "style": "thatch"}, {"id": "r23", "name": "", "x": 15, "y": 14, "w": 3, "h": 3, "style": "thatch"}, {"id": "r26", "name": "", "x": 5, "y": 15, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r36", "name": "", "x": 35, "y": 18, "w": 4, "h": 3, "style": "thatch"}, {"id": "r37", "name": "", "x": 10, "y": 19, "w": 3, "h": 3, "style": "thatch"}, {"id": "r38", "name": "", "x": 16, "y": 19, "w": 3, "h": 3, "style": "thatch"}, {"id": "r42", "name": "", "x": 30, "y": 20, "w": 4, "h": 3, "style": "thatch"}, {"id": "r43", "name": "", "x": 40, "y": 20, "w": 4, "h": 3, "style": "zinc"}, {"id": "r44", "name": "", "x": 45, "y": 20, "w": 4, "h": 3, "style": "thatch"}, {"id": "r46", "name": "", "x": 57, "y": 20, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r50", "name": "", "x": 20, "y": 23, "w": 4, "h": 3, "style": "zinc"}, {"id": "r51", "name": "", "x": 26, "y": 23, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r52", "name": "", "x": 50, "y": 23, "w": 4, "h": 3, "style": "thatch"}, {"id": "r53", "name": "", "x": 0, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r54", "name": "", "x": 5, "y": 24, "w": 3, "h": 3, "style": "thatch"}, {"id": "r55", "name": "", "x": 9, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r56", "name": "", "x": 14, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r57", "name": "", "x": 30, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r58", "name": "", "x": 35, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r59", "name": "", "x": 40, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r60", "name": "", "x": 45, "y": 24, "w": 4, "h": 3, "style": "tile"}, {"id": "h4", "name": "သူကြီး ဦးလှမောင်ရဲ့ အိမ်", "x": 30, "y": 28, "w": 4, "h": 3, "style": "tile"}, {"id": "r63", "name": "", "x": 35, "y": 28, "w": 4, "h": 3, "style": "tile"}, {"id": "r64", "name": "", "x": 40, "y": 28, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r65", "name": "", "x": 45, "y": 28, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r69", "name": "", "x": 0, "y": 29, "w": 4, "h": 3, "style": "tile"}, {"id": "r70", "name": "", "x": 5, "y": 29, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r71", "name": "", "x": 9, "y": 29, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r72", "name": "", "x": 14, "y": 29, "w": 4, "h": 3, "style": "thatch"}, {"id": "r78", "name": "", "x": 20, "y": 32, "w": 4, "h": 3, "style": "thatch"}, {"id": "r79", "name": "", "x": 26, "y": 32, "w": 3, "h": 3, "style": "tile"}, {"id": "r80", "name": "", "x": 30, "y": 33, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r81", "name": "", "x": 36, "y": 33, "w": 3, "h": 3, "style": "zinc"}, {"id": "r83", "name": "", "x": 46, "y": 33, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r84", "name": "", "x": 0, "y": 34, "w": 3, "h": 3, "style": "thatch"}, {"id": "r87", "name": "", "x": 50, "y": 34, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r91", "name": "", "x": 4, "y": 37, "w": 4, "h": 3, "style": "thatch"}, {"id": "r92", "name": "", "x": 10, "y": 37, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r93", "name": "", "x": 55, "y": 37, "w": 4, "h": 3, "style": "thatch"}, {"id": "r94", "name": "", "x": 63, "y": 37, "w": 3, "h": 3, "style": "zinc"}, {"id": "h8", "name": "ဆရာမ မဥမ္မာတို့ အိမ်", "x": 14, "y": 38, "w": 4, "h": 3, "style": "zinc"}, {"id": "r96", "name": "", "x": 31, "y": 38, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r97", "name": "", "x": 49, "y": 38, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r98", "name": "", "x": 0, "y": 39, "w": 3, "h": 3, "style": "tile"}, {"id": "h10", "name": "မနှင်းနဲ့ ကိုစိုးတို့ အိမ်", "x": 41, "y": 39, "w": 3, "h": 3, "style": "zinc"}, {"id": "r101", "name": "", "x": 14, "y": 44, "w": 4, "h": 3, "style": "zinc"}, {"id": "h11", "name": "ဦးသန်းတို့ အိမ်", "x": 20, "y": 44, "w": 4, "h": 3, "style": "thatch"}, {"id": "r103", "name": "", "x": 26, "y": 44, "w": 4, "h": 3, "style": "zinc"}, {"id": "r104", "name": "", "x": 31, "y": 44, "w": 4, "h": 3, "style": "thatch"}, {"id": "r107", "name": "", "x": 45, "y": 44, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r108", "name": "", "x": 51, "y": 44, "w": 3, "h": 3, "style": "zinc"}, {"id": "r121", "name": "", "x": 9, "y": 50, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r122", "name": "", "x": 36, "y": 50, "w": 4, "h": 3, "style": "tile"}, {"id": "r123", "name": "", "x": 41, "y": 50, "w": 3, "h": 3, "style": "tile"}, {"id": "h2", "name": "မမြရဲ့ အိမ်", "x": 5, "y": 51, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r127", "name": "", "x": 20, "y": 52, "w": 4, "h": 3, "style": "thatch"}, {"id": "r128", "name": "", "x": 26, "y": 52, "w": 4, "h": 3, "style": "tile"}, {"id": "r129", "name": "", "x": 31, "y": 52, "w": 4, "h": 3, "style": "thatch"}, {"id": "r130", "name": "", "x": 46, "y": 52, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r131", "name": "", "x": 50, "y": 52, "w": 4, "h": 3, "style": "zinc"}, {"id": "r132", "name": "", "x": 56, "y": 53, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r133", "name": "", "x": 0, "y": 54, "w": 4, "h": 3, "style": "thatch"}].map(b=>({...b,x:b.x+TOWN_X0,name:b.name||"ရွာသား အိမ်"}));
-const HOMES={"h1": [39, 16], "h2": [36, 54], "h3": [77, 15], "h4": [62, 31], "h8": [46, 41], "h9": [50, 15], "h10": [72, 42], "h11": [52, 47], "mon": [63, 7], "station": [88, 27], "school": [46, 37], "tea": [58, 42], "store": [68, 42], "smith": [77, 42], "clinic": [52, 42], "market": [34, 47]};
-const PLACES={"market": [[32, 47], [36, 47], [33, 47], [35, 47], [37, 48]], "tea": [[56, 42], [60, 42], [57, 42], [59, 42], [55, 43], [61, 43]], "store": [[66, 42], [70, 42], [67, 42], [69, 42], [65, 43], [71, 43]], "smith": [[75, 42], [79, 42], [76, 42], [78, 42], [74, 43], [80, 43]], "clinic": [[50, 42], [54, 42], [51, 42], [53, 42], [49, 43], [55, 43]], "school": [[44, 37], [48, 37], [45, 37], [47, 37], [43, 38], [49, 38]], "station": [[86, 27], [90, 27], [87, 27], [89, 27], [85, 28], [91, 28]], "mon": [[61, 7], [65, 7], [62, 7], [64, 7], [60, 8], [66, 8]], "stupa": [[70, 5], [74, 5], [71, 5], [73, 5]], "canal": [[58, 11], [63, 11], [68, 11], [76, 11], [80, 11], [60, 11]], "park": [[44, 49], [47, 49], [45, 50], [48, 50], [44, 52], [45, 53], [48, 53], [46, 54]], "square": [[71, 44], [69, 44], [73, 47], [75, 48]], "platform": [[91, 28], [90, 28]], "farm": [[12, 8]], "bin": [[9, 7]], "farmhouse": [[6, 7]], "stall": [[25, 20], [23, 20]], "yard": [[20, 13]], "pond": [[25, 6]], "meadow": [[8, 24], [10, 26], [14, 27], [18, 30], [6, 33]], "river": [[22, 44], [16, 44]], "jetty": [[20, 46]]};
-const RAILX=[90, 90, 90, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 92, 93, 93, 93, 93, 93, 93, 93];
+const TOWN=["TTTT-TfHHH-.fHHH..Tf.--.-....T........T.T.f.T...fT....-.f..T.T..fT", "-.T---fHHH--.HHHf..---..-...TT.f.....TTT.T..TT.TTT..T.-......ffT..", "----.--HHHf--HHH---...T.-.f.ffHHHHHHH.T..HH...f..T.T.T-....f..f.T.", "-T.HHH-.....-.---....T..-fT..fHHHHHHH..TfHHf......f..T-HHHH...T...", "T-.HHH--....---.f..ff...-.f...HHHHHHH....HHff.f..T.TTT-HHHHfffT.f.", "---HHHf-T.---ff.f~~~~~~~-~~Tf.HHHHHHHff.............fT-HHHH~~T.f..", "ff-....T---..T~~~~~~~~~~-~~...HHHHHHH...T...Tff..T...f-...~~~T....", "..--.T.--....~~~~~HHHHff-~~TT.......Tf......T.T.T...T.-..~~~~.....", "..f-.--....~~~~~..HHHHf.-~~...T.T.f.T.......fTf...T..f-~~~~~.....T", "...--f.fT.~~~~HHH.HHHHfT-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-~~~....fHHH", ".--.fT..~~~~~fHHHf.....f-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-~....T..HHH", "--TT...~~~~HHHHHH--------------------------------------T..Tf.TfHHH", ".f...~~~~~fHHH..--HHHHff-HHHHfHHHH-ff.f-..ff-HHHHfHHHH-TT.T.T.....", "....~~~~HHHHHHf--fHHHH..-HHHH.HHHH-T..f-Hf..-HHHH.HHHH-TT..T...T..", "T.~~~~~fHHH...-f..HHHHfT-HHHHfHHHH-....-....-HHHH.HHHH-f..T....T..", "T.~~~HHHHHH.--HHH.f...T.-.....f...-T.f.-....-f........-T.f.....TTT", ".~~~.HHH...--.HHHf-----------------f...-.f..-----------.T.T.T....f", "~~~.fHHHf.--..HHH---....-HHHH-TT..-.f.f-.f..-ffT.-HHHH-..fT..T....", "~~.......--f....--.-fT..-HHHH-..Tf-HHHH-HHHH-...T-HHHH-f.f...ffT.f", "~.f..f..--HHHf--HHH-...T-HHHH-fTf.-HHHH-HHHH-Tf..-HHHH-.f.fT...T..", "---------.HHH--fHHH-TT...-...-HHHH-HHHH-HHHH-HHHH-....-.....TffT..", "T.ff.T..-fHHH-.fHHH-.f...-..T-HHHH-f...-T...-HHHH-T...-f..........", "...T.T.f-....-.....-..TT.-ffT-HHHH-ff..-T...-HHHH-fT.f-T.f.fT..T..", "....T..f------------HHHHf-fff---------------------fT..-HHHHf......", "HHHH.HHH-HHHHfHHHHf-HHHHf-HHH-HHHHfHHHH-HHHHfHHHH-HHHH-HHHHf..fT..", "HHHH.HHH-HHHH.HHHH.-HHHHf-HHH-HHHHfHHHH-HHHH.HHHH-HHHH-HHHH.TfT...", "HHHH.HHH-HHHHfHHHHf-f....-HHH-HHHH.HHHH-HHHHfHHHH-HHHH-f....T.f..T", "........-....f.....-Tf.f.-...-------------------------------.....f", "------------------------------HHHHfHHHH-HHHH.HHHH-fT..-TfT.Tf..T..", "fHHHH...-HHHHfHHHHf-fTTf.-..T-HHHHfHHHH-HHHH.HHHH-.ff.-...T....T.T", "fHHHHf..-HHHH.HHHH.-....f-T.f-HHHH.HHHH-HHHH.HHHH-TTTf-f.f....T..T", ".HHHH...-HHHH.HHHH.-TTTTf-TTf-T...T....-.....T...-....-...f..f..f.", ".f....f.-....Tf...T-HHHHf-HHH---------------------...T-...f.fTT...", "--------------------HHHH.-HHH-HHHHf-HHH-.f..-HHHH-...f-.Tf.f.T...f", "HHH-...f-Tf.T-HHHHH-HHHHf-HHH-HHHH.-HHH-T.f.-HHHH-HHHH-T..f.....T.", "HHH-..f.-...f-HHHHH-....f-...-HHHH.-HHH-.f..-HHHH-HHHH-..Tf.f.f...", "HHH-...T-..TT-HHHHH-ff...-..T--...T-...--f..-....-HHHH-...T..TfT.f", "----HHHH-HHHH-----------------------f...-...-----------HHHH.f..T.T", "HHH-HHHH-HHHH-HHHH....TT.-..fTfHHHH-TT..-...-TT.fHHHHf-HHHHfTT....", "HHH-HHHH-HHHH-HHHH..HHHH.-HHHHHHHHH-HHHH-HHH-HHHHHHHH.-HHHHfHHHHff", "HHH-T...-....-HHHH..HHHHf-HHHHHHHHH-HHHH-HHH-HHHHHHHHf-....fHHHHf.", "...-.T.T-ff.T-....TfHHHH.-HHHHHf...-HHHH-HHH-HHHHf...f-...T.HHHH..", "f.f-.T============================================================", "==================================================================", "========-.TTf-HHHHfHHHH.f-HHHHfHHHH-f.f.-.f.-HHHH.HHHH-f.fffT.fTT.", "HHHHHHHH-....-HHHHfHHHHff-HHHHfHHHH-..f.-f..-HHHH.HHHH-.......T..T", "HHHHHHHH-...T-HHHH.HHHHfT-HHHH.HHHH-..fT-.T.-HHHH.HHHH-.T.Tf......", "---------...T-f.........T-.........-f.Tf-f.f-....f....-f.T.....f..", ".....T..-....-----------------------..Tf-...------------f...f.....", "......f.-...T-.fTfT-.TfT.-T...-.T.T-..T.-.f.-Tf..-T..f-f.T.T.fTf.T", "..f.T...-HHHH-ff..f-Tf...-.T.T-fT..-HHHH-HHH-...T-.f.f-..fT..fTT..", "..TffHHH-HHHH-..TTT-.....-f.T.-..TT-HHHH-HHH-T..T-T.T.-fT.........", "T..T.HHH-HHHH-f.ff.-HHHH.-HHHH-HHHH-HHHH-HHH-.HHH-HHHH-f..T....f.f", "f.f.fHHH-....-f.T..-HHHH.-HHHH-HHHH-....-...-.HHH-HHHH-.HHHH.HHHHf", "HHHHf...-....-...ff-HHHHf-HHHH-HHHH-.f.T-T..-.HHH-HHHH-fHHHHfHHHHf", "HHHH.T..------------f...T-....--------------------f...--HHHHfHHHH.", "HHHH..Tf--f..f..fff-.T..f-f..T-.f...TfT.-....f...-f..T.-.....T....", "T........-..f....fT-.f..f-..ff-.ff....Tf-T....T..-.TT..-T...f.T.T."];
+const BUILDINGS=[{"id": "mon", "name": "ဘုန်းကြီးကျောင်း", "x": 30, "y": 2, "w": 7, "h": 5, "style": "monastery"}, {"id": "stupa", "name": "မြို့ဦးစေတီ", "x": 41, "y": 2, "w": 2, "h": 3, "style": "stupa"}, {"id": "school", "name": "အခြေခံပညာ မူလတန်းကျောင်း", "x": 14, "y": 34, "w": 5, "h": 3, "style": "school"}, {"id": "tea", "name": "ဒေါ်စန်းစန်းရဲ့ လက်ဖက်ရည်ဆိုင်", "x": 26, "y": 39, "w": 5, "h": 3, "style": "teashop", "shop": "tea"}, {"id": "store", "name": "ကိုဇော်ရဲ့ ကုန်စုံဆိုင်", "x": 36, "y": 39, "w": 4, "h": 3, "style": "shop", "shop": "store"}, {"id": "smith", "name": "ကိုထွန်းရဲ့ ပန်းပဲဖို", "x": 45, "y": 39, "w": 4, "h": 3, "style": "smith", "shop": "smith"}, {"id": "clinic", "name": "ကျန်းမာရေး ဆေးပေးခန်း", "x": 20, "y": 39, "w": 4, "h": 3, "style": "clinic"}, {"id": "market", "name": "ရွာဈေး", "x": 0, "y": 45, "w": 8, "h": 2, "style": "market", "shop": "market"}, {"id": "well", "name": "ရပ်ကွက် ရေတွင်း", "x": 40, "y": 13, "w": 1, "h": 1, "style": "well"}, {"id": "r1", "name": "", "x": 7, "y": 0, "w": 3, "h": 3, "style": "thatch"}, {"id": "r2", "name": "", "x": 13, "y": 0, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r5", "name": "", "x": 3, "y": 3, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r6", "name": "", "x": 55, "y": 3, "w": 4, "h": 3, "style": "zinc"}, {"id": "r9", "name": "", "x": 18, "y": 7, "w": 4, "h": 3, "style": "thatch"}, {"id": "r10", "name": "", "x": 14, "y": 9, "w": 3, "h": 3, "style": "zinc"}, {"id": "r12", "name": "", "x": 63, "y": 9, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r13", "name": "", "x": 11, "y": 11, "w": 3, "h": 3, "style": "bamboo"}, {"id": "h9", "name": "ဦးကျော်နဲ့ ကိုမင်းတို့ အိမ်", "x": 18, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "r16", "name": "", "x": 25, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "r17", "name": "", "x": 30, "y": 12, "w": 4, "h": 3, "style": "thatch"}, {"id": "h3", "name": "ကိုအောင်နဲ့ ဖိုးလေးတို့ အိမ်", "x": 45, "y": 12, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r21", "name": "", "x": 50, "y": 12, "w": 4, "h": 3, "style": "tile"}, {"id": "h1", "name": "ဦးဘ နဲ့ ဒေါ်အေးတို့ အိမ်", "x": 8, "y": 13, "w": 3, "h": 3, "style": "thatch"}, {"id": "r25", "name": "", "x": 5, "y": 15, "w": 3, "h": 3, "style": "thatch"}, {"id": "r26", "name": "", "x": 14, "y": 15, "w": 3, "h": 3, "style": "thatch"}, {"id": "r31", "name": "", "x": 25, "y": 17, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r34", "name": "", "x": 50, "y": 17, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r36", "name": "", "x": 35, "y": 18, "w": 4, "h": 3, "style": "thatch"}, {"id": "r37", "name": "", "x": 40, "y": 18, "w": 4, "h": 3, "style": "thatch"}, {"id": "r39", "name": "", "x": 10, "y": 19, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r40", "name": "", "x": 16, "y": 19, "w": 3, "h": 3, "style": "zinc"}, {"id": "r42", "name": "", "x": 30, "y": 20, "w": 4, "h": 3, "style": "thatch"}, {"id": "r43", "name": "", "x": 45, "y": 20, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r50", "name": "", "x": 20, "y": 23, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r51", "name": "", "x": 55, "y": 23, "w": 4, "h": 3, "style": "tile"}, {"id": "r52", "name": "", "x": 0, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r53", "name": "", "x": 5, "y": 24, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r54", "name": "", "x": 9, "y": 24, "w": 4, "h": 3, "style": "thatch"}, {"id": "r55", "name": "", "x": 14, "y": 24, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r56", "name": "", "x": 26, "y": 24, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r57", "name": "", "x": 30, "y": 24, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r58", "name": "", "x": 35, "y": 24, "w": 4, "h": 3, "style": "zinc"}, {"id": "r59", "name": "", "x": 40, "y": 24, "w": 4, "h": 3, "style": "tile"}, {"id": "r60", "name": "", "x": 45, "y": 24, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r61", "name": "", "x": 50, "y": 24, "w": 4, "h": 3, "style": "bamboo"}, {"id": "h4", "name": "သူကြီး ဦးလှမောင်ရဲ့ အိမ်", "x": 30, "y": 28, "w": 4, "h": 3, "style": "tile"}, {"id": "r65", "name": "", "x": 35, "y": 28, "w": 4, "h": 3, "style": "thatch"}, {"id": "r66", "name": "", "x": 40, "y": 28, "w": 4, "h": 3, "style": "thatch"}, {"id": "r67", "name": "", "x": 45, "y": 28, "w": 4, "h": 3, "style": "tile"}, {"id": "r70", "name": "", "x": 1, "y": 29, "w": 4, "h": 3, "style": "thatch"}, {"id": "r71", "name": "", "x": 9, "y": 29, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r72", "name": "", "x": 14, "y": 29, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r78", "name": "", "x": 20, "y": 32, "w": 4, "h": 3, "style": "thatch"}, {"id": "r79", "name": "", "x": 26, "y": 32, "w": 3, "h": 3, "style": "zinc"}, {"id": "r80", "name": "", "x": 30, "y": 33, "w": 4, "h": 3, "style": "tile"}, {"id": "r81", "name": "", "x": 36, "y": 33, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r83", "name": "", "x": 45, "y": 33, "w": 4, "h": 3, "style": "tile"}, {"id": "r85", "name": "", "x": 0, "y": 34, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r88", "name": "", "x": 50, "y": 34, "w": 4, "h": 3, "style": "thatch"}, {"id": "r92", "name": "", "x": 4, "y": 37, "w": 4, "h": 3, "style": "zinc"}, {"id": "r93", "name": "", "x": 9, "y": 37, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r94", "name": "", "x": 55, "y": 37, "w": 4, "h": 3, "style": "zinc"}, {"id": "r95", "name": "", "x": 0, "y": 38, "w": 3, "h": 3, "style": "thatch"}, {"id": "h8", "name": "ဆရာမ မဥမ္မာတို့ အိမ်", "x": 14, "y": 38, "w": 4, "h": 3, "style": "zinc"}, {"id": "r97", "name": "", "x": 31, "y": 38, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r98", "name": "", "x": 49, "y": 38, "w": 4, "h": 3, "style": "bamboo"}, {"id": "h10", "name": "မနှင်းနဲ့ ကိုစိုးတို့ အိမ်", "x": 41, "y": 39, "w": 3, "h": 3, "style": "zinc"}, {"id": "r100", "name": "", "x": 60, "y": 39, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r102", "name": "", "x": 14, "y": 44, "w": 4, "h": 3, "style": "bamboo"}, {"id": "h11", "name": "ဦးသန်းတို့ အိမ်", "x": 19, "y": 44, "w": 4, "h": 3, "style": "thatch"}, {"id": "r104", "name": "", "x": 26, "y": 44, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r105", "name": "", "x": 31, "y": 44, "w": 4, "h": 3, "style": "zinc"}, {"id": "r108", "name": "", "x": 45, "y": 44, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r109", "name": "", "x": 50, "y": 44, "w": 4, "h": 3, "style": "thatch"}, {"id": "r124", "name": "", "x": 9, "y": 50, "w": 4, "h": 3, "style": "zinc"}, {"id": "r125", "name": "", "x": 36, "y": 50, "w": 4, "h": 3, "style": "thatch"}, {"id": "r126", "name": "", "x": 41, "y": 50, "w": 3, "h": 3, "style": "thatch"}, {"id": "h2", "name": "မမြရဲ့ အိမ်", "x": 5, "y": 51, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r131", "name": "", "x": 20, "y": 52, "w": 4, "h": 3, "style": "thatch"}, {"id": "r132", "name": "", "x": 26, "y": 52, "w": 4, "h": 3, "style": "tile"}, {"id": "r133", "name": "", "x": 31, "y": 52, "w": 4, "h": 3, "style": "thatch"}, {"id": "r134", "name": "", "x": 46, "y": 52, "w": 3, "h": 3, "style": "bamboo"}, {"id": "r135", "name": "", "x": 50, "y": 52, "w": 4, "h": 3, "style": "zinc"}, {"id": "r136", "name": "", "x": 56, "y": 53, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r137", "name": "", "x": 61, "y": 53, "w": 4, "h": 3, "style": "bamboo"}, {"id": "r138", "name": "", "x": 0, "y": 54, "w": 4, "h": 3, "style": "bamboo"}].map(b=>({...b,x:b.x+TOWN_X0,name:b.name||"ရွာသား အိမ်"}));
+const HOMES={"h1": [39, 16], "h2": [36, 54], "h3": [77, 15], "h4": [62, 31], "h8": [46, 41], "h9": [50, 15], "h10": [72, 42], "h11": [51, 47], "mon": [63, 7], "school": [46, 37], "tea": [58, 42], "store": [68, 42], "smith": [77, 42], "clinic": [52, 42], "market": [34, 47]};
+const PLACES={"market": [[32, 47], [36, 47], [33, 47], [35, 47], [31, 48], [37, 48]], "tea": [[56, 42], [60, 42], [57, 42], [59, 42], [55, 43], [61, 43]], "store": [[66, 42], [70, 42], [67, 42], [69, 42], [65, 43], [71, 43]], "smith": [[75, 42], [79, 42], [76, 42], [78, 42], [74, 43], [80, 43]], "clinic": [[50, 42], [54, 42], [51, 42], [53, 42], [49, 43], [55, 43]], "school": [[44, 37], [48, 37], [45, 37], [47, 37], [43, 38], [49, 38]], "mon": [[61, 7], [65, 7], [62, 7], [64, 7]], "stupa": [[70, 5], [74, 5], [71, 5], [73, 5]], "canal": [[58, 11], [63, 11], [68, 11], [76, 11], [80, 11], [60, 11]], "park": [[44, 49], [47, 49], [45, 50], [48, 50], [44, 52], [47, 52], [45, 53], [48, 53], [46, 54]], "square": [[71, 44], [69, 44], [73, 47], [66, 48], [75, 48]], "farm": [[12, 8]], "bin": [[9, 7]], "farmhouse": [[6, 7]], "stall": [[25, 20], [23, 20]], "yard": [[20, 13]], "pond": [[25, 6]], "meadow": [[8, 24], [10, 26], [14, 27], [18, 30], [6, 33]], "river": [[22, 44], [16, 44]], "jetty": [[20, 46]]};
+const RAILX=[91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91, 91];
 const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 function buildVillage(t){
   const M={'.':G,'-':PATH,'=':ROAD,'~':WATER,'b':BRIDGE,'r':RAIL,'x':RAIL,'L':PLAT,'T':TREE,'f':FLOWER,'H':BLD};
@@ -200,9 +200,9 @@ function buildVillage(t){
   for(let x=1;x<=28;x++){t[44][x]=SAND;t[45][x]=WATER;t[46][x]=WATER;t[47][x]=WATER;t[48][x]=SAND}
   t[21][20]=PATH;for(let y=22;y<=43;y++)t[y][20]=PATH;t[45][20]=JETTY;t[46][20]=JETTY;
   for(let x=0;x<30;x++)t[MH-1][x]=TREE;
-  [[3,23],[26,23],[16,29],[27,28],[4,38],[24,36],[12,41],[28,40]].forEach(([x,y])=>t[y][x]=TREE);
-  for(let y=22;y<=43;y++)for(let x=1;x<=28;x++)if(t[y][x]===G&&r()<.07)t[y][x]=FLOWER;
-  for(let y=49;y<MH-1;y++)for(let x=1;x<=29;x++){const q=r();t[y][x]=q<.3?TREE:q<.38?FLOWER:G}
+  [[3,23],[26,23],[27,28],[4,38],[24,36],[12,41],[28,40],[2,30],[1,34],[27,33],[23,42],[6,42],[2,26]].forEach(([x,y])=>t[y][x]=TREE);
+  for(let y=22;y<=43;y++)for(let x=1;x<=28;x++)if(t[y][x]===G&&x!==20)t[y][x]=r()<.18?FLOWER:(r()<.035&&Math.abs(x-20)>2&&(x<5||x>24||y>38)?TREE:G);
+  for(let y=49;y<MH-1;y++)for(let x=1;x<=29;x++){const q=r();t[y][x]=q<.38?TREE:q<.55?FLOWER:G}
 }
 function fresh(){
   const seeds={},produce={};CROP_IDS.forEach(id=>{seeds[id]=0;produce[id]=0});seeds.kangkong=9;for(const id in EXTRA)produce[id]=0;
@@ -222,7 +222,7 @@ function migrate(s){
 }
 function save(){if(!S)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function loadSave(){try{const s=localStorage.getItem(KEY);return s?migrate(JSON.parse(s)):null}catch(e){return null}}
-try{localStorage.removeItem('shwepan-farm-v1')}catch(e){}
+try{localStorage.removeItem('shwepan-farm-v1');localStorage.removeItem('shwepan-farm-v2')}catch(e){}
 function clearSave(){try{localStorage.removeItem(KEY)}catch(e){}}
 function syncChickens(){dirty=true;chickRT=S.chickens.map(c=>({x:c.x,y:c.y,tx:c.x,ty:c.y,wait:Math.random()*2,face:1}));resetNPCs()}
 
@@ -271,11 +271,11 @@ const NPCS=[
     lines:['မိုးတွင်းဆို ပုစွန်ထုပ်တွေ မြစ်ထဲ ပိုများတယ်။','ငါးမျှားရင် ဖော့ငုပ်သွားမှ ချက်ချင်းဆွဲ။','ဒီမြစ်က ရွာကို အမြဲ ကျွေးမွေးခဲ့တာ။']},
   {id:'min',name:'ကိုမင်း',role:'လယ်သမား လူငယ်',home:'h9',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#e8e0c8','#2a4a6a','#5a8ab0'),plan:[[470,PLACES.meadow[0],240,'right'],[0,PLACES.park[0],60,'down']],
     lines:['စပါးစိုက်ရင် ရေဝဝ ရှိရမယ်။','မြို့တက်ပြီး အလုပ်လုပ်ဖို့ စဉ်းစားနေတာ။ ဒါပေမဲ့ ရွာကို ချစ်တယ်။','ပေါင်းပင်တွေ ရှင်းရတာ ပင်ပန်းတယ်ဗျာ။']},
-  {id:'hnin',name:'မနှင်း',role:'အပ်ချုပ်သမ',home:'h10',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#b8d8f0','#8a2a5a','#e2b84a'),plan:[[540,PLACES.market[3],60,'up'],[0,PLACES.station[0],60,'down'],[0,PLACES.park[2],90,'down']],
+  {id:'hnin',name:'မနှင်း',role:'အပ်ချုပ်သမ',home:'h10',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#b8d8f0','#8a2a5a','#e2b84a'),plan:[[540,PLACES.market[3],60,'up'],[0,PLACES.park[4],60,'down'],[0,PLACES.park[2],90,'down']],
     lines:['ထဘီ အသစ် ချုပ်နေတယ်။ ပွဲတော်အတွက်လေ။','မင်းလုံချည်လေး လှတယ်နော်။','အပ်ချုပ်စက်သံက ညတိုင်း ကြားရတယ်တဲ့။']},
-  {id:'soe',name:'ကိုစိုး',role:'စာပို့သမား',home:'h10',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#3a6a9a','#3a3a3a','#6a6a8a','#3a5a8a'),plan:[[500,PLACES.station[1],20,'down'],[0,PLACES.store[0],10,'up'],[0,PLACES.school[3],10,'up'],[0,PLACES.farmhouse[0],10,'up'],[0,PLACES.clinic[0],10,'up']],
+  {id:'soe',name:'ကိုစိုး',role:'စာပို့သမား',home:'h10',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#3a6a9a','#3a3a3a','#6a6a8a','#3a5a8a'),plan:[[500,PLACES.canal[2],20,'up'],[0,PLACES.store[0],10,'up'],[0,PLACES.school[3],10,'up'],[0,PLACES.farmhouse[0],10,'up'],[0,PLACES.clinic[0],10,'up']],
     lines:['စာတွေ ပို့နေတယ်။ မြို့က စာ အများကြီးပဲ။','ရွာတစ်ပတ် နေ့တိုင်း လမ်းလျှောက်တော့ ခြေထောက်သန်တယ်။','ကုမ္ပဏီ စာအိတ်ကို သူကြီးအိမ် ပို့ခဲ့ရတယ်။']},
-  {id:'than',name:'ဦးသန်း',role:'ဆိုက်ကားသမား',home:'h11',head:'HAT',pal:mkPal('#b07a50','#4a4a4a','#e8d8b0','#4a5a3a','#7a8a5a'),plan:[[480,PLACES.station[2],60,'down'],[0,PLACES.market[4],30,'up'],[0,PLACES.square[3],30,'down'],[0,PLACES.station[3],60,'down']],
+  {id:'than',name:'ဦးသန်း',role:'ဆိုက်ကားသမား',home:'h11',head:'HAT',pal:mkPal('#b07a50','#4a4a4a','#e8d8b0','#4a5a3a','#7a8a5a'),plan:[[480,PLACES.canal[3],60,'up'],[0,PLACES.market[4],30,'up'],[0,PLACES.square[3],30,'down'],[0,PLACES.park[5],60,'down']],
     lines:['ဆိုက်ကား စီးမလား? ရွာထဲ အနီးလေးပဲ။','ဒီလမ်းတွေ ငါ့ထက် ဘယ်သူမှ ပိုမသိဘူး။','မိုးရွာရင် ဆိုက်ကားနင်းရတာ ခက်တယ်။']},
   {id:'khine',name:'မခိုင်',role:'သူနာပြု',home:'h11',head:'BUN',pal:mkPal('#dca274','#1e130b','#ffffff','#2a4a8a','#6a8ad0'),plan:[[560,PLACES.clinic[1],300,'down'],[0,PLACES.store[1],30,'up']],
     lines:['နေပူထဲ အကြာကြီး အလုပ်မလုပ်နဲ့။ ရေများများသောက်။','အိပ်ရေးဝမှ အားအင် ပြည့်မယ်။','ကျန်းမာရေး ဆေးပေးခန်းမှာ ဆေး လာယူလို့ရတယ်။']},
@@ -941,7 +941,102 @@ function makeWell(){
     R('#5a3b22',x+1,y-10,2,18);R('#5a3b22',x+13,y-10,2,18);roof(x,y-15,y-10,16,'thatch',.25);R('#6b4426',x+3,y-6,10,1);R('#8a6a3a',x+7,y-5,2,3)});
   return{c,ox,top,wins:[],lights:[]};
 }
-const BSPR={};BUILDINGS.forEach(b=>BSPR[b.id]=makeBuilding(b));
+/* ----- unique village houses ----- */
+const PAINT=['#e8b4b8','#b8e0d2','#f2e2a0','#a8c8e8','#f4f2ea','#d8c8f0','#f0c8a0','#c8e0a8','#f6d0dc','#cfe8f2'];
+const ZINC={silver:['#a8b0b8','#8a929a','#c4cad0','#dde2e6'],rust:['#8a5a3a','#6e4228','#a8704a','#b88458'],green:['#4a7a5a','#36604a','#5e9070','#7aa88a'],red:['#a8443a','#82322a','#c05a4a','#d87a68'],blue:['#3a5a8a','#2a466e','#4e72a4','#6e90c0'],tile:['#a8502f','#7a3a20','#c06a40','#d88a5a'],brown:['#7a5a3a','#5a4028','#8e6c48','#a8885e'],thatch:['#c79d48','#9c7631','#d7ae55','#e9c77a'],dark:['#4a3c3c','#3a2e2e','#5a4a4a','#6a5a58']};
+const HOUSE_TYPES=['stilt','concrete2','bamboo','brick2','colonial','concrete1','teak2','shop','mixed2'];
+function hroof(ox,y0,y1,W,pal,kind,inF){
+  const rh=Math.max(1,y1-y0);
+  for(let r=0;r<=rh;r++){const k=r/rh,ins=Math.round((1-k)*W*inF),x0=ox-4+ins,w=W+8-2*ins,y=y0+r;
+    R('#2a1a10',x0-1,y,w+2,1);
+    for(let x=x0;x<x0+w;x++){let c;
+      if(kind==='thatch'){const h=hash(x,r*3+y0)%9;c=h===0?pal[1]:h<3?pal[2]:h===8?pal[3]:pal[0]}
+      else if(kind==='tile')c=r%4===3?pal[1]:((x+(r>>2)*2)%5===0?pal[1]:(r%4===0?pal[2]:pal[0]));
+      else{c=x%3===0?pal[1]:x%3===1?pal[2]:pal[0];if(pal===ZINC.rust&&hash(x,y)%7===0)c='#5a3420'}
+      R(c,x,y,1,1)}}
+  R(pal[3],ox+Math.round(W*inF)-3,y0,Math.max(2,W-Math.round(W*inF)*2+6),1);
+  R('#2a1a10',ox-5,y1+1,W+10,1);R(pal[1],ox-4,y1,W+8,1);
+  if(kind==='thatch')for(let x=ox-4;x<ox+W+4;x++){const d=hash(x,y1)%3;R(pal[1],x,y1,1,d+1)}
+}
+function hwall(kind,x,y,w,h,col){
+  OL([[col,x,y,w,h]],'#2a1a10');
+  if(kind==='plankH')for(let yy=y+2;yy<y+h;yy+=3){R(sh(col,.82),x,yy,w,1);if(hash(x,yy)%3===0)R(sh(col,1.08),x,yy+1,w,1)}
+  else if(kind==='plankV')for(let xx=x+2;xx<x+w;xx+=4){R(sh(col,.8),xx,y,1,h);R(sh(col,1.1),xx+1,y,1,h)}
+  else if(kind==='bamboo')for(let yy=y;yy<y+h;yy+=2)for(let xx=x;xx<x+w;xx+=4)R(sh(col,.8),xx+((yy>>1)%2)*2,yy,2,1);
+  else if(kind==='brick'){for(let yy=y+1;yy<y+h;yy+=3){R('#d8b8a0',x,yy+2,w,1);for(let xx=x+((yy/3|0)%2)*3;xx<x+w;xx+=6)R('#d8b8a0',xx,yy,1,2)}}
+  else if(kind==='paint'){R(sh(col,.88),x,y+h-3,w,3);for(let i=0;i<6;i++){const hh=hash(x+i*7,y+i);R(sh(col,.94),x+hh%w,y+(hh>>4)%h,2,1)}}
+}
+function hwin(kind,x,y,w,h,acc,wins){
+  if(kind==='shutter'){OL([['#2a3a48',x,y,w,h]],'#3a2414');R('#4f6f8a',x,y,w,1);R(acc,x-3,y,3,h);R(acc,x+w,y,3,h);for(let yy=y+1;yy<y+h;yy+=2){R(sh(acc,.8),x-3,yy,3,1);R(sh(acc,.8),x+w,yy,3,1)}}
+  else if(kind==='grill'){OL([['#6a9ac0',x,y,w,h]],'#e8e8e0');R('#9cc6e0',x,y,2,1);for(let xx=x+2;xx<x+w;xx+=3)R('#f0f0e8',xx,y,1,h);R('#f0f0e8',x,y+(h>>1),w,1)}
+  else if(kind==='louver'){OL([[acc,x,y,w,h]],'#2a1a10');for(let yy=y+1;yy<y+h;yy+=2)R(sh(acc,.75),x,yy,w,1)}
+  else{OL([['#1e140c',x,y,w,h]],sh(acc,.7));R('#3a2a18',x,y,w,1)}
+  if(kind!=='louver')wins.push([x,y,w,h]);
+}
+function hdoor(kind,x,y,w,h,col){
+  if(kind==='roll'){OL([['#3a2a1e',x,y,w,h]],'#2a1a10');R('#9aa0a6',x,y,w,h>>1);for(let yy=y;yy<y+(h>>1);yy+=2)R('#7a8086',x,yy,w,1);
+    [['#e2402f',1],['#f2c14e',4],['#3a9a4a',7],['#5a8ad6',10]].forEach(([c,o])=>{if(o<w-2)R(c,x+o,y+h-4,2,3)})}
+  else if(kind==='double'){OL([[col,x,y,w,h]],'#2a1a10');R(sh(col,.8),x+(w>>1),y,1,h);R('#f0c64a',x+(w>>1)-2,y+(h>>1),1,1);R('#f0c64a',x+(w>>1)+1,y+(h>>1),1,1)}
+  else{OL([[col,x,y,w,h]],'#2a1a10');R(sh(col,1.12),x+1,y+1,2,h-1);R('#f0c64a',x+w-2,y+(h>>1),1,2)}
+}
+function makeHouse(b,idx){
+  const rnd=mulberry32(idx*7919+b.x*131+b.y*17),pick=a=>a[Math.floor(rnd()*a.length)],chance=p=>rnd()<p;
+  const type=HOUSE_TYPES[idx%HOUSE_TYPES.length],W=b.w*T,H=b.h*T,ox=8,wins=[],lights=[];
+  const two=['concrete2','brick2','teak2','shop','mixed2'].includes(type)||(type==='colonial'&&chance(.4));
+  const stilt=type==='stilt'?9:type==='bamboo'?5:0;
+  const f1=20,f2=two?18:0,roofH=type==='concrete2'||type==='shop'&&chance(.5)?10:16+Math.floor(rnd()*6);
+  const need=stilt+f1+f2+roofH+6,top=Math.max(12,need-H+4),c=mk(W+16,H+top+2),oy=top,gb=oy+H-2;
+  const paint=pick(PAINT),paint2=pick(PAINT),wood=pick(['#8e5f37','#a8794a','#7a5030','#b5885a']),acc=pick(['#4a7a4a','#3a5a8a','#8a3a2a','#6a4428','#2f7a7a','#a07a20']);
+  const roofPal={stilt:pick([ZINC.silver,ZINC.rust,ZINC.thatch,ZINC.green]),bamboo:ZINC.thatch,brick2:pick([ZINC.rust,ZINC.red,ZINC.silver]),colonial:pick([ZINC.red,ZINC.green,ZINC.blue]),concrete1:pick([ZINC.tile,ZINC.blue,ZINC.green,ZINC.red]),teak2:pick([ZINC.dark,ZINC.brown,ZINC.rust]),mixed2:pick([ZINC.rust,ZINC.thatch,ZINC.silver]),concrete2:ZINC.silver,shop:pick([ZINC.silver,ZINC.blue,ZINC.red])}[type];
+  const roofKind=roofPal===ZINC.thatch?'thatch':roofPal===ZINC.tile?'tile':'zinc';
+  withC(c.getContext('2d'),()=>{
+    R('rgba(0,0,0,.25)',ox,gb-3,W,5);
+    const x0=ox+1,ww=W-2,dcol=Math.floor(b.w/2),dx=ox+dcol*T+3;
+    let base=gb-stilt;
+    if(stilt){for(let i=0;i<=b.w;i++){const px=ox+1+Math.round(i*(W-5)/b.w);OL([['#5a3b22',px,base,3,stilt]],'#24160c')}R('#3b2717',ox,base-1,W,2)}
+    // ground floor
+    const gKind={stilt:'plankH',bamboo:'bamboo',brick2:'brick',colonial:'paint',concrete1:'paint',teak2:'plankH',shop:'paint',mixed2:'brick',concrete2:'paint'}[type];
+    const gCol={stilt:wood,bamboo:'#d4b06a',brick2:'#b5583a',colonial:pick(['#f4f0e2','#f2e6c8','#e8f0e8']),concrete1:paint,teak2:'#6a4428',shop:paint2,mixed2:'#a8503a',concrete2:paint}[type];
+    const g1=base-f1;hwall(gKind,x0,g1,ww,f1,gCol);
+    // upper floor
+    let ft=g1;
+    if(two){const uKind={brick2:pick(['plankH','paint']),teak2:'plankV',shop:'paint',mixed2:pick(['bamboo','plankV']),concrete2:'paint',colonial:'paint'}[type];
+      const uCol={brick2:pick([wood,paint2]),teak2:'#7a5030',shop:paint,mixed2:pick(['#d4b06a',wood]),concrete2:paint,colonial:gCol}[type];
+      ft=g1-f2;hwall(uKind,x0,ft,ww,f2,uCol);R('rgba(0,0,0,.3)',x0,g1-1,ww,1);
+      if(type==='brick2'||type==='concrete2'||type==='teak2'||chance(.4)){R('#d8d4cc',x0-2,g1-1,ww+4,2);
+        const rc=type==='teak2'?'#5a3820':pick(['#f0f0e8','#2a2a2a','#8a5a30']);R(rc,x0-2,g1-7,ww+4,1);for(let xx=x0-2;xx<x0+ww+2;xx+=3)R(rc,xx,g1-7,1,6)}
+      for(let i=0;i<b.w;i++){const wx=ox+i*T+5;hwin(type==='teak2'?'shutter':pick(['grill','shutter','louver']),wx,ft+4,6,7,acc,wins)}}
+    // windows & door on ground floor
+    const gWin={stilt:'shutter',bamboo:'open',brick2:'grill',colonial:'louver',concrete1:pick(['grill','shutter']),teak2:'shutter',shop:'grill',mixed2:'open',concrete2:'grill'}[type];
+    for(let i=0;i<b.w;i++){if(i===dcol)continue;const wx=ox+i*T+4;hwin(gWin,wx,g1+4,8,8,acc,wins)}
+    const dh=Math.min(15,f1-3);
+    hdoor(type==='shop'?'roll':type==='colonial'||type==='concrete2'?'double':'single',type==='shop'?dx-3:dx,base-dh,type==='shop'?16:10,dh,pick(['#7a4a28','#5a3a20','#3a5a7a','#8a3a2a',acc]));
+    lights.push([dx+5,base-dh+4,24]);wins.forEach(([wx,wy])=>lights.push([wx+3,wy+3,20]));
+    if(stilt){for(let i=0;i<Math.ceil(stilt/2);i++)R(i%2?'#7a5230':'#9a6a3c',dx-1,base+1+i*2,12,1)}
+    if(type==='stilt'||type==='teak2'&&!two){const rc='#6b4426';R(rc,x0,base-9,ww,1);for(let xx=x0;xx<x0+ww;xx+=3)if(Math.abs(xx-dx-4)>6)R(rc,xx,base-9,1,8);
+      if(chance(.7)){const cl=pick(['#c8433a','#2f6aa8','#3a8a4a','#e2a03a','#8a3ab0']);R(cl,x0+3,base-9,5,6);R(sh(cl,.8),x0+3,base-6,5,1);R(pick(['#f2c14e','#f4f0e6','#c8433a']),x0+ww-9,base-9,4,5)}}
+    if(type==='colonial'){for(const px of [x0+2,x0+ww-4])OL([['#f4f0e6',px,g1+2,2,f1-2]],'#8a8270')}
+    // roof
+    const rb=ft-1;
+    if(type==='concrete2'||(type==='shop'&&roofH===10)){R('#b8b4ac',x0-1,rb-9,ww+2,8);R('#a09c94',x0-1,rb-9,ww+2,1);R(paint,x0-2,rb-2,ww+4,3);R('#2a1a10',x0-2,rb+1,ww+4,1);
+      if(chance(.85)){const tc=pick(['#2a2a2a','#3a6ab0','#2a2a2a']),tx=x0+ww-12;OL([[tc,tx,rb-17,9,10]],'#141414');R(sh(tc,1.4),tx+1,rb-16,2,8);R(sh(tc,.7),tx,rb-17,9,2)}
+      if(chance(.5)){disc('#8a8a8a',x0+8,rb-12,3);disc('#f0f0f0',x0+8,rb-12,2);R('#6a6a6a',x0+8,rb-10,1,4)}}
+    else{hroof(ox,rb-roofH,rb,W,roofPal,roofKind,type==='colonial'?.18:.28);
+      if(type==='colonial'||type==='teak2'){const cx=ox+W/2|0,gw=Math.min(W-10,30),gh=roofH-4;for(let r=0;r<gh;r++){const w2=Math.round(gw*(r+1)/gh);R(type==='teak2'?'#6a4428':gCol,cx-(w2>>1),rb-gh+r,w2,1)}
+        R(type==='teak2'?'#e0b040':'#2a1a10',cx-(gw>>1),rb-1,gw,1);R('#2a1a10',cx-1,rb-gh+4,3,3);if(type==='teak2')for(let i=0;i<gh;i+=2)R('#e0b040',cx-1,rb-gh+i,1,1)}
+      if(type==='brick2'&&chance(.5)){disc('#8a8a8a',ox+W-10,rb-roofH+6,3);disc('#f0f0f0',ox+W-10,rb-roofH+6,2)}}
+    if(type==='shop'){const sc=pick(['#c8433a','#2f6aa8','#3a8a4a','#e2a03a']);OL([[sc,x0+4,g1+1,ww-8,4]],'#2a1a10');R('#f6efe0',x0+8,g1+2,ww-16,2);
+      for(let i=0;i<ww;i+=4)R(i%8?sc:'#f6efe0',x0+i,g1+5,4,3)}
+    // ground extras
+    const side=chance(.5)?x0+1:x0+ww-11;
+    if(['stilt','bamboo','mixed2','teak2'].includes(type)||chance(.35)){R('#6b4426',side,gb-6,10,2);R('#5a3820',side+1,gb-4,1,4);R('#5a3820',side+8,gb-4,1,4);disc('#7a3a20',side+3,gb-9,3);disc('#a8502f',side+3,gb-9,2);disc('#7a3a20',side+7,gb-9,3);disc('#a8502f',side+7,gb-9,2);R('#c8a070',side+1,gb-12,4,1);R('#c8a070',side+5,gb-12,4,1)}
+    else if(chance(.8))for(let i=0;i<3;i++){const px=side+i*4;R('#b5653a',px,gb-4,3,3);disc('#3f8a35',px+1,gb-6,2);R(pick(['#e2504a','#f6d35e','#ffffff','#e85a8a']),px+1,gb-7,1,1)}
+    if(chance(.45)){const bx=chance(.5)?x0-2:x0+ww-3,bc=pick(['#d8338a','#e85aa8','#c8433a','#f08ab0']);for(let i=0;i<10;i++){const yy=gb-4-i*3,xx=bx+((hash(i,idx)%3)-1);disc('#3f7a35',xx,yy,2);R(bc,xx-1+(i%2),yy-1,2,2)}}
+  });
+  return{c,ox,top,wins,lights};
+}
+const BSPR={};let hIdx=0;BUILDINGS.forEach(b=>BSPR[b.id]=/^(r\d|h\d)/.test(b.id)?makeHouse(b,hIdx++):makeBuilding(b));
+
 function lineP(x0,y0,x1,y1,col){x0|=0;y0|=0;x1|=0;y1|=0;const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy,n=0;while(n++<300){R(col,x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
 function drawRod(px,py,dir,bx,by,bite){
   const [dx,dy]=DIRS[dir],hx=px+8+dx*4,hy=py+13,tx=px+8+dx*13+(dy?4:0),ty=py+(dy>0?20:dy<0?-2:4);
@@ -974,6 +1069,44 @@ function drawTrain(cx,cy,day){
 }
 function bubble(px,py){R('#ffffff',px+6,py-12,9,7);R('#ffffff',px+8,py-5,2,2);R('#2a1a12',px+8,py-9,1,1);R('#2a1a12',px+10,py-9,1,1);R('#2a1a12',px+12,py-9,1,1)}
 
+/* ----- tree species ----- */
+function makePalm(s){const c=mk(32,58);withC(c.getContext('2d'),()=>{
+  for(let y=14;y<56;y++){const x=15+Math.round(Math.sin(y/9)*1.5);R('#2a1a10',x-1,y,5,1);R(y%4?'#7a5a3a':'#5e4428',x,y,3,1)}
+  const lc=TREE_PAL[s];
+  for(let a=0;a<14;a++){const ang=a/14*Math.PI*2,len=10+(a%3)*2;for(let i=0;i<len;i++){const x=16+Math.cos(ang)*i,y=13+Math.sin(ang)*i*.7+i*i*.03;R(i<len-2?lc.a:lc.c,x|0,y|0,2,1);if(i%2)R(lc.o,(x|0)+1,(y|0)+1,1,1)}}
+  disc(lc.o,16,13,3);disc('#6a4a2a',16,14,2);if(s!==1){R('#3a2a18',13,15,3,3);R('#3a2a18',17,16,3,3)}
+});return c}
+function makeCoconut(s){const c=mk(36,56);withC(c.getContext('2d'),()=>{
+  for(let y=16;y<54;y++){const x=17+Math.round((54-y)*(54-y)/180);R('#2a1a10',x-1,y,5,1);R(y%3?'#9a7a5a':'#7a5e44',x,y,3,1)}
+  const lc=TREE_PAL[s];
+  for(let a=0;a<9;a++){const ang=-Math.PI*.95+a/8*Math.PI*.9+(a%2?.1:0);for(let i=0;i<16;i++){const x=25+Math.cos(ang)*i,y=15+Math.sin(ang)*i*.5+i*i*.05;R(lc.o,x|0,(y|0)+1,2,1);R(i%2?lc.b:lc.c,x|0,y|0,2,1)}}
+  for(let a=0;a<3;a++){const x=23+a*3,y=17;disc('#3a2a10',x,y,2);disc('#7a8a3a',x,y,1)}
+});return c}
+function makeBanana(s){const c=mk(28,34);withC(c.getContext('2d'),()=>{
+  OL([['#7a9a4a',13,16,3,16]],'#2a3a14');R('#9ab85a',13,16,1,16);
+  const lc=s===0?['#7ab84a','#5a9a3a','#a8d870']:s===2?['#8aa84a','#6a8a3a','#b8c870']:['#5ab84a','#3a9a3a','#8ae070'];
+  [[-1,-0.8],[1,-0.7],[-1,-0.2],[1,-0.1],[0,-1]].forEach(([dx,dy],i)=>{for(let j=0;j<11;j++){const x=14+dx*j*1.1,y=17+dy*j+j*j*.06*(dx?1:0);R('#2a3a14',(x|0)-1,(y|0)-1,4,4);R(lc[i%2],(x|0)-1,(y|0)-1,3,3);R(lc[2],x|0,y|0,1,1)}});
+  if(s===1){R('#e2b84a',17,22,3,4);R('#8a3a5a',18,26,2,3)}
+});return c}
+function makeBamboo(s){const c=mk(32,50);withC(c.getContext('2d'),()=>{
+  const lc=TREE_PAL[s];
+  for(let k=0;k<7;k++){const bx=6+k*3+(k%2),h=30+(k*7)%14;for(let y=48-h;y<48;y++){R('#3a5a2a',bx,y,2,1);if(y%6===0)R('#c8d070',bx,y,2,1)}R('#6a9a3a',bx,48-h,1,h)}
+  for(let i=0;i<60;i++){const x=3+(hash(i,s)%26),y=2+(hash(s,i)%30);R(i%3?lc.b:lc.c,x,y,2,1)}
+});return c}
+function makeBush(kind){const c=mk(18,16);withC(c.getContext('2d'),()=>{
+  R('rgba(0,0,0,.2)',2,12,14,3);disc('#24452a',9,9,6);disc('#3a7a3a',9,9,5);disc('#4f9a48',8,7,3);
+  const fc={bougain:['#d8338a','#f06ab0'],hibiscus:['#e2402f','#ff8a6c'],jasmine:['#ffffff','#f4f0d8'],ixora:['#f06a2a','#ffa04a']}[kind];
+  for(let i=0;i<9;i++){const x=4+hash(i,kind.length)%10,y=4+hash(kind.length,i)%9;R(fc[i%2],x,y,2,2)}
+});return c}
+const SPECIES=[0,1,2].map(s=>({round:TREES[s][0],bloom:TREES[s][1],palm:makePalm(s),coco:makeCoconut(s),banana:makeBanana(s),bamboo:makeBamboo(s),
+  bougain:makeBush('bougain'),hibiscus:makeBush('hibiscus'),jasmine:makeBush('jasmine'),ixora:makeBush('ixora')}));
+const SP_TOWN=['round','round','bloom','palm','coco','banana','banana','bamboo','bougain','hibiscus','jasmine','ixora','round','coco'];
+const SP_WILD=['round','round','round','bloom','palm','bamboo','round','coco','banana'];
+function treeKind(x,y){
+  if(x<30&&y<22)return hash(x,y)%5===0?'bloom':'round';
+  const h=hash(x*3,y*5);return x>=TOWN_X0?SP_TOWN[h%SP_TOWN.length]:SP_WILD[h%SP_WILD.length];
+}
+function drawTreeAt(x,y,cx,cy,s){const c=SPECIES[s][treeKind(x,y)];C.drawImage(c,x*T-cx+8-(c.width>>1),y*T-cy+17-c.height)}
 const ICON={};['hoe','can','sickle','hammer'].forEach(id=>{const c=mk(16,16);drawIcon(c.getContext('2d'),id);ICON[id]=c});
 
 /* ----- static ground layer ----- */
@@ -993,10 +1126,10 @@ function drawGround(t,x,y,sx,sy){
   const s=curS(),GC=SEASONS[s].grass;
   switch(t){
   case G:case HOUSE:grass(sx,sy,x,y);break;
-  case FLOWER:{grass(sx,sy,x,y);const h=hash(x,y),fl=SEASONS[s].flowers,c=fl[h%4],c2=fl[(h+1)%4];
-    R('#3c7a2c',sx+7,sy+8,1,5);R('#4f9a37',sx+5,sy+10,2,1);R('#4f9a37',sx+8,sy+9,2,1);
-    R(c,sx+7,sy+4,1,1);R(c,sx+6,sy+5,3,1);R(c,sx+7,sy+6,1,1);R('#e48c2a',sx+7,sy+5,1,1);
-    if(h%3===0){R('#3c7a2c',sx+12,sy+11,1,3);R(c2,sx+11,sy+10,3,1);R(c2,sx+12,sy+9,1,3);R('#e48c2a',sx+12,sy+10,1,1)}break}
+  case FLOWER:{grass(sx,sy,x,y);const h=hash(x,y),fl=SEASONS[s].flowers.concat(['#ffffff','#f06a2a','#e85aa8','#f6d35e']);
+    if(h%6===0&&x>=TOWN_X0){R('#6b4426',sx+1,sy+7,14,7);R('#7a5230',sx+1,sy+7,14,1);const c=['#e2402f','#f2a03a','#e85aa8','#f6d35e'][h%4];for(let i=0;i<5;i++){const px=sx+2+i*3,py=sy+5+(i%2)*3;R('#2f6a28',px-1,py+2,4,3);R('#4f9a37',px,py+2,2,2);R(c,px,py,2,2);R(sh(c,1.25),px,py,1,1)}break}
+    const n=3+h%4;for(let i=0;i<n;i++){const px=sx+2+hash(x*7+i,y)%11,py=sy+3+hash(x,y*7+i)%9,c=fl[(h+i)%fl.length];
+      R('#3c7a2c',px+1,py+2,1,4);R('#4f9a37',px+2,py+4,2,1);R(c,px,py+1,3,1);R(c,px+1,py,1,3);R(i%2?'#f2c14e':'#e48c2a',px+1,py+1,1,1)}break}
   case SOIL:{const w=S.wet[y][x];tx(w?TX.wet:TX.dry,x,y,sx,sy);
     const hi=w?'#76502f':'#b88552',lo=w?'#3f2614':'#6f4726';
     for(const r of [2,9]){R(hi,sx+1,sy+r,14,1);R(lo,sx+1,sy+r+3,14,1)}
@@ -1209,8 +1342,8 @@ function render(now){
   const sprites=[];
   sprites.push({y:5.95,d:()=>{C.drawImage(HOUSE_SPR,3*T-cx-4,2*T-cy-6);
     if(!day){[[3*T+10,2*T+29],[3*T+58,2*T+29]].forEach(([wx,wy])=>{R('#f8d77a',wx-cx,wy-cy,12,8);R('#4a2f1c',wx-cx+5,wy-cy,2,8);R('#fff2b8',wx-cx,wy-cy,3,2)})}}});
-  for(let y=y0;y<=y0+VH+2&&y<MH;y++)for(let x=x0-1;x<=x0+VW&&x<MW;x++){if(x<0||S.tiles[y][x]!==TREE)continue;
-    sprites.push({y:y+.9,d:()=>C.drawImage(TREES[s][hash(x,y)%5===0?1:0],x*T-cx-8,y*T-cy-22)})}
+  for(let y=y0;y<=y0+VH+4&&y<MH;y++)for(let x=x0-1;x<=x0+VW&&x<MW;x++){if(x<0||S.tiles[y][x]!==TREE)continue;
+    sprites.push({y:y+.9,d:()=>drawTreeAt(x,y,cx,cy,s)})}
   BUILDINGS.forEach(b=>{const sp=BSPR[b.id],bx=b.x*T-cx-sp.ox,by=b.y*T-cy-sp.top;if(bx>VW*T||by>VH*T||bx+sp.c.width<0||by+sp.c.height<0)return;
     sprites.push({y:b.y+b.h-.1,d:()=>{C.drawImage(sp.c,bx,by);if(!day)sp.wins.forEach(([wx,wy,ww,wh])=>R('#f8d77a',bx+wx,by+wy,ww,wh))}})});
   if(open){const f=((now/700)|0)%2;sprites.push({y:18.5,d:()=>C.drawImage(MS.down[0],Math.round(24.5*T-cx),18*T-cy-7+f)})}
@@ -1230,7 +1363,7 @@ function render(now){
   sprites.push({y:ry+.01,d:()=>drawPlayer(Math.round(rx*T-cx),Math.round(ry*T-cy)-7)});
   sprites.sort((a,b)=>a.y-b.y).forEach(sp=>sp.d());
   kites.forEach(([hx,hy,i])=>drawKite(hx,hy,1,now,i));
-  drawTrain(cx,cy,day);
+
   {const ppx=Math.round(rx*T-cx),ppy=Math.round(ry*T-cy)-7;
     if(fishRT){const bite=fishRT.phase==='bite';drawRod(ppx,ppy,S.dir,fishRT.x*T+8-cx,fishRT.y*T+8-cy,bite);
       if(bite){R('#2a1a12',ppx+4,ppy-14,8,11);R('#ffffff',ppx+5,ppy-13,6,9);R('#e2402f',ppx+7,ppy-12,2,4);R('#e2402f',ppx+7,ppy-7,2,2)}}
