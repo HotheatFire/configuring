@@ -80,6 +80,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .item .bt{grid-row:1/3;grid-column:2;font-family:var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
 .kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-variant-numeric:tabular-nums}
 .kv span:nth-child(even){font-family:var(--display);text-align:right}
+.hearts{color:var(--danger);letter-spacing:2px;font-size:16px}
+.who{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
 @media (max-width:420px){.dpad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,44px)}.ab button{width:62px;height:62px}}
 @media (prefers-reduced-motion:reduce){#toast,.bar b{transition:none}}
 </style>
@@ -106,33 +108,50 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <button type="button" class="b" id="btnB"><span><b>B</b><br><small>ကိုင်မယ်</small></span></button>
     </div>
   </section>
-  <div id="keys">မြှားခလုတ် / WASD လမ်းလျှောက် · Z / Space ကိရိယာသုံး · X / Enter ရိတ်၊ ကောက်၊ ပို့၊ အိပ် · 1–6 ကိရိယာရွေး · R မျိုးစေ့ပြောင်း</div>
+  <div id="keys">မြှားခလုတ် / WASD လမ်းလျှောက် · Z / Space ကိရိယာသုံး · X / Enter ရိတ်၊ ကောက်၊ ပို့၊ အိပ် · 1–6 ကိရိယာရွေး · R မျိုးစေ့ပြောင်း · အိမ်တံခါးဆီ လျှောက်ရင် အိမ်ထဲဝင်မယ်</div>
   <div id="modal" hidden><div class="card" id="mcard"></div></div>
 </div>
 
 <script>
 (()=>{
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-const T=16,VW=15,VH=11,MW=30,MH=22,GOAL=10000,DAYS=30,TICK=300;
+const T=16,VW=15,VH=11,MW=30,MH=22,GOAL=10000,DAYS=30,TICK=300,SLEN=10;
 const G=0,SOIL=1,WEED=2,ROCK=3,TREE=4,WATER=5,PATH=6,FENCE=7,HOUSE=8,BIN=9,TROUGH=10,STALL=11,FLOWER=12;
 const SOLID=new Set([ROCK,TREE,WATER,FENCE,HOUSE,BIN,TROUGH,STALL]);
+const SEASONS=[
+  {name:'နွေ',rain:.08,grass:'#86a843',gs:['#7c9e3a','#6e8f33','#9cbc55','#b2c866'],path:'#dcb87f',flowers:['#f6c829','#f08a3a','#e2402f','#ffffff']},
+  {name:'မိုး',rain:.55,grass:'#4f9e3c',gs:['#47933a','#3d8530','#5fb04a','#74c45a'],path:'#c09a66',flowers:['#ffffff','#b9a3ff','#7fb8ff','#f7a1c4']},
+  {name:'ဆောင်း',rain:.05,grass:'#7fa556',gs:['#77994f','#6a8a45','#90b468','#a8c47a'],path:'#d3ae79',flowers:['#f4d35e','#f7a1c4','#ffffff','#e85a8a']},
+];
+const seasonOf=d=>Math.min(2,Math.floor((d-1)/SLEN));
+const curS=()=>seasonOf(S.day);
 const CROPS={
-  turnip:{name:'မုန်လာဥ',grow:4,regrow:0,sell:50,bag:120,col:'#f4eef6',col2:'#a35bb5'},
-  potato:{name:'အာလူး',grow:6,regrow:0,sell:80,bag:200,col:'#c49a5a',col2:'#f6f1d0'},
-  tomato:{name:'ခရမ်းချဉ်သီး',grow:8,regrow:3,sell:60,bag:300,col:'#e2402f',col2:'#ff8a6c'},
-  corn:{name:'ပြောင်းဖူး',grow:11,regrow:4,sell:100,bag:400,col:'#f2cf3a',col2:'#fbe68a'},
+  kangkong:{name:'ကန်စွန်း',s:0,grow:3,regrow:0,sell:45,bag:120,col:'#4fb848',col2:'#9fe07a'},
+  tomato:{name:'ခရမ်းချဉ်သီး',s:0,grow:6,regrow:3,sell:60,bag:300,col:'#e2402f',col2:'#ff8a6c'},
+  melon:{name:'ဖရဲသီး',s:0,grow:8,regrow:0,sell:180,bag:600,col:'#2f7a2f',col2:'#e2504a'},
+  okra:{name:'ရုံးပတီ',s:1,grow:4,regrow:2,sell:35,bag:260,col:'#7cc04a',col2:'#f2d35e'},
+  corn:{name:'ပြောင်းဖူး',s:1,grow:7,regrow:3,sell:90,bag:400,col:'#f2cf3a',col2:'#fbe68a'},
+  rice:{name:'စပါး',s:1,grow:8,regrow:0,sell:150,bag:500,col:'#e0b84a',col2:'#f6dc8a'},
+  turnip:{name:'မုန်လာဥ',s:2,grow:4,regrow:0,sell:55,bag:130,col:'#f4eef6',col2:'#a35bb5'},
+  potato:{name:'အာလူး',s:2,grow:6,regrow:0,sell:90,bag:220,col:'#c49a5a',col2:'#f6f1d0'},
+  cabbage:{name:'ဂေါ်ဖီထုပ်',s:2,grow:8,regrow:0,sell:170,bag:550,col:'#b8e09a',col2:'#7cc46a'},
 };
 const CROP_IDS=Object.keys(CROPS);
-const EGG_PRICE=50;
+const seasonCrops=s=>CROP_IDS.filter(id=>CROPS[id].s===s);
+const EXTRA={egg:{name:'ကြက်ဥ',sell:50},fish:{name:'ငါး',sell:120}};
 const TOOLS=[{id:'hoe',name:'ပေါက်ပြား'},{id:'can',name:'ရေပုံး'},{id:'sickle',name:'တံစဉ်'},{id:'hammer',name:'တူ'},{id:'seed',name:'မျိုးစေ့'},{id:'tea',name:'လက်ဖက်ရည်'}];
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+const OPP={up:'down',down:'up',left:'right',right:'left'};
 const YARD={x0:22,x1:27,y0:11,y1:15};
 const FIELD={x0:4,x1:18,y0:9,y1:19};
-const DOOR=[5,5];
+const DOOR=[5,5],GATE=[29,20];
 const KEY='shwepan-farm-v1';
+const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt.....#","#.tt...C.#","#........#","####D#####"];
+const HSOLID=new Set(['#','S','w','K','B','t','C']);
+const hTile=(x,y)=>(y<0||y>=HMAP.length||x<0||x>=10)?'#':HMAP[y][x];
 
 let S=null;
-let mv=null, held=[], paused=true, acc=0, last=0, anim=null, parts=[], chickRT=[];
+let mv=null, held=[], paused=true, acc=0, last=0, anim=null, parts=[], chickRT=[], npcRT=[], fade=0;
 
 /* ---------- helpers ---------- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -140,7 +159,8 @@ const hash=(x,y)=>{let h=x*374761393+y*668265263;h=(h^(h>>13))*1274126177;return
 const fmt=n=>n.toLocaleString('en-US');
 const inField=(x,y)=>x>=FIELD.x0&&x<=FIELD.x1&&y>=FIELD.y0&&y<=FIELD.y1;
 const tileAt=(x,y)=>(x<0||y<0||x>=MW||y>=MH)?TREE:S.tiles[y][x];
-const walkable=(x,y)=>!SOLID.has(tileAt(x,y));
+const npcAt=(x,y)=>npcRT.find(n=>n.active&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
+const walkable=(x,y)=>!SOLID.has(tileAt(x,y))&&!npcAt(x,y);
 const front=()=>{const d=DIRS[S.dir];return[S.px+d[0],S.py+d[1]]};
 let C=ctx;const R=(c,x,y,w,h)=>{C.fillStyle=c;C.fillRect(x,y,w,h)};
 
@@ -152,43 +172,134 @@ function genMap(seed){
   for(let y=0;y<MH;y++){t[y][0]=TREE;t[y][MW-1]=TREE}
   [[1,1],[2,1],[1,2],[11,1],[13,2],[16,1],[19,1],[20,2],[9,2],[1,19],[2,20],[1,20],[28,7],[27,8],[22,7],[1,8],[1,13],[28,19]].forEach(([x,y])=>t[y][x]=TREE);
   for(let y=2;y<=5;y++)for(let x=3;x<=7;x++)t[y][x]=HOUSE;
-  for(let y=2;y<=5;y++)for(let x=23;x<=27;x++){t[y][x]=WATER}
-  t[6][5]=PATH;for(let x=5;x<=20;x++)t[7][x]=PATH;for(let y=7;y<=20;y++)t[y][20]=PATH;for(let x=20;x<=27;x++)t[20][x]=PATH;
+  for(let y=2;y<=5;y++)for(let x=23;x<=27;x++)t[y][x]=WATER;
+  t[6][5]=PATH;for(let x=5;x<=20;x++)t[7][x]=PATH;for(let y=7;y<=20;y++)t[y][20]=PATH;for(let x=20;x<=29;x++)t[20][x]=PATH;
   t[6][9]=BIN;
   for(let x=21;x<=28;x++){t[10][x]=FENCE;t[16][x]=FENCE}
   for(let y=10;y<=16;y++){t[y][21]=FENCE;t[y][28]=FENCE}
-  t[13][21]=PATH;
-  t[11][22]=TROUGH;
-  t[19][24]=STALL;t[19][25]=STALL;
+  t[13][21]=PATH;t[11][22]=TROUGH;t[19][24]=STALL;t[19][25]=STALL;
   for(let y=FIELD.y0;y<=FIELD.y1;y++)for(let x=FIELD.x0;x<=FIELD.x1;x++){const r=rnd();t[y][x]=r<.3?WEED:r<.42?ROCK:G}
   for(let i=0;i<40;i++){const x=1+Math.floor(rnd()*28),y=1+Math.floor(rnd()*20);if(t[y][x]===G&&!inField(x,y)&&!(x>=21&&y>=10&&y<=16))t[y][x]=FLOWER}
   return t;
 }
 function fresh(){
-  const seed=(Math.random()*1e9)|0;
-  return{day:1,min:360,money:500,energy:100,maxE:100,water:30,canMax:30,weather:'sun',tomorrow:Math.random()<.25?'rain':'sun',
-    tiles:genMap(seed),wet:Array.from({length:MH},()=>Array(MW).fill(0)),crops:{},
-    seeds:{turnip:9,potato:0,tomato:0,corn:0},seedSel:'turnip',
-    produce:{turnip:0,potato:0,tomato:0,corn:0,egg:0},shippedValue:0,shippedCount:0,
-    feed:0,trough:0,chickens:[],eggs:[],tea:1,px:5,py:6,dir:'down',tool:0,
+  const seeds={},produce={};CROP_IDS.forEach(id=>{seeds[id]=0;produce[id]=0});seeds.kangkong=9;produce.egg=0;produce.fish=0;
+  return{day:1,min:360,money:500,energy:100,maxE:100,water:30,canMax:30,weather:'sun',tomorrow:Math.random()<SEASONS[0].rain?'rain':'sun',
+    tiles:genMap((Math.random()*1e9)|0),wet:Array.from({length:MH},()=>Array(MW).fill(0)),crops:{},
+    seeds,seedSel:'kangkong',produce,shippedValue:0,shippedCount:0,
+    feed:0,trough:0,chickens:[],eggs:[],tea:1,px:5,py:6,dir:'down',tool:0,scene:'farm',
+    friends:{},talked:{},gifts:{},daily:{},
     stats:{earned:0,harvested:0,eggs:0},over:false};
 }
+function migrate(s){
+  CROP_IDS.forEach(id=>{s.seeds[id]??=0;s.produce[id]??=0});
+  s.produce.egg??=0;s.produce.fish??=0;s.scene??='farm';s.friends??={};s.talked??={};s.gifts??={};s.daily??={};
+  for(let x=20;x<=29;x++)if(s.tiles[20][x]===TREE||s.tiles[20][x]===G)s.tiles[20][x]=PATH;
+  if(!CROPS[s.seedSel]||CROPS[s.seedSel].s!==seasonOf(s.day))s.seedSel=seasonCrops(seasonOf(s.day))[0];
+  return s;
+}
 function save(){if(!S)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-function loadSave(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}}
+function loadSave(){try{const s=localStorage.getItem(KEY);return s?migrate(JSON.parse(s)):null}catch(e){return null}}
 function clearSave(){try{localStorage.removeItem(KEY)}catch(e){}}
-function syncChickens(){dirty=true;chickRT=S.chickens.map(c=>({x:c.x,y:c.y,tx:c.x,ty:c.y,wait:Math.random()*2,face:1}))}
+function syncChickens(){dirty=true;chickRT=S.chickens.map(c=>({x:c.x,y:c.y,tx:c.x,ty:c.y,wait:Math.random()*2,face:1}));resetNPCs()}
+
+/* ---------- villagers ---------- */
+const NPCS=[
+  {id:'ba',name:'ဦးဘ',role:'အိမ်နီးချင်း ခြံသမားအို',rainSkip:true,plan:[[480,[12,8],120,'down'],[0,[9,7],40,'up']],
+    gift:()=>{const id=seasonCrops(curS())[1];S.seeds[id]+=9;return `${CROPS[id].name} မျိုးစေ့ 9 စေ့ ပေးလိုက်တယ်`},
+    lines:['ပေါင်းပင်တွေကို အမြဲရှင်းထားပါကွယ်။ ညတိုင်း နည်းနည်းစီ ပြန်ပေါက်တတ်တယ်။','ရေမလောင်းရတဲ့ နေ့က အပင်တွေ မကြီးဘူးနော်။','မင်းအဘိုးလည်း ဒီမြေမှာ တစ်သက်လုံး စိုက်ခဲ့တာ။ မင်းကို မြင်ရတာ ဝမ်းသာတယ်။'],
+    season:['နွေရာသီ ပူတယ်။ ကန်စွန်းက မြန်မြန်ထွက်တယ်၊ ဖရဲသီးက ဈေးကောင်းတယ်။','မိုးရာသီဆို စပါးစိုက်ရမယ်ကွယ်။ မိုးရွာတဲ့နေ့ ရေလောင်းစရာ မလိုဘူး။','ဆောင်းမှာ ဂေါ်ဖီထုပ်နဲ့ အာလူး ကောင်းတယ်။ မနက်ခင်း မြူဆိုင်းနေတာ လှတယ်နော်။']},
+  {id:'mya',name:'မမြ',role:'ရွာက ပန်းသည်',rainSkip:false,plan:[[600,[25,20],60,'up'],[0,[20,13],40,'right'],[0,[6,7],30,'up']],
+    gift:()=>{S.tea+=3;return 'လက်ဖက်ရည် 3 ခွက် ပေးလိုက်တယ်'},
+    lines:['ဒီနေ့ ဈေးထဲမှာ ကြက်ဥ ဈေးကောင်းတယ်တဲ့။','သနပ်ခါး လိမ်းထားတော့ နေပူလည်း အေးတယ်။','ရွာကို ကယ်ဖို့ ငါတို့လည်း ဆုတောင်းပေးနေတယ်နော်။'],
+    season:['သင်္ကြန်ရောက်ရင် ရေပက်ကြမယ်နော်။ ပိတောက်ပန်းတွေ ပွင့်နေပြီ။','မိုးတွင်းဆို လမ်းတွေ ရွှံ့ထူတယ်။ ချော်မလဲနဲ့နော်။','ဆောင်းတွင်း မနက်ဆို အေးတယ်။ လက်ဖက်ရည် ပူပူလေး သောက်ရတာ ကောင်းတယ်။']},
+  {id:'aung',name:'ကိုအောင်',role:'ငါးမျှားဝါသနာရှင်',rainSkip:true,fish:true,plan:[[840,[25,6],150,'up']],
+    gift:()=>{S.produce.fish+=2;return 'ငါး 2 ကောင် ပေးလိုက်တယ်။ ပို့ကုန်ပုံးထဲ ထည့်ရောင်းလို့ရတယ်'},
+    lines:['ဒီကန်ထဲမှာ ငါးကြီးတွေ ရှိတယ်ဗျ။','ခြံလုပ်တာ ပင်ပန်းမှာပဲ။ အားမရှိရင် လက်ဖက်ရည် သောက်ဗျာ။','ကုမ္ပဏီက လူတွေ ရွာထဲ လာကြည့်သွားတယ်။ မြန်မြန် လုပ်မှ ဖြစ်မယ်။'],
+    season:['နွေရာသီ ကန်ရေ နည်းလာတယ်။ ငါးတွေ အောက်ခြေမှာ ပုန်းနေကြတယ်။','မိုးရွာရင် ငါးမျှားလို့ မကောင်းဘူး။ ဒီနေ့တော့ ကံကောင်းတယ်။','ဆောင်းမှာ ကန်ရေ ကြည်တယ်။ ငါးတွေကို မြင်ရတယ်ဗျ။']},
+];
+const NPC_PAL={
+  ba:{o:'#2a1a12',k:'#cfcac2',s:'#c98e5c',S:'#a06a40',e:'#1b120c',w:'#f2efe6',W:'#c9c2b2',l:'#7a5a3a',L:'#5a3f25',p:'#a8835a',f:'#5a3a20'},
+  mya:{o:'#2a1a12',k:'#1e130b',r:'#e2504a',s:'#dca274',S:'#b07a50',t:'#f2dc9e',e:'#1b120c',w:'#fbe7c6',W:'#d9c39e',l:'#2f7a5a',L:'#1f5a40',p:'#e2b84a',f:'#7a4a28'},
+  aung:{o:'#2a1a12',k:'#1e130b',s:'#d39a68',S:'#a8714a',e:'#1b120c',w:'#5a8ad6',W:'#3f68a8',l:'#3a3a5a',L:'#26263e',p:'#8a7ab8',f:'#7a4a28'},
+};
+function resetNPCs(){npcRT=NPCS.map(()=>({active:false,done:false,x:GATE[0],y:GATE[1],fx:GATE[0],fy:GATE[1],t:1,path:[],leg:0,wait:0,leaving:false,dir:'left',steps:0}))}
+function bfs(sx,sy,tx,ty){
+  const ok=(x,y)=>{const t=tileAt(x,y);return t===PATH||t===G||t===FLOWER},key=(x,y)=>y*MW+x,prev=new Map(),q=[[sx,sy]];prev.set(key(sx,sy),-1);
+  while(q.length){const [x,y]=q.shift();
+    if(x===tx&&y===ty){const p=[];let k=key(x,y);while(k!==key(sx,sy)){p.unshift([k%MW,(k/MW)|0]);k=prev.get(k)}return p}
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(nx<0||ny<0||nx>=MW||ny>=MH||prev.has(k)||!ok(nx,ny))continue;prev.set(k,key(x,y));q.push([nx,ny])}}
+  return [];
+}
+const dirOf=(dx,dy)=>dx>0?'right':dx<0?'left':dy>0?'down':'up';
+function updateNPCs(dt){
+  NPCS.forEach((d,i)=>{const n=npcRT[i];if(!n||n.done)return;
+    if(!n.active){
+      if(S.min>=d.plan[0][0]&&S.min<1020&&!(d.rainSkip&&S.weather==='rain')){Object.assign(n,{active:true,x:GATE[0],y:GATE[1],fx:GATE[0],fy:GATE[1],t:1,leg:0,wait:0,leaving:false});n.path=bfs(n.x,n.y,...d.plan[0][1])}
+      return;
+    }
+    if(n.t<1){n.t=Math.min(1,n.t+dt/230);return}
+    if(n.path.length){const [nx,ny]=n.path[0];
+      if(S.scene==='farm'&&S.px===nx&&S.py===ny)return;
+      n.path.shift();n.fx=n.x;n.fy=n.y;n.dir=dirOf(nx-n.x,ny-n.y);n.x=nx;n.y=ny;n.t=0;n.steps++;return}
+    if(n.leaving){n.active=false;n.done=true;return}
+    const leg=d.plan[n.leg];
+    if(!n.wait){n.wait=S.min+leg[2];n.dir=leg[3]}
+    if(S.min>=n.wait||S.min>=1080){n.wait=0;n.leg++;
+      if(n.leg<d.plan.length&&S.min<1080){const tg=d.plan[n.leg][1];n.path=bfs(n.x,n.y,tg[0],tg[1])}
+      else{n.leaving=true;n.path=bfs(n.x,n.y,GATE[0],GATE[1])}}
+  });
+}
+function talk(i){
+  const d=NPCS[i],n=npcRT[i];n.dir=OPP[S.dir];
+  let gift='';
+  if(!S.talked[d.id]){S.talked[d.id]=1;S.friends[d.id]=Math.min(10,(S.friends[d.id]||0)+1)}
+  const f=S.friends[d.id]||0;
+  if(f>=3&&!S.gifts[d.id]){S.gifts[d.id]=1;gift=d.gift()}
+  const h=hash(S.day*7+i,S.min>>6);
+  let line=h%3===0?d.season[curS()]:d.lines[h%d.lines.length];
+  if(S.day>=25&&S.money<GOAL&&h%2)line='ရက်နည်းနည်းပဲ ကျန်တော့တယ်။ အားတင်းထားနော်။ ငါတို့ ရွာလေး မပျောက်ပါစေနဲ့။';
+  if(S.money>=GOAL*.7&&h%4===1)line=`ငွေ ${fmt(S.money)} ကျပ် ရှိပြီဆို ရွာကို ကယ်နိုင်တော့မှာပဲ!`;
+  show(`<div class="who"><h2>${d.name}</h2><span class="hearts" aria-label="ခင်မင်မှု ${f}/10">${'♥'.repeat(f)}${'♡'.repeat(10-f)}</span></div>
+    <p class="sub">${d.role}</p><p>“${line}”</p>${gift?`<p><b>${d.name}က ${gift}။</b></p>`:''}
+    <div class="btns"><button class="bt pri" type="button" id="mC">နှုတ်ဆက်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
+  belt();
+}
 
 /* ---------- toast & effects ---------- */
 let toastT=0;const toastEl=document.getElementById('toast');
 function toast(m){toastEl.textContent=m;toastEl.classList.add('on');toastT=2600}
 function burst(x,y,col,n=6){for(let i=0;i<n;i++)parts.push({x:x*T+8,y:y*T+8,vx:(Math.random()-.5)*60,vy:-Math.random()*60-10,life:400,col})}
 
+/* ---------- scenes ---------- */
+function enterHouse(){S.scene='house';S.px=4;S.py=6;S.dir='up';mv=null;fade=1}
+function exitHouse(){S.scene='farm';S.px=5;S.py=6;S.dir='down';mv=null;fade=1}
+function tryMove(d){
+  S.dir=d;const[dx,dy]=DIRS[d],nx=S.px+dx,ny=S.py+dy;
+  if(S.scene==='farm'){
+    if(nx===DOOR[0]&&ny===DOOR[1])return enterHouse();
+    if(walkable(nx,ny)){mv={fx:S.px,fy:S.py,t:0};S.px=nx;S.py=ny;stepCount++}
+  }else{
+    const c=hTile(nx,ny);
+    if(c==='D')return exitHouse();
+    if(!HSOLID.has(c)){mv={fx:S.px,fy:S.py,t:0};S.px=nx;S.py=ny;stepCount++}
+  }
+}
+
 /* ---------- actions ---------- */
 function spend(n){if(S.energy<n){toast('အားအင်ကုန်နေပြီ။ လက်ဖက်ရည်သောက် ဒါမှမဟုတ် အိမ်ပြန်အိပ်ပါ');return false}S.energy-=n;return true}
 function useTool(){
   if(paused||mv)return;
   dirty=true;
-  const tool=TOOLS[S.tool].id,[fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
+  const tool=TOOLS[S.tool].id;
+  if(tool==='tea'){
+    if(S.tea<=0)toast('လက်ဖက်ရည် မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
+    else if(S.energy>=S.maxE)toast('အားအင် ပြည့်နေတယ်');
+    else{S.tea--;S.energy=Math.min(S.maxE,S.energy+40);toast('လက်ဖက်ရည် သောက်လိုက်တယ်။ အားအင် +40')}
+    return belt();
+  }
+  if(S.scene==='house')return toast('အိမ်ထဲမှာ ဒီကိရိယာ မသုံးနိုင်ဘူး');
+  const [fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
   anim={t:220,tool};
   if(tool==='hoe'){
     if(t===G||t===FLOWER){
@@ -206,36 +317,38 @@ function useTool(){
     }else toast('ထွန်ထားတဲ့ မြေကို ရေလောင်းပါ');
   }else if(tool==='sickle'){
     if(t===WEED){if(!spend(1))return;S.tiles[fy][fx]=G;burst(fx,fy,'#3f8a2c',8)}
-    else toast('ပေါင်းပင်ကို ရှင်းဖို့ သုံးပါ');
+    else if(crop&&crop.dead){delete S.crops[k];burst(fx,fy,'#8a6a3a',8)}
+    else toast('ပေါင်းပင်နဲ့ ညှိုးနေတဲ့ အပင်ကို ရှင်းဖို့ သုံးပါ');
   }else if(tool==='hammer'){
     if(t===ROCK){if(!spend(3))return;S.tiles[fy][fx]=G;burst(fx,fy,'#9a9ca0',10)}
     else toast('ကျောက်တုံးကို ခွဲဖို့ သုံးပါ');
   }else if(tool==='seed'){
-    anim=null;const sp=S.seedSel;
-    if(S.seeds[sp]<=0){toast(`${CROPS[sp].name} မျိုးစေ့ မရှိတော့ဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ`);return}
+    anim=null;const sp=S.seedSel,d=CROPS[sp];
+    if(d.s!==curS()){toast(`${d.name}ကို ${SEASONS[d.s].name}ရာသီမှာပဲ စိုက်လို့ရတယ်`);return}
+    if(S.seeds[sp]<=0){toast(`${d.name} မျိုးစေ့ မရှိတော့ဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ`);return}
     if(t===SOIL&&!crop){S.crops[k]={type:sp,age:0};S.seeds[sp]--;burst(fx,fy,'#e8d18a',4)}
     else if(t===SOIL)toast('ဒီမှာ စိုက်ထားပြီးသား');
     else toast('ထွန်ထားတဲ့ မြေပေါ်မှာ စိုက်ပါ');
-  }else if(tool==='tea'){
-    anim=null;
-    if(S.tea<=0)toast('လက်ဖက်ရည် မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
-    else if(S.energy>=S.maxE)toast('အားအင် ပြည့်နေတယ်');
-    else{S.tea--;S.energy=Math.min(S.maxE,S.energy+40);toast('လက်ဖက်ရည် သောက်လိုက်တယ်။ အားအင် +40')}
   }
   belt();
 }
 function act(){
   if(paused||mv)return;
   dirty=true;
-  const [fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
+  const [fx,fy]=front();
+  if(S.scene==='house')return actHouse(hTile(fx,fy));
+  const t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
+  const ni=npcRT.findIndex(n=>n.active&&n.x===fx&&n.y===fy);
+  if(ni>=0)return talk(ni);
   const egg=S.eggs.findIndex(e=>e.x===fx&&e.y===fy);
   if(t===STALL)return openShop();
   if(t===BIN)return ship();
-  if(t===HOUSE){if(fx===DOOR[0]&&fy===DOOR[1])return askSleep();return toast('အိမ်တံခါးက အလယ်မှာပါ')}
+  if(t===HOUSE){if(fx===DOOR[0]&&fy===DOOR[1])return enterHouse();return toast('အိမ်တံခါးက အလယ်မှာပါ')}
   if(t===TROUGH)return feedChickens();
   if(egg>=0){S.eggs.splice(egg,1);S.produce.egg++;S.stats.eggs++;burst(fx,fy,'#fff6dc');return toast('ကြက်ဥ ကောက်လိုက်တယ်')}
   if(crop){
     const d=CROPS[crop.type];
+    if(crop.dead){delete S.crops[k];burst(fx,fy,'#8a6a3a',8);return toast('ညှိုးနေတဲ့ အပင်ကို ရှင်းလိုက်တယ်')}
     if(crop.age>=d.grow){
       S.produce[crop.type]++;S.stats.harvested++;burst(fx,fy,d.col,8);
       if(d.regrow)crop.age=d.grow-d.regrow;else delete S.crops[k];
@@ -246,10 +359,18 @@ function act(){
   if(t===WATER)return toast('ရေပုံးကိုင်ပြီး A နှိပ်ရင် ရေဖြည့်မယ်');
   if(t===SOIL)return toast('မျိုးစေ့ကိုင်ပြီး A နှိပ်ရင် စိုက်မယ်');
 }
+function actHouse(c){
+  if(c==='B')return askSleep();
+  if(c==='C')return bag();
+  if(c==='K')return calendar();
+  if(c==='S'){if(S.daily.shrine)return toast('ဒီနေ့ ဘုရားရှိခိုးပြီးပြီ');S.daily.shrine=1;S.energy=Math.min(S.maxE,S.energy+10);return toast('ဘုရားရှိခိုးလိုက်တယ်။ စိတ်ငြိမ်သွားတယ် (အားအင် +10)')}
+  if(c==='t'){if(S.daily.pot)return toast('ကရားထဲ လက်ဖက်ရည် ကုန်သွားပြီ။ မနက်ဖြန် ပြန်ဖျော်မယ်');S.daily.pot=1;S.energy=Math.min(S.maxE,S.energy+25);return toast('အိမ်က လက်ဖက်ရည်ကြမ်း သောက်လိုက်တယ် (အားအင် +25)')}
+  if(c==='w')return toast(['အပြင်မှာ နေပူပူ နွေရာသီ။ ပိတောက်ပန်းတွေ ဝါဝါဖြာဖြာ။','အပြင်မှာ စိမ်းစိုနေတဲ့ မိုးရာသီ။','အပြင်မှာ အေးမြတဲ့ ဆောင်းရာသီ။'][curS()]);
+}
 function ship(){
   let n=0,v=0;
   CROP_IDS.forEach(id=>{n+=S.produce[id];v+=S.produce[id]*CROPS[id].sell;S.produce[id]=0});
-  n+=S.produce.egg;v+=S.produce.egg*EGG_PRICE;S.produce.egg=0;
+  for(const id in EXTRA){n+=S.produce[id];v+=S.produce[id]*EXTRA[id].sell;S.produce[id]=0}
   if(!n)return toast('ပို့စရာ မရှိသေးဘူး။ ရိတ်သိမ်းထားတာကို ဒီပုံးထဲ ထည့်ပါ');
   S.shippedValue+=v;S.shippedCount+=n;
   toast(`${n} ခု ပို့လိုက်ပြီ (+${fmt(v)} ကျပ်)။ မနက်ဖြန် ငွေရမယ်`);
@@ -265,9 +386,9 @@ function feedChickens(){
 
 /* ---------- day cycle ---------- */
 function endDay(passedOut){
-  const income=S.shippedValue,count=S.shippedCount;
+  const income=S.shippedValue,count=S.shippedCount,oldS=curS();
   S.money+=income;S.stats.earned+=income;S.shippedValue=0;S.shippedCount=0;
-  for(const k in S.crops){const [x,y]=k.split(',').map(Number);if(S.wet[y][x])S.crops[k].age++}
+  for(const k in S.crops){const [x,y]=k.split(',').map(Number);if(S.wet[y][x]&&!S.crops[k].dead)S.crops[k].age++}
   for(let y=0;y<MH;y++)S.wet[y].fill(0);
   const fed=Math.min(S.trough,S.chickens.length);S.trough=0;let laid=0;
   for(let i=0;i<fed&&S.eggs.length<14;i++){
@@ -278,11 +399,15 @@ function endDay(passedOut){
   }
   for(let i=0;i<5;i++){const x=FIELD.x0+Math.floor(Math.random()*15),y=FIELD.y0+Math.floor(Math.random()*11);if(S.tiles[y][x]===G)S.tiles[y][x]=WEED}
   if(S.day>=DAYS){S.over=true;save();return ending()}
-  S.day++;S.weather=S.tomorrow;S.tomorrow=Math.random()<.25?'rain':'sun';
+  S.day++;
+  const ns=curS();let withered=0;
+  if(ns!==oldS){for(const k in S.crops){const c=S.crops[k];if(CROPS[c.type].s!==ns&&!c.dead){c.dead=true;withered++}}S.seedSel=seasonCrops(ns)[0]}
+  S.weather=S.tomorrow;S.tomorrow=Math.random()<SEASONS[seasonOf(Math.min(DAYS,S.day+1))].rain?'rain':'sun';
   if(S.weather==='rain')for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(S.tiles[y][x]===SOIL)S.wet[y][x]=1;
-  S.min=360;S.energy=passedOut?60:S.maxE;S.px=5;S.py=6;S.dir='down';mv=null;
+  S.min=360;S.energy=passedOut?60:S.maxE;S.scene='house';S.px=5;S.py=3;S.dir='down';mv=null;
+  S.talked={};S.daily={};
   syncChickens();dirty=true;save();
-  morning(income,count,laid,passedOut);
+  morning(income,count,laid,passedOut,ns!==oldS,withered);
 }
 
 /* ---------- modals ---------- */
@@ -297,16 +422,17 @@ function intro(){
   show(`<h2 class="big">ရွှေပန်းရွာ ခြံလေး</h2>
   <p>အဘိုး ထားခဲ့တဲ့ ခြံလေးကို ပြန်ရောက်လာပြီ။ ဒါပေမဲ့ မြို့က ကုမ္ပဏီကြီးတစ်ခုက ရွာမြေတွေကို ဝယ်ပြီး စက်ရုံဆောက်တော့မယ်တဲ့။</p>
   <p><b>ရက် 30 အတွင်း ကျပ် 10,000 စုနိုင်ရင်</b> ရွာသားတွေနဲ့ အတူ မြေကို ပြန်ဝယ်ပြီး ရွာကို ကယ်နိုင်မယ်။</p>
-  <ul class="sub"><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ကြက်မွေးပြီး ကြက်စာကျွေးရင် ကြက်ဥ ရမယ်</li><li>ညဘက် အိမ်တံခါးမှာ B နှိပ်ပြီး အိပ်ပါ</li></ul>
+  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ရွာသားတွေနဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
   <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button></div>`,c=>{
     const cont=c.querySelector('#mCont');
     if(cont)cont.onclick=()=>{S=sv;syncChickens();card.dataset.dismiss='';close()};
-    c.querySelector('#mNew').onclick=()=>{S=fresh();syncChickens();save();card.dataset.dismiss='';close();toast('ပေါက်ပြားနဲ့ မြေထွန်ပြီး မုန်လာဥ စိုက်ကြည့်ပါ')};
+    c.querySelector('#mNew').onclick=()=>{S=fresh();syncChickens();save();card.dataset.dismiss='';close();toast('နွေရာသီ စပြီ။ မြေထွန်ပြီး ကန်စွန်း စိုက်ကြည့်ပါ')};
   });
 }
-function morning(income,count,laid,passedOut){
-  const left=DAYS-S.day+1;
-  show(`<h2>နေ့ ${S.day} · ${S.weather==='rain'?'မိုးရွာနေတယ်':'နေသာတယ်'}</h2>
+function morning(income,count,laid,passedOut,newSeason,withered){
+  const left=DAYS-S.day+1,s=curS();
+  show(`<h2>${SEASONS[s].name}ရာသီ · နေ့ ${S.day} · ${S.weather==='rain'?'မိုးရွာနေတယ်':'နေသာတယ်'}</h2>
+  ${newSeason?`<p><b>${SEASONS[s].name}ရာသီ ရောက်ပြီ!</b> ဈေးဆိုင်မှာ ${seasonCrops(s).map(id=>CROPS[id].name).join('၊ ')} မျိုးစေ့ အသစ်တွေ ရနိုင်ပြီ။${withered?` ရာသီမကိုက်တဲ့ အပင် ${withered} ပင် ညှိုးသွားတယ်။ တံစဉ် ဒါမှမဟုတ် B နဲ့ ရှင်းပါ။`:''}</p>`:''}
   ${passedOut?'<p>ညသန်းခေါင်ကျော်ထိ အလုပ်လုပ်လို့ မောပြီး အိပ်ပျော်သွားတယ်။ ဒီနေ့ အားအင် 60 ပဲ ရှိမယ်။</p>':''}
   <div class="kv"><span>မနေ့က ရောင်းရငွေ</span><span>+${fmt(income)} ကျပ် (${count} ခု)</span>
   <span>စုထားတဲ့ ငွေ</span><span>${fmt(S.money)} / ${fmt(GOAL)}</span>
@@ -318,60 +444,77 @@ function morning(income,count,laid,passedOut){
 }
 function askSleep(){
   const late=S.min<1020;
-  show(`<h2>အိပ်မလား?</h2><p>ဒီနေ့ကို ပြီးဆုံးပြီး မနက်ဖြန် နေ့ ${S.day+1>DAYS?'နောက်ဆုံး':S.day+1} ကို စမယ်။${late?' နေမဝင်သေးဘူး။':''}</p>
+  show(`<h2>အိပ်မလား?</h2><p>ဒီနေ့ကို ပြီးဆုံးပြီး မနက်ဖြန် ${S.day+1>DAYS?'နောက်ဆုံးနေ့':'နေ့ '+(S.day+1)} ကို စမယ်။${late?' နေမဝင်သေးဘူး။':''}</p>
   ${S.shippedValue?`<p class="sub">ဒီနေ့ ပို့ထားတာ +${fmt(S.shippedValue)} ကျပ် ရမယ်။</p>`:''}
-  ${CROP_IDS.some(id=>S.produce[id])||S.produce.egg?'<p class="sub">အိတ်ထဲမှာ မပို့ရသေးတဲ့ ပစ္စည်း ရှိသေးတယ်။</p>':''}
+  ${CROP_IDS.some(id=>S.produce[id])||S.produce.egg||S.produce.fish?'<p class="sub">အိတ်ထဲမှာ မပို့ရသေးတဲ့ ပစ္စည်း ရှိသေးတယ်။</p>':''}
+  ${S.day%SLEN===0&&S.day<DAYS?`<p class="sub">မနက်ဖြန် ${SEASONS[seasonOf(S.day+1)].name}ရာသီ ပြောင်းမယ်။ ${SEASONS[curS()].name}ရာသီ အပင်တွေ ညှိုးသွားမယ်။</p>`:''}
   ${S.day>=DAYS?'<p><b>ဒါ နောက်ဆုံးည ဖြစ်တယ်။ အိပ်ပြီးရင် ရလဒ် ကြေညာမယ်။</b></p>':''}
   <div class="btns"><button class="bt pri" type="button" id="mY">အိပ်မယ်</button><button class="bt" type="button" id="mN">မအိပ်သေးဘူး</button></div>`,c=>{
     c.querySelector('#mY').onclick=()=>{modal.hidden=true;endDay(false)};c.querySelector('#mN').onclick=close});
+}
+function calendar(){
+  const s=curS(),dIn=(S.day-1)%SLEN+1;
+  show(`<h2>ပြက္ခဒိန်</h2>
+  <div class="kv"><span>ရာသီ</span><span>${SEASONS[s].name} (${dIn}/${SLEN})</span>
+  <span>နောက်ရာသီ</span><span>${s<2?SEASONS[s+1].name+' · '+(SLEN-dIn+1)+' ရက်နေရင်':'မရှိတော့ဘူး'}</span>
+  <span>မနက်ဖြန် ရာသီဥတု</span><span>${S.tomorrow==='rain'?'မိုးရွာမယ်':'နေသာမယ်'}</span>
+  <span>စုထားတဲ့ ငွေ</span><span>${fmt(S.money)} / ${fmt(GOAL)}</span>
+  <span>ကျန်ရက်</span><span>${DAYS-S.day+1}</span></div>
+  <p class="sub">${SEASONS[s].name}ရာသီ သီးနှံ: ${seasonCrops(s).map(id=>`${CROPS[id].name} (${CROPS[id].grow} ရက်၊ ${CROPS[id].sell} ကျပ်)`).join('၊ ')}</p>
+  <p class="sub">ခင်မင်မှု: ${NPCS.map(d=>`${d.name} ${S.friends[d.id]||0}/10`).join(' · ')}</p>
+  <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
 function ending(){
   const win=S.money>=GOAL;
   card.dataset.dismiss='no';
   show(`<h2 class="big">${win?'ရွာကို ကယ်နိုင်ခဲ့ပြီ!':'ငွေ မလုံလောက်ခဲ့ဘူး'}</h2>
-  <p>${win?`စုထားတဲ့ ငွေ ${fmt(S.money)} ကျပ်နဲ့ ရွာမြေကို ပြန်ဝယ်နိုင်ခဲ့တယ်။ ရွှေပန်းရွာမှာ ဈေးဆိုင်လေး ဆက်ဖွင့်မယ်၊ ကလေးတွေ ကွင်းထဲ ဆက်ဆော့နိုင်မယ်။`:`ကျပ် ${fmt(S.money)} ပဲ စုနိုင်ခဲ့တယ်။ ${fmt(GOAL-S.money)} ကျပ် လိုသေးတယ်။ ထပ်ကြိုးစားကြည့်ရအောင်။`}</p>
-  <div class="kv"><span>ရိတ်သိမ်းခဲ့တဲ့ အသီးအနှံ</span><span>${S.stats.harvested}</span><span>ကောက်ခဲ့တဲ့ ကြက်ဥ</span><span>${S.stats.eggs}</span><span>ရောင်းရငွေ စုစုပေါင်း</span><span>${fmt(S.stats.earned)} ကျပ်</span></div>
+  <p>${win?`စုထားတဲ့ ငွေ ${fmt(S.money)} ကျပ်နဲ့ ရွာမြေကို ပြန်ဝယ်နိုင်ခဲ့တယ်။ ဦးဘ၊ မမြ၊ ကိုအောင် နဲ့ ရွာသားတွေ အားလုံး ဝမ်းသာနေကြတယ်။ ရွှေပန်းရွာ ဆက်ရှင်သန်နေပြီ။`:`ကျပ် ${fmt(S.money)} ပဲ စုနိုင်ခဲ့တယ်။ ${fmt(GOAL-S.money)} ကျပ် လိုသေးတယ်။ ထပ်ကြိုးစားကြည့်ရအောင်။`}</p>
+  <div class="kv"><span>ရိတ်သိမ်းခဲ့တဲ့ အသီးအနှံ</span><span>${S.stats.harvested}</span><span>ကောက်ခဲ့တဲ့ ကြက်ဥ</span><span>${S.stats.eggs}</span><span>ရောင်းရငွေ စုစုပေါင်း</span><span>${fmt(S.stats.earned)} ကျပ်</span>
+  ${NPCS.map(d=>`<span>${d.name} ခင်မင်မှု</span><span>${S.friends[d.id]||0}/10</span>`).join('')}</div>
   <div class="btns"><button class="bt pri" type="button" id="mR">ဂိမ်းအသစ် စမယ်</button></div>`,c=>c.querySelector('#mR').onclick=()=>{clearSave();S=fresh();syncChickens();save();card.dataset.dismiss='';close()});
 }
 function bag(){
   const rows=[];
-  CROP_IDS.forEach(id=>rows.push(`<span>${CROPS[id].name} မျိုးစေ့</span><span>${S.seeds[id]}</span>`));
+  CROP_IDS.forEach(id=>S.seeds[id]&&rows.push(`<span>${CROPS[id].name} မျိုးစေ့${CROPS[id].s!==curS()?' (ရာသီမဟုတ်)':''}</span><span>${S.seeds[id]}</span>`));
   CROP_IDS.forEach(id=>S.produce[id]&&rows.push(`<span>${CROPS[id].name} (မပို့ရသေး)</span><span>${S.produce[id]}</span>`));
-  if(S.produce.egg)rows.push(`<span>ကြက်ဥ (မပို့ရသေး)</span><span>${S.produce.egg}</span>`);
+  for(const id in EXTRA)if(S.produce[id])rows.push(`<span>${EXTRA[id].name} (မပို့ရသေး)</span><span>${S.produce[id]}</span>`);
   rows.push(`<span>ရေပုံးထဲက ရေ</span><span>${S.water}/${S.canMax}</span>`,`<span>ကြက်</span><span>${S.chickens.length}</span>`,`<span>ကြက်စာ</span><span>${S.feed}</span>`,`<span>လက်ဖက်ရည်</span><span>${S.tea}</span>`);
   if(S.shippedValue)rows.push(`<span>ဒီနေ့ ပို့ထားတာ</span><span>+${fmt(S.shippedValue)}</span>`);
   show(`<h2>အိတ်</h2><div class="kv">${rows.join('')}</div>
-  <p class="sub">အသီးအနှံ ဈေးနှုန်း: ${CROP_IDS.map(id=>`${CROPS[id].name} ${CROPS[id].sell}`).join('၊ ')}၊ ကြက်ဥ ${EGG_PRICE} ကျပ်</p>
+  <p class="sub">ဒီရာသီ ဈေးနှုန်း: ${seasonCrops(curS()).map(id=>`${CROPS[id].name} ${CROPS[id].sell}`).join('၊ ')}၊ ကြက်ဥ ${EXTRA.egg.sell}၊ ငါး ${EXTRA.fish.sell} ကျပ်</p>
   <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button><button class="bt" type="button" id="mHelp">ဘယ်လိုဆော့ရမလဲ</button></div>`,c=>{c.querySelector('#mC').onclick=close;c.querySelector('#mHelp').onclick=help});
 }
 function help(){
   show(`<h2>ဘယ်လိုဆော့ရမလဲ</h2><ul>
   <li><b>A</b> (Z / Space): လက်ထဲက ကိရိယာကို ရှေ့က အကွက်မှာ သုံးမယ်</li>
-  <li><b>B</b> (X / Enter): ရိတ်၊ ကြက်ဥကောက်၊ ပို့ကုန်ပုံး၊ ဈေးဆိုင်၊ ကြက်စာခွက်၊ အိမ်တံခါး</li>
-  <li>မျိုးစေ့ အကွက်ကို ထပ်နှိပ်ရင် (ဒါမှမဟုတ် R) မျိုးစေ့အမျိုးအစား ပြောင်းမယ်</li>
-  <li>ရေလောင်းထားတဲ့ နေ့မှပဲ အပင်တွေ ကြီးတယ်</li>
-  <li>ခရမ်းချဉ်သီးနဲ့ ပြောင်းဖူးက ရိတ်ပြီးရင် ထပ်သီးတယ်</li>
+  <li><b>B</b> (X / Enter): ရိတ်၊ ကြက်ဥကောက်၊ ရွာသားနဲ့ စကားပြော၊ ပို့ကုန်ပုံး၊ ဈေးဆိုင်၊ ကြက်စာခွက်</li>
+  <li>အိမ်တံခါးဆီ လျှောက်သွားရင် အိမ်ထဲ ဝင်မယ်။ အိပ်ရာ၊ ဘုရားစင်၊ လက်ဖက်ရည်ကရား၊ ပြက္ခဒိန်၊ သေတ္တာကို B နဲ့ သုံးပါ</li>
+  <li>ရာသီ 3 ခု: နွေ (နေ့ 1–10)၊ မိုး (11–20)၊ ဆောင်း (21–30)။ ရာသီပြောင်းရင် အရင်ရာသီ အပင်တွေ ညှိုးမယ်</li>
+  <li>မျိုးစေ့ အကွက်ကို ထပ်နှိပ်ရင် (ဒါမှမဟုတ် R) ဒီရာသီ မျိုးစေ့တွေကြား ပြောင်းမယ်</li>
+  <li>ရွာသားတစ်ယောက်ကို နေ့တိုင်း စကားပြောရင် ခင်မင်မှု တက်မယ်။ ♥ 3 ရရင် လက်ဆောင် ပေးမယ်</li>
   <li>ဈေးဆိုင် ဖွင့်ချိန် 8:00 – 18:00</li></ul>
   <div class="btns"><button class="bt pri" type="button" id="mC">ရပြီ</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
 function openShop(){
   if(S.min<480||S.min>=1080)return toast('ဈေးဆိုင် ပိတ်ထားတယ်။ ဖွင့်ချိန် 8:00 – 18:00');
+  const s=curS();
   const items=[
-    ...CROP_IDS.map(id=>{const d=CROPS[id];return{id:'s_'+id,label:`${d.name} မျိုးစေ့ (9 စေ့)`,desc:`${d.grow} ရက်နဲ့ ရင့်တယ် · တစ်လုံး ${d.sell} ကျပ်${d.regrow?` · ${d.regrow} ရက်တစ်ခါ ထပ်သီးတယ်`:''}`,price:d.bag,ok:()=>true,buy:()=>{S.seeds[id]+=9;S.seedSel=id}}}),
+    ...seasonCrops(s).map(id=>{const d=CROPS[id];return{id:'s_'+id,label:`${d.name} မျိုးစေ့ (9 စေ့)`,desc:`${d.grow} ရက်နဲ့ ရင့်တယ် · တစ်ခု ${d.sell} ကျပ်${d.regrow?` · ${d.regrow} ရက်တစ်ခါ ထပ်သီးတယ်`:''}`,price:d.bag,ok:()=>true,buy:()=>{S.seeds[id]+=9;S.seedSel=id}}}),
     {id:'tea',label:'လက်ဖက်ရည် တစ်ခွက်',desc:'အားအင် +40 · ကိရိယာ အကွက်ကနေ သောက်ပါ',price:60,ok:()=>true,buy:()=>S.tea++},
     {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:50,ok:()=>true,buy:()=>S.feed+=5},
-    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`,price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
+    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:'',price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
     {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ်',price:1200,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
   ];
-  const render=()=>`<h2>ဒေါ်ခင်ရဲ့ ဈေးဆိုင်</h2><p class="sub">ငွေ ${fmt(S.money)} ကျပ် ရှိတယ်</p>
+  const hen=items.find(i=>i.id==='hen');
+  const render=()=>{hen.desc=`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`;
+    return `<h2>ဒေါ်ခင်ရဲ့ ဈေးဆိုင်</h2><p class="sub">${SEASONS[s].name}ရာသီ မျိုးစေ့တွေ ရောက်နေတယ် · ငွေ ${fmt(S.money)} ကျပ် ရှိတယ်</p>
     ${items.map(it=>`<div class="item"><b>${it.label}</b><span class="sub">${it.desc}</span><button class="bt" type="button" data-buy="${it.id}" ${(!it.ok()||S.money<it.price)?'disabled':''}>${fmt(it.price)} ကျပ်</button></div>`).join('')}
-    <div class="btns"><button class="bt pri" type="button" id="mC">ပြန်မယ်</button></div>`;
+    <div class="btns"><button class="bt pri" type="button" id="mC">ပြန်မယ်</button></div>`};
   const bind=c=>{
     c.querySelector('#mC').onclick=close;
     c.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
       const it=items.find(i=>i.id===b.dataset.buy);if(!it.ok()||S.money<it.price)return;
       S.money-=it.price;it.buy();
-      const hen=items.find(i=>i.id==='hen');hen.desc=`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`;
       c.innerHTML=render();bind(c);hud();belt();
       const again=c.querySelector(`[data-buy="${it.id}"]`);(again&&!again.disabled?again:c.querySelector('#mC')).focus();
     });
@@ -388,7 +531,7 @@ function hud(){
   const h=Math.floor(S.min/60)%24,m=S.min%60;
   setT('hDay',`နေ့ ${S.day} / ${DAYS}`);
   setT('hTime',`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-  setT('hWx',S.weather==='rain'?'မိုးရွာ':'နေသာ');
+  setT('hWx',`${SEASONS[curS()].name} · ${S.weather==='rain'?'မိုးရွာ':'နေသာ'}`);
   setT('hMoney',`${fmt(S.money)} ကျပ်`);
   setT('gTxt',`${fmt(S.money)} / ${fmt(GOAL)}`);
   $('eBar').style.width=(S.energy/S.maxE*100)+'%';
@@ -402,7 +545,7 @@ TOOLS.forEach((t,i)=>{
   b.onclick=()=>{if(paused)return;if(S.tool===i&&t.id==='seed')cycleSeed();S.tool=i;belt()};
   beltEl.appendChild(b);slotEls.push(b);
 });
-function cycleSeed(){const i=CROP_IDS.indexOf(S.seedSel);S.seedSel=CROP_IDS[(i+1)%CROP_IDS.length];toast(`${CROPS[S.seedSel].name} မျိုးစေ့ (${S.seeds[S.seedSel]} စေ့)`)}
+function cycleSeed(){const list=seasonCrops(curS()),i=list.indexOf(S.seedSel);S.seedSel=list[(i+1)%list.length];toast(`${CROPS[S.seedSel].name} မျိုးစေ့ (${S.seeds[S.seedSel]} စေ့)`)}
 function belt(){
   if(!S)return;
   slotEls.forEach((b,i)=>{
@@ -418,7 +561,7 @@ function drawIcon(c,id){
   else if(id==='can'){r('#6f9fc0',3,6,8,8);r('#9cc6e0',4,7,2,5);r('#6f9fc0',11,8,3,2);r('#6f9fc0',13,6,2,3);r('#4f7d9c',5,3,4,1);r('#4f7d9c',4,4,1,2);r('#4f7d9c',9,4,1,2)}
   else if(id==='sickle'){r('#7a5230',2,10,2,5);r('#7a5230',3,9,2,2);r('#c8ccd2',5,3,2,7);r('#c8ccd2',6,2,5,2);r('#c8ccd2',10,3,3,2);r('#c8ccd2',12,5,2,2)}
   else if(id==='hammer'){for(let i=0;i<9;i++)r('#a0703c',3+i,13-i,2,2);r('#7f8389',8,1,7,5);r('#a5a9af',9,2,5,1)}
-  else if(id==='seed'){const d=CROPS[S.seedSel];r('#c9a46a',3,4,10,11);r('#b08850',3,4,10,2);r('#8a6a40',6,2,4,2);r(d.col,6,8,4,4);r(d.col2,7,9,2,2)}
+  else if(id==='seed'){const d=CROPS[S?S.seedSel:'kangkong'];r('#c9a46a',3,4,10,11);r('#b08850',3,4,10,2);r('#8a6a40',6,2,4,2);r(d.col,6,8,4,4);r(d.col2,7,9,2,2)}
   else if(id==='tea'){r('#f1e7d6',3,6,9,7);r('#b5763a',4,7,7,3);r('#f1e7d6',12,8,2,3);r('#d9cdb8',3,13,9,1);r('#cfd8e0',5,2,1,3);r('#cfd8e0',8,1,1,3)}
 }
 
@@ -456,14 +599,13 @@ function update(dt){
   if(toastT>0){toastT-=dt;if(toastT<=0)toastEl.classList.remove('on')}
   parts=parts.filter(p=>(p.life-=dt)>0);parts.forEach(p=>{p.x+=p.vx*dt/1000;p.y+=p.vy*dt/1000;p.vy+=200*dt/1000});
   if(anim&&(anim.t-=dt)<=0)anim=null;
+  if(fade>0)fade=Math.max(0,fade-dt/300);
   if(paused||!S)return;
   acc+=dt;while(acc>=TICK){acc-=TICK;S.min++;if(S.min%60===0)save()}
   if(S.min>=1440){toast('');endDay(true);return}
   if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
-  if(!mv&&held.length){
-    const d=held[held.length-1];S.dir=d;const[dx,dy]=DIRS[d];const nx=S.px+dx,ny=S.py+dy;
-    if(walkable(nx,ny)){mv={fx:S.px,fy:S.py,t:0};S.px=nx;S.py=ny;stepCount++}
-  }
+  if(!mv&&held.length&&fade<.5)tryMove(held[held.length-1]);
+  updateNPCs(dt);
   const night=S.min>=1140;
   chickRT.forEach(c=>{
     if(night)return;
@@ -491,53 +633,63 @@ function tex(base,specks,seed){
   specks.forEach(([col,n,w,h])=>{g.fillStyle=col;for(let i=0;i<n;i++)g.fillRect((r()*64)|0,(r()*64)|0,w,h)});
   return c;
 }
-const TX={
-  grass:tex('#5ea543',[['#559c3b',420,1,1],['#4c8f35',120,1,2],['#6cb54e',160,1,1],['#7cc45a',40,1,1]],11),
-  path:tex('#d3ae79',[['#c49e68',300,1,1],['#e2c594',140,1,1],['#a98559',40,2,1],['#ead3a6',24,2,1]],22),
-  dry:tex('#9b6b3e',[['#8a5d34',260,1,1],['#ad7c4b',140,1,1]],33),
-  wet:tex('#5f3c22',[['#54341d',260,1,1],['#6e4829',140,1,1]],44),
-};
+const STX=SEASONS.map((s,i)=>({
+  grass:tex(s.grass,[[s.gs[0],420,1,1],[s.gs[1],120,1,2],[s.gs[2],160,1,1],[s.gs[3],40,1,1]],11+i),
+  path:tex(s.path,[['rgba(0,0,0,.08)',300,1,1],['rgba(255,255,255,.12)',140,1,1],['rgba(80,50,20,.25)',40,2,1],['rgba(255,240,210,.2)',24,2,1]],22+i),
+}));
+const TX={dry:tex('#9b6b3e',[['#8a5d34',260,1,1],['#ad7c4b',140,1,1]],33),wet:tex('#5f3c22',[['#54341d',260,1,1],['#6e4829',140,1,1]],44)};
 const tx=(t,x,y,sx,sy)=>{const h=hash(x,y);C.drawImage(t,(h%4)*16,((h>>3)%4)*16,16,16,sx,sy,16,16)};
 const GRASSY=t=>t===G||t===FLOWER||t===WEED||t===ROCK||t===TREE||t===FENCE||t===TROUGH||t===BIN||t===HOUSE;
 
 /* ----- character sprites ----- */
 const HAT=["......oooo......",".....ojjhho.....","...oojhhhhHoo...",".oojhhhhhhhhHoo.","oHHHHHHHHHHHHHHo"];
 const WRAP=["................","................",".....oooooo.....","....ohhhhhhoo...","...ohhHhhHhhhjo."];
-const BODY_D=["...okssssssskoo.","...ossesssessо..".replace('о','o'),"...osssssSssso..","....oSssssSo....","...owwwSSwwwo...","..owwwwwwwwwwo..",".oswwwwwwwwwwso.",".oswWwwwwwwWwso.",".oSoWWWWWWWWoSo.","..ollllllllllo..","..olppllllpplo..","..oLllllllllllo.".slice(0,16),"..olpplllllppo..","..oLLLLLLLLLLo.."];
-const BODY_U=["...okkkkkkkkko..","...okkkkkkkkko..","...oSkkkkkkkSo..","....oSssssSo....","...owwwwwwwwo...","..owwwwwwwwwwo..",".oswwwwwwwwwwso.",".oswwwwwwwwwwso.",".oSoWWWWWWWWoSo.","..ollllllllllo..","..olppllllpplo..","..oLllllllllo...".padEnd(16,'.'),"..olpplllllppo..","..oLLLLLLLLLLo.."];
+const BALD=["................","................","......oooo......","....okkkkkko....","...okkkkkkkkko.."];
+const BUN=["......ooo.......",".....okkko......","....okkrkko.....","...okkkkkkkoo...","...okkkkkkkkko.."];
+const SHORT=["................","................",".....oooooo.....","....okkkkkkoo...","...okkkkkkkkko.."];
+const BODY_D=["...okssssssskoo.","...ossesssesso..","...osssssSssso..","....oSssssSo....","...owwwSSwwwo...","..owwwwwwwwwwo..",".oswwwwwwwwwwso.",".oswWwwwwwwWwso.",".oSoWWWWWWWWoSo.","..ollllllllllo..","..olppllllpplo..","..oLllllllllllo.","..olpplllllppo..","..oLLLLLLLLLLo.."];
+const BODY_U=["...okkkkkkkkko..","...okkkkkkkkko..","...oSkkkkkkkSo..","....oSssssSo....","...owwwwwwwwo...","..owwwwwwwwwwo..",".oswwwwwwwwwwso.",".oswwwwwwwwwwso.",".oSoWWWWWWWWoSo.","..ollllllllllo..","..olppllllpplo..","..oLllllllllo...","..olpplllllppo..","..oLLLLLLLLLLo.."];
 const BODY_S=["....okksssssso..","....okksssesso..","....okssssssso..",".....oSsssSo....","....owwwwwwo....","....owwwwwwwo...","....owwssWwwo...","....owwsSwwwo...","....oWWoSoWWo...","....ollllllo....","....olppllpo....","....oLllllllo...","....olpplllpo...","....oLLLLLLLo..."];
+const BODY_DT=BODY_D.slice();BODY_DT[2]="...otssssSssto..";
+const BODY_ST=BODY_S.slice();BODY_ST[2]="....okssstssso..";
 const LEGS_F=[["...osSo..osSo...","...offo..offo...","...ooo....ooo..."],["...osSo..osSo...","...offo..ooo....","...ooo.........."],["...osSo..osSo...","...ooo...offo...",".........ooo...."]];
 const LEGS_S=[[".....osSosSo....",".....offooffo...",".....ooo.ooo...."],["....osSo.osSo...","...offo...offo..","...ooo....ooo..."],[".....osSosSo....",".....offooffo...",".....ooo.ooo...."]];
-function fixRow(r){return (r+'................').slice(0,16)}
-function buildPerson(pal,head){
-  const out={};
+const fixRow=r=>(r+'................').slice(0,16);
+function buildPerson(pal,head,bd=BODY_D,bs=BODY_S){
   const mkDir=(body,legs,flip)=>legs.map(l=>spr([...head,...body,...l].map(fixRow),pal,flip));
-  out.down=mkDir(BODY_D,LEGS_F);out.up=mkDir(BODY_U,LEGS_F);out.right=mkDir(BODY_S,LEGS_S);out.left=mkDir(BODY_S,LEGS_S,true);
-  return out;
+  return{down:mkDir(bd,LEGS_F),up:mkDir(BODY_U,LEGS_F),right:mkDir(bs,LEGS_S),left:mkDir(bs,LEGS_S,true)};
 }
 const PAL_F={o:'#2a1a12',h:'#e2c27a',H:'#b8913f',j:'#f6e0a4',s:'#e0a676',S:'#b97d52',k:'#2b1a10',e:'#1b120c',w:'#f4f0e6',W:'#c9c2b2',l:'#3f6f95',L:'#2a4d6c',p:'#7fb1d6',f:'#7a4a28'};
 const PAL_M={o:'#2a1a12',h:'#f0c64a',H:'#c99a28',j:'#fff0a8',s:'#cf9566',S:'#a8714a',k:'#1e130b',e:'#1b120c',w:'#eaa0b8',W:'#c27a93',l:'#7a3e6a',L:'#5a2a4e',p:'#d27ab0',f:'#7a4a28'};
 const PS=buildPerson(PAL_F,HAT),MS=buildPerson(PAL_M,WRAP);
+const NS={ba:buildPerson(NPC_PAL.ba,BALD),mya:buildPerson(NPC_PAL.mya,BUN,BODY_DT,BODY_ST),aung:buildPerson(NPC_PAL.aung,SHORT)};
 const HEN=[".......oo...","......oRRo..",".....owwwwo.",".....owwewob","..o..owwwwo.",".owo.owwwwo.",".owwoowwWwo.",".owwwwwwWWo.","..oWwwwWWo..","...oooooo...","....y..y....","...yy.yy...."];
 const PAL_H={o:'#3a2a1e',R:'#d93a2a',w:'#fbf8f0',W:'#d9d2c0',e:'#1a1a1a',b:'#f0a830',y:'#e89a2a'};
 const HENR=spr(HEN,PAL_H),HENL=spr(HEN,PAL_H,true);
 
-/* ----- trees & house ----- */
-function makeTree(v){
-  const c=mk(32,40);
+/* ----- seasonal trees & house ----- */
+const TREE_PAL=[
+  {o:'#1d3c1c',a:'#3a6e2e',b:'#4f8a3a',c:'#6aa44a',lt:'#86bd5a',dk:'#2f5a26'},
+  {o:'#143620',a:'#225e2e',b:'#2e7a3a',c:'#43974a',lt:'#5cb458',dk:'#1d4a24'},
+  {o:'#2a3a1c',a:'#4a6a2c',b:'#668838',c:'#86a448',lt:'#a8be62',dk:'#3a5422'},
+];
+const AUTUMN={o:'#3a2010',a:'#a8501f',b:'#c8702a',c:'#e09a3a',lt:'#f2c060',dk:'#7a3a14'};
+function makeTree(v,s){
+  const c=mk(32,40),p=(s===2&&v===1)?AUTUMN:TREE_PAL[s];
   withC(c.getContext('2d'),()=>{
     OL([['#6b4a2b',13,25,6,13]],'#2a1a10');R('#8a6238',14,26,2,11);R('#4e341d',17,26,1,11);R('#6b4a2b',11,36,3,2);R('#6b4a2b',18,36,3,2);
-    disc('#1b3b20',16,14,13);disc('#1b3b20',9,20,8);disc('#1b3b20',23,20,8);
-    disc('#2d6a33',16,14,12);disc('#2d6a33',9,20,7);disc('#2d6a33',23,20,7);
-    disc('#3b843f',14,11,9);disc('#3b843f',9,18,5);disc('#3b843f',21,16,6);
-    disc('#4f9e4b',12,8,5);disc('#4f9e4b',19,11,3);
-    const r=mulberry32(v*97+5);
-    for(let i=0;i<40;i++){const x=4+(r()*24)|0,y=3+(r()*24)|0,d=Math.hypot(x-16,y-14);if(d<11)R(y<14?'#62b456':'#24552a',x,y,1,1)}
-    if(v===1)for(let i=0;i<7;i++){const x=6+(r()*20)|0,y=8+(r()*16)|0;R('#3a1f10',x,y+2,2,1);R('#f2b33a',x,y,2,2);R('#ffe08a',x,y,1,1)}
+    disc(p.o,16,14,13);disc(p.o,9,20,8);disc(p.o,23,20,8);
+    disc(p.a,16,14,12);disc(p.a,9,20,7);disc(p.a,23,20,7);
+    disc(p.b,14,11,9);disc(p.b,9,18,5);disc(p.b,21,16,6);
+    disc(p.c,12,8,5);disc(p.c,19,11,3);
+    const r=mulberry32(v*97+5+s*13);
+    for(let i=0;i<40;i++){const x=4+(r()*24)|0,y=3+(r()*24)|0,d=Math.hypot(x-16,y-14);if(d<11)R(y<14?p.lt:p.dk,x,y,1,1)}
+    if(v===1&&s===0)for(let i=0;i<34;i++){const x=4+(r()*24)|0,y=2+(r()*22)|0;if(Math.hypot(x-16,y-14)<12){R('#f6c829',x,y,2,1);R('#ffe46a',x,y,1,1)}}
+    if(v===1&&s===1)for(let i=0;i<7;i++){const x=6+(r()*20)|0,y=8+(r()*16)|0;R('#3a1f10',x,y+2,2,1);R('#f2b33a',x,y,2,2);R('#ffe08a',x,y,1,1)}
   });
   return c;
 }
-const TREES=[makeTree(0),makeTree(1)];
+const TREES=[0,1,2].map(s=>[makeTree(0,s),makeTree(1,s)]);
 const HOUSE_SPR=(()=>{
   const c=mk(88,72),ox=4,oy=6;
   withC(c.getContext('2d'),()=>{
@@ -547,13 +699,11 @@ const HOUSE_SPR=(()=>{
     OL([['#a8794a',ox+2,oy+21,76,22]],'#2e1d10');
     for(let x=ox+2;x<ox+78;x+=6){R('#8e6238',x,oy+21,1,22);R('#bf8f5c',x+1,oy+21,1,22)}
     R('rgba(0,0,0,.28)',ox+2,oy+21,76,3);
-    [[ox+8],[ox+56]].forEach(([wx])=>{OL([['#4a2f1c',wx,oy+27,16,12]],'#24160c');R('#2c3f4f',wx+2,oy+29,12,8);R('#4a2f1c',wx+7,oy+29,2,8);R('#5f8fb0',wx+2,oy+29,3,1);
-      R('#5d7d4a',wx-4,oy+27,3,12);R('#5d7d4a',wx+17,oy+27,3,12);R('#456338',wx-4,oy+32,3,1);R('#456338',wx+17,oy+32,3,1);
-      R('#6b4426',wx-1,oy+39,18,2)});
+    [ox+8,ox+56].forEach(wx=>{OL([['#4a2f1c',wx,oy+27,16,12]],'#24160c');R('#2c3f4f',wx+2,oy+29,12,8);R('#4a2f1c',wx+7,oy+29,2,8);R('#5f8fb0',wx+2,oy+29,3,1);
+      R('#5d7d4a',wx-4,oy+27,3,12);R('#5d7d4a',wx+17,oy+27,3,12);R('#456338',wx-4,oy+32,3,1);R('#456338',wx+17,oy+32,3,1);R('#6b4426',wx-1,oy+39,18,2)});
     OL([['#7a4a28',ox+35,oy+26,10,17]],'#24160c');R('#8f5a32',ox+36,oy+27,3,16);R('#5f3a1f',ox+40,oy+27,1,16);R('#f0c64a',ox+43,oy+35,1,2);
     for(let i=0;i<5;i++){R('#24160c',ox+32,oy+47+i*4,16,1);R('#9a6a3c',ox+32,oy+48+i*4,16,2)}
     R('#5a3b22',ox+31,oy+45,1,19);R('#5a3b22',ox+48,oy+45,1,19);
-    // thatch roof
     for(let r=0;r<28;r++){
       const ins=Math.max(0,16-Math.floor(r*0.75)),x0=ox-4+ins,w=88-ins*2,y=oy-6+r;
       R('#4a3416',x0-1,y,w+2,1);
@@ -562,8 +712,7 @@ const HOUSE_SPR=(()=>{
     R('#4a3416',ox-5,oy+22,90,1);
     for(let x=ox-4;x<ox+84;x++){const d=hash(x,77)%3;R('#a17c35',x,oy+22,1,d+1);R('#4a3416',x,oy+22+d+1,1,1)}
     R('#7a5a24',ox+12,oy-7,56,2);R('#4a3416',ox+12,oy-8,56,1);
-    // pots
-    [[ox+24],[ox+52]].forEach(([px])=>{OL([['#b5653a',px,oy+59,5,4]],'#3a1c0e');R('#3f8a35',px,oy+55,5,4);R('#e2504a',px+1,oy+55,1,1);R('#f6d35e',px+3,oy+56,1,1)});
+    [ox+24,ox+52].forEach(px=>{OL([['#b5653a',px,oy+59,5,4]],'#3a1c0e');R('#3f8a35',px,oy+55,5,4);R('#e2504a',px+1,oy+55,1,1);R('#f6d35e',px+3,oy+56,1,1)});
   });
   return c;
 })();
@@ -579,41 +728,44 @@ function lip(sx,sy,x,y,side,col,sh){
     else{R(col,sx+16-d,sy+i,d,1);R(sh,sx+15-d,sy+i,1,1)}}
 }
 function grass(sx,sy,x,y){
-  tx(TX.grass,x,y,sx,sy);const h=hash(x,y);
-  if(h%5===0){const a=2+h%10,b=4+(h>>4)%8;R('#4a8c33',sx+a,sy+b,1,3);R('#4a8c33',sx+a+2,sy+b+1,1,2);R('#7cc45a',sx+a+1,sy+b-1,1,3)}
+  const s=curS();tx(STX[s].grass,x,y,sx,sy);const h=hash(x,y),gs=SEASONS[s].gs;
+  if(h%5===0){const a=2+h%10,b=4+(h>>4)%8;R(gs[1],sx+a,sy+b,1,3);R(gs[1],sx+a+2,sy+b+1,1,2);R(gs[3],sx+a+1,sy+b-1,1,3)}
 }
 function drawGround(t,x,y,sx,sy){
+  const s=curS(),GC=SEASONS[s].grass;
   switch(t){
   case G:case HOUSE:grass(sx,sy,x,y);break;
-  case FLOWER:{grass(sx,sy,x,y);const h=hash(x,y),c=['#f4d35e','#f7a1c4','#ffffff','#b9a3ff'][h%4],c2=['#e0a020','#e06a9a','#e8e0f0','#8a70e0'][h%4];
+  case FLOWER:{grass(sx,sy,x,y);const h=hash(x,y),fl=SEASONS[s].flowers,c=fl[h%4],c2=fl[(h+1)%4];
     R('#3c7a2c',sx+7,sy+8,1,5);R('#4f9a37',sx+5,sy+10,2,1);R('#4f9a37',sx+8,sy+9,2,1);
-    R(c,sx+7,sy+4,1,1);R(c,sx+6,sy+5,3,1);R(c,sx+7,sy+6,1,1);R(c2,sx+6,sy+6,1,1);R(c2,sx+8,sy+6,1,1);R('#e48c2a',sx+7,sy+5,1,1);
-    if(h%3===0){R('#3c7a2c',sx+12,sy+11,1,3);R(c,sx+11,sy+10,3,1);R(c,sx+12,sy+9,1,3);R('#e48c2a',sx+12,sy+10,1,1)}break}
+    R(c,sx+7,sy+4,1,1);R(c,sx+6,sy+5,3,1);R(c,sx+7,sy+6,1,1);R('#e48c2a',sx+7,sy+5,1,1);
+    if(h%3===0){R('#3c7a2c',sx+12,sy+11,1,3);R(c2,sx+11,sy+10,3,1);R(c2,sx+12,sy+9,1,3);R('#e48c2a',sx+12,sy+10,1,1)}break}
   case SOIL:{const w=S.wet[y][x];tx(w?TX.wet:TX.dry,x,y,sx,sy);
     const hi=w?'#76502f':'#b88552',lo=w?'#3f2614':'#6f4726';
     for(const r of [2,9]){R(hi,sx+1,sy+r,14,1);R(lo,sx+1,sy+r+3,14,1)}
     if(w&&hash(x,y)%3===0)R('#8a6a50',sx+(hash(y,x)%12)+2,sy+7,2,1);
     const e='rgba(30,15,5,.45)';
-    if(tileAt(x,y-1)!==SOIL)lip(sx,sy,x,y,0,'#5ea543','#3c7a2c');
+    if(tileAt(x,y-1)!==SOIL)lip(sx,sy,x,y,0,GC,'#3c7a2c');
     if(tileAt(x,y+1)!==SOIL)R(e,sx,sy+15,16,1);
     if(tileAt(x-1,y)!==SOIL)R(e,sx,sy,1,16);
     if(tileAt(x+1,y)!==SOIL)R(e,sx+15,sy,1,16);
     break}
-  case WEED:{grass(sx,sy,x,y);const OC='#1f4a1a';
-    if(hash(x,y)%2)OL([['#3e8a2e',sx+4,sy+8,8,5],['#4fa23a',sx+3,sy+5,2,5],['#4fa23a',sx+11,sy+4,2,6],['#5db446',sx+7,sy+3,2,6]],OC);
-    else{disc(OC,sx+8,sy+9,5);disc('#3e8a2e',sx+8,sy+9,4);R('#5db446',sx+6,sy+7,3,2);R('#5db446',sx+9,sy+10,2,1)}
-    R('#7fd65a',sx+7,sy+3,1,2);R('#2f6b26',sx+5,sy+12,6,1);break}
+  case WEED:{grass(sx,sy,x,y);const OC='#1f4a1a',wc=s===0?'#6e8a2e':s===2?'#7a8a3e':'#3e8a2e',wl=s===0?'#8aa63a':s===2?'#98a656':'#5db446';
+    if(hash(x,y)%2)OL([[wc,sx+4,sy+8,8,5],[wl,sx+3,sy+5,2,5],[wl,sx+11,sy+4,2,6],[wl,sx+7,sy+3,2,6]],OC);
+    else{disc(OC,sx+8,sy+9,5);disc(wc,sx+8,sy+9,4);R(wl,sx+6,sy+7,3,2);R(wl,sx+9,sy+10,2,1)}
+    R('#2f6b26',sx+5,sy+12,6,1);break}
   case ROCK:{grass(sx,sy,x,y);R('rgba(0,0,0,.22)',sx+2,sy+12,13,3);
-    disc('#3c3d41',sx+8,sy+9,6);disc('#8d8f95',sx+8,sy+9,5);R('#6f7176',sx+4,sy+12,9,2);disc('#aeb0b6',sx+7,sy+7,3);R('#d4d6da',sx+5,sy+6,2,1);R('#5d5f63',sx+10,sy+8,1,3);break}
+    disc('#3c3d41',sx+8,sy+9,6);disc('#8d8f95',sx+8,sy+9,5);R('#6f7176',sx+4,sy+12,9,2);disc('#aeb0b6',sx+7,sy+7,3);R('#d4d6da',sx+5,sy+6,2,1);R('#5d5f63',sx+10,sy+8,1,3);
+    if(s===1){R('#4f8a3a',sx+3,sy+11,3,1);R('#4f8a3a',sx+11,sy+12,2,1)}break}
   case TREE:grass(sx,sy,x,y);R('rgba(0,0,0,.25)',sx+1,sy+11,14,4);R('rgba(0,0,0,.18)',sx,sy+12,16,2);break;
   case WATER:R('#3f86c9',sx,sy,T,T);break;
-  case PATH:case STALL:{tx(TX.path,x,y,sx,sy);
-    const g=(a,b)=>GRASSY(tileAt(a,b));
-    if(g(x,y-1))lip(sx,sy,x,y,0,'#5ea543','#b08a58');
-    if(g(x,y+1))lip(sx,sy,x,y,1,'#5ea543','#b08a58');
-    if(g(x-1,y))lip(sx,sy,x,y,2,'#5ea543','#b08a58');
-    if(g(x+1,y))lip(sx,sy,x,y,3,'#5ea543','#b08a58');break}
-  case FENCE:{grass(sx,sy,x,y);const hz=tileAt(x-1,y)===FENCE||tileAt(x+1,y)===FENCE||tileAt(x-1,y)===PATH&&x===22,vt=tileAt(x,y-1)===FENCE||tileAt(x,y+1)===FENCE;
+  case PATH:case STALL:{tx(STX[s].path,x,y,sx,sy);
+    const g=(a,b)=>GRASSY(tileAt(a,b)),sh='rgba(90,60,30,.35)';
+    if(s===1&&hash(x,y)%6===0){const a=2+hash(y,x)%6;disc('#7a6040',sx+a+4,sy+9,3);R('#8fb0c8',sx+a+2,sy+8,6,2);R('#c8e0f0',sx+a+3,sy+8,2,1)}
+    if(g(x,y-1))lip(sx,sy,x,y,0,GC,sh);
+    if(g(x,y+1))lip(sx,sy,x,y,1,GC,sh);
+    if(g(x-1,y))lip(sx,sy,x,y,2,GC,sh);
+    if(g(x+1,y))lip(sx,sy,x,y,3,GC,sh);break}
+  case FENCE:{grass(sx,sy,x,y);const hz=tileAt(x-1,y)===FENCE||tileAt(x+1,y)===FENCE,vt=tileAt(x,y-1)===FENCE||tileAt(x,y+1)===FENCE;
     R('rgba(0,0,0,.18)',sx+3,sy+13,10,2);
     if(hz){for(const r of [5,10]){R('#3a2414',sx,sy+r-1,16,1);R('#b07a44',sx,sy+r,16,2);R('#7a4f2a',sx,sy+r+2,16,1)}}
     if(vt){R('#3a2414',sx+5,sy,1,16);R('#b07a44',sx+6,sy,2,16);R('#7a4f2a',sx+8,sy,1,16)}
@@ -631,37 +783,58 @@ function buildBG(){withC(bg,()=>{for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)drawG
 
 /* ----- live pieces ----- */
 function drawWater(x,y,sx,sy,now){
-  const W=(a,b)=>tileAt(a,b)===WATER,up=!W(x,y-1),dn=!W(x,y+1),lf=!W(x-1,y),rt=!W(x+1,y);
-  R(up||dn||lf||rt?'#4690d2':'#3a7fc2',sx,sy,T,T);
+  const W=(a,b)=>tileAt(a,b)===WATER,up=!W(x,y-1),dn=!W(x,y+1),lf=!W(x-1,y),rt=!W(x+1,y),s=curS();
+  R(s===0?(up||dn||lf||rt?'#5a9ccf':'#4a8cc4'):(up||dn||lf||rt?'#4690d2':'#3a7fc2'),sx,sy,T,T);
   const o=((now/130+x*5+y*3)|0)%18;R('#78b6ea',sx+o-2,sy+5,3,1);R('#78b6ea',sx+((o+9)%18)-2,sy+11,2,1);
   const h=hash(x,y);if((((now/450)|0)+h)%11===0)R('#e6f4ff',sx+h%12+2,sy+(h>>5)%10+3,1,1);
-  const f=((now/400)|0)%2;
-  if(up){R('#2c639e',sx,sy+2,T,2);R('#3c7a2c',sx,sy,T,2);R('#4f9a37',sx,sy,T,1)}
+  if(s===1&&S.weather==='rain'){const k=((now/200)|0)+h;if(k%4===0){R('#bfe0ff',sx+h%10+3,sy+(h>>3)%9+3,3,1)}}
+  const f=((now/400)|0)%2,GC=SEASONS[s].gs[1];
+  if(up){R('#2c639e',sx,sy+2,T,2);R(GC,sx,sy,T,2)}
   if(dn){R('#bfe6fa',sx,sy+13-f,T,1);R('#d9c49a',sx,sy+14,T,2)}
-  if(lf){R('#2c639e',sx+2,sy,1,T);R('#3c7a2c',sx,sy,2,T)}
-  if(rt){R('#bfe6fa',sx+13-f,sy,1,T);R('#3c7a2c',sx+14,sy,2,T)}
+  if(lf){R('#2c639e',sx+2,sy,1,T);R(GC,sx,sy,2,T)}
+  if(rt){R('#bfe6fa',sx+13-f,sy,1,T);R(GC,sx+14,sy,2,T)}
+  if(s===2&&!up&&!lf&&h%7===0)R('#ffffff',sx+4,sy+4,1,1);
 }
 function drawCrop(c,sx,sy,now,x,y){
-  const d=CROPS[c.type],ripe=c.age>=d.grow,st=c.age===0?0:ripe?3:(c.age<d.grow/2?1:2),OC='#1f3a17';
+  const d=CROPS[c.type],OC='#1f3a17';
+  if(c.dead){R('#5a3a1a',sx+7,sy+5,2,9);R('#8a6a3a',sx+4,sy+8,3,1);R('#8a6a3a',sx+9,sy+6,3,1);R('#6a4a2a',sx+3,sy+9,1,2);R('#6a4a2a',sx+12,sy+7,1,2);R('#a08050',sx+6,sy+4,4,1);return}
+  const ripe=c.age>=d.grow,st=c.age===0?0:ripe?3:(c.age<d.grow/2?1:2);
   if(st===0){[[4,6],[10,5],[7,10],[11,11]].forEach(([a,b])=>{R('#3b2414',sx+a,sy+b,2,1);R('#d8b77a',sx+a,sy+b-1,1,1)});return}
-  if(st===1){OL([['#5aa83e',sx+7,sy+8,2,5],['#7fd65a',sx+4,sy+6,3,3],['#7fd65a',sx+9,sy+5,3,3]],OC);R('#b2ee8c',sx+4,sy+6,1,1);R('#b2ee8c',sx+9,sy+5,1,1);return}
-  if(c.type==='turnip'){OL([['#3f9a35',sx+5,sy+1,6,7],['#57b544',sx+3,sy+3,3,4],['#57b544',sx+10,sy+3,3,4]],OC);R('#2f7a28',sx+7,sy+2,2,6);R('#7fd65a',sx+5,sy+2,1,2);
-    if(ripe){OL([[d.col2,sx+4,sy+8,8,2],[d.col,sx+4,sy+10,8,3],[d.col,sx+6,sy+13,4,1]],'#4a2b4f');R('#ffffff',sx+5,sy+10,2,1)}}
-  else if(c.type==='potato'){disc(OC,sx+5,sy+8,4);disc(OC,sx+11,sy+8,4);disc(OC,sx+8,sy+5,4);disc('#3a8530',sx+5,sy+8,3);disc('#3a8530',sx+11,sy+8,3);disc('#4a9a3a',sx+8,sy+5,3);R('#6cc04a',sx+6,sy+3,2,1);R('#6cc04a',sx+3,sy+7,1,2);R('#2f6a28',sx+4,sy+10,8,1);
-    if(ripe){R('#f6f1d0',sx+5,sy+4,2,2);R('#f6e36a',sx+5,sy+4,1,1);R('#f6f1d0',sx+10,sy+7,2,2);OL([[d.col,sx+2,sy+12,4,3],[d.col,sx+10,sy+12,4,3]],'#4a321a');R('#e0bf88',sx+2,sy+12,2,1);R('#e0bf88',sx+10,sy+12,2,1)}}
-  else if(c.type==='tomato'){OL([['#9a7448',sx+7,sy-2,2,16]],'#3a2414');OL([['#3a8a35',sx+3,sy+2,10,10]],OC);R('#56a842',sx+4,sy+3,4,3);R('#2c6a28',sx+4,sy+9,8,2);
+  if(st===1&&c.type!=='rice'){OL([['#5aa83e',sx+7,sy+8,2,5],['#7fd65a',sx+4,sy+6,3,3],['#7fd65a',sx+9,sy+5,3,3]],OC);R('#b2ee8c',sx+4,sy+6,1,1);R('#b2ee8c',sx+9,sy+5,1,1);return}
+  switch(c.type){
+  case 'turnip':OL([['#3f9a35',sx+5,sy+1,6,7],['#57b544',sx+3,sy+3,3,4],['#57b544',sx+10,sy+3,3,4]],OC);R('#2f7a28',sx+7,sy+2,2,6);R('#7fd65a',sx+5,sy+2,1,2);
+    if(ripe){OL([[d.col2,sx+4,sy+8,8,2],[d.col,sx+4,sy+10,8,3],[d.col,sx+6,sy+13,4,1]],'#4a2b4f');R('#ffffff',sx+5,sy+10,2,1)}break;
+  case 'potato':disc(OC,sx+5,sy+8,4);disc(OC,sx+11,sy+8,4);disc(OC,sx+8,sy+5,4);disc('#3a8530',sx+5,sy+8,3);disc('#3a8530',sx+11,sy+8,3);disc('#4a9a3a',sx+8,sy+5,3);R('#6cc04a',sx+6,sy+3,2,1);R('#2f6a28',sx+4,sy+10,8,1);
+    if(ripe){R('#f6f1d0',sx+5,sy+4,2,2);R('#f6e36a',sx+5,sy+4,1,1);R('#f6f1d0',sx+10,sy+7,2,2);OL([[d.col,sx+2,sy+12,4,3],[d.col,sx+10,sy+12,4,3]],'#4a321a');R('#e0bf88',sx+2,sy+12,2,1);R('#e0bf88',sx+10,sy+12,2,1)}break;
+  case 'tomato':OL([['#9a7448',sx+7,sy-2,2,16]],'#3a2414');OL([['#3a8a35',sx+3,sy+2,10,10]],OC);R('#56a842',sx+4,sy+3,4,3);R('#2c6a28',sx+4,sy+9,8,2);
     if(ripe)[[3,4],[10,3],[5,8],[10,8]].forEach(([a,b])=>{OL([[d.col,sx+a,sy+b,3,3]],'#5a1410');R(d.col2,sx+a,sy+b,1,1)});
-    else[[5,6],[9,8]].forEach(([a,b])=>R('#9ad86a',sx+a,sy+b,2,2))}
-  else if(c.type==='corn'){OL([['#4f9a37',sx+7,sy-6,2,19]],OC);OL([['#6cc04a',sx+2,sy+4,5,2],['#6cc04a',sx+9,sy+1,5,2],['#6cc04a',sx+9,sy+8,5,2],['#6cc04a',sx+3,sy-2,4,2]],OC);R('#4f9a37',sx+7,sy-6,2,19);
-    if(ripe){R('#d8b040',sx+6,sy-8,4,2);OL([[d.col,sx+3,sy+6,3,6]],'#6a5410');R(d.col2,sx+4,sy+7,1,4);R('#8fcf5a',sx+3,sy+11,3,2)}}
+    else[[5,6],[9,8]].forEach(([a,b])=>R('#9ad86a',sx+a,sy+b,2,2));break;
+  case 'corn':OL([['#4f9a37',sx+7,sy-6,2,19]],OC);OL([['#6cc04a',sx+2,sy+4,5,2],['#6cc04a',sx+9,sy+1,5,2],['#6cc04a',sx+9,sy+8,5,2],['#6cc04a',sx+3,sy-2,4,2]],OC);R('#4f9a37',sx+7,sy-6,2,19);
+    if(ripe){R('#d8b040',sx+6,sy-8,4,2);OL([[d.col,sx+3,sy+6,3,6]],'#6a5410');R(d.col2,sx+4,sy+7,1,4);R('#8fcf5a',sx+3,sy+11,3,2)}break;
+  case 'kangkong':OL([['#3a9a3e',sx+3,sy+5,4,7],['#3a9a3e',sx+9,sy+4,4,8],['#4fb848',sx+6,sy+2,4,9]],OC);R('#2f7a30',sx+7,sy+3,1,8);R('#2f7a30',sx+4,sy+6,1,5);R('#2f7a30',sx+11,sy+5,1,6);
+    if(ripe){R(d.col2,sx+6,sy+2,2,2);R(d.col2,sx+9,sy+4,2,1);R(d.col2,sx+3,sy+5,2,1);R('#c8f0a0',sx+7,sy+1,1,1)}break;
+  case 'melon':OL([['#3f8f35',sx+1,sy+3,6,4],['#3f8f35',sx+10,sy+2,5,4]],OC);R('#5aa845',sx+2,sy+3,2,2);R('#2f6a28',sx+6,sy+5,6,1);
+    if(ripe){disc('#1d3a17',sx+8,sy+10,6);disc(d.col,sx+8,sy+10,5);[4,7,10].forEach(o=>R('#1d5a1d',sx+o,sy+6,1,9));R('#7ac06a',sx+5,sy+7,2,2)}
+    else{disc(OC,sx+8,sy+11,3);disc('#4f9e3e',sx+8,sy+11,2);R('#2f6a28',sx+7,sy+10,1,3)}break;
+  case 'okra':OL([['#4f9a37',sx+7,sy-3,2,16]],OC);OL([['#5aaa45',sx+2,sy+3,5,4],['#5aaa45',sx+9,sy+6,5,4],['#5aaa45',sx+9,sy,4,3]],OC);R('#7ac65a',sx+3,sy+3,2,1);
+    if(ripe){[[5,8],[10,1],[4,-1]].forEach(([a,b])=>{OL([[d.col,sx+a,sy+b,2,5]],'#2a4a1a');R('#b2e08a',sx+a,sy+b,1,2)});OL([[d.col2,sx+10,sy+11,3,2]],'#6a5410')}break;
+  case 'rice':{const n=st===1?5:9,col=ripe?d.col:'#5cb84a',dk=ripe?'#a8842a':'#3a8a30';
+    for(let i=0;i<n;i++){const bx=sx+2+i*1.4|0,hgt=(st===1?6:11)+(i%3);R(dk,bx,sy+14-hgt,1,hgt);R(col,bx+1,sy+14-hgt+1,1,hgt-2)}
+    if(ripe)[[3,2],[7,1],[11,2],[5,4],[10,4]].forEach(([a,b])=>{R(d.col2,sx+a,sy+b,2,2);R('#c89a30',sx+a+1,sy+b+2,1,1)});break}
+  case 'cabbage':disc(OC,sx+8,sy+9,6);disc('#5aa84a',sx+8,sy+9,5);R('#3f8a35',sx+3,sy+9,10,1);
+    if(ripe){disc('#3f7a35',sx+8,sy+8,4);disc(d.col,sx+8,sy+8,3);R('#e0f4c8',sx+6,sy+6,2,2);R('#8ac46a',sx+8,sy+6,1,5)}else{disc(d.col2,sx+8,sy+8,2)}break;
+  }
   if(ripe&&(((now/350)|0)+x+y)%8===0){R('#ffffff',sx+13,sy,1,3);R('#ffffff',sx+12,sy+1,3,1)}
 }
 const butterflies=Array.from({length:5},(_,i)=>({x:(5+i*5)*T,y:(8+(i%3)*4)*T,ph:i*1.7,col:['#f4d35e','#ffffff','#f7a1c4','#9fd0ff','#f4d35e'][i]}));
 const flies=Array.from({length:16},(_,i)=>({x:(3+((i*7)%24))*T+(i*13)%16,y:(3+((i*5)%17))*T,ph:i}));
 let drops=[];
+const LC=mk(VW*T,VH*T),lg=LC.getContext('2d');
 
 function lighting(cx,cy,rx,ry,now){
-  const m=S.min,W=VW*T,H=VH*T;let dark=0;
+  const m=S.min,W=VW*T,H=VH*T,s=curS();let dark=0;
+  if(s===2&&m<570){C.fillStyle=`rgba(226,232,240,${(570-m)/210*.42})`;C.fillRect(0,0,W,H)}
+  if(s===0&&m>=660&&m<960){C.fillStyle='rgba(255,210,130,.08)';C.fillRect(0,0,W,H)}
   if(m<420){C.fillStyle=`rgba(255,170,90,${(420-m)/60*.2})`;C.fillRect(0,0,W,H)}
   else if(m>=990&&m<1110){const k=(m-990)/120;C.fillStyle=`rgba(255,${(150-70*k)|0},${(70+50*k)|0},${.1+.12*k})`;C.fillRect(0,0,W,H);dark=k*.25}
   if(m>=1110)dark=Math.min(.66,.25+(m-1110)/120*.41);
@@ -671,11 +844,10 @@ function lighting(cx,cy,rx,ry,now){
   const night=m>=1080,lights=[[rx*T+8,ry*T+6,26,.55]];
   if(night){lights.push([3*T+16,2*T+33,30,.9],[3*T+64,2*T+33,30,.9],[3*T+40,2*T+40,22,.6]);if(m<1260)lights.push([26*T-2,18*T,34,.9])}
   lg.globalCompositeOperation='destination-out';
-  lights.forEach(([x,y,r,s])=>{const gx=x-cx,gy=y-cy,g=lg.createRadialGradient(gx,gy,0,gx,gy,r);g.addColorStop(0,`rgba(0,0,0,${s})`);g.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=g;lg.fillRect(gx-r,gy-r,r*2,r*2)});
+  lights.forEach(([x,y,r,st])=>{const gx=x-cx,gy=y-cy,g=lg.createRadialGradient(gx,gy,0,gx,gy,r);g.addColorStop(0,`rgba(0,0,0,${st})`);g.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=g;lg.fillRect(gx-r,gy-r,r*2,r*2)});
   C.imageSmoothingEnabled=true;C.drawImage(LC,0,0);C.imageSmoothingEnabled=false;
   if(night){C.globalCompositeOperation='lighter';lights.slice(1).forEach(([x,y,r])=>{const gx=x-cx,gy=y-cy,g=C.createRadialGradient(gx,gy,0,gx,gy,r*.7);g.addColorStop(0,'rgba(255,170,60,.22)');g.addColorStop(1,'rgba(255,170,60,0)');C.fillStyle=g;C.fillRect(gx-r,gy-r,r*2,r*2)});C.globalCompositeOperation='source-over'}
 }
-const LC=mk(VW*T,VH*T),lg=LC.getContext('2d');
 
 function fit(){
   const st=$('stage').getBoundingClientRect();const W=VW*T,H=VH*T;
@@ -685,12 +857,78 @@ function fit(){
 }
 addEventListener('resize',fit);
 
+function playerPos(){let rx=S.px,ry=S.py;if(mv){const k=Math.min(1,mv.t);rx=mv.fx+(S.px-mv.fx)*k;ry=mv.fy+(S.py-mv.fy)*k}return[rx,ry]}
+function drawPlayer(px,py){
+  const fr=mv?((stepCount+(mv.t>.5?1:0))%2?1:2):0;py-=(mv&&mv.t>.25&&mv.t<.75)?1:0;
+  const tool=()=>{if(!anim||!ICON[anim.tool])return;const k=1-anim.t/220,[dx,dy]=DIRS[S.dir];
+    C.drawImage(ICON[anim.tool],px+dx*10+(dy?(S.dir==='down'?2:-2):0),py+dy*8+k*7)};
+  R('rgba(0,0,0,.28)',px+4,py+21,8,2);R('rgba(0,0,0,.18)',px+3,py+21,10,1);
+  if(S.dir==='up')tool();
+  C.drawImage(PS[S.dir][fr],px,py);
+  if(S.dir!=='up')tool();
+}
+function marker(mx,my,now){const p=((now/280)|0)%2,col='rgba(255,243,196,.95)',a=mx-p,b=my-p,c2=mx+15+p,d=my+15+p;
+  R(col,a,b,3,1);R(col,a,b,1,3);R(col,c2-2,b,3,1);R(col,c2,b,1,3);R(col,a,d,3,1);R(col,a,d-2,1,3);R(col,c2-2,d,3,1);R(col,c2,d-2,1,3)}
+
+/* ----- house interior ----- */
+function renderHouse(now){
+  const W=VW*T,H=VH*T,ox=(W-10*T)/2,oy=(H-8*T)/2,m=S.min,night=m>=1080||m<390;
+  R('#0d0906',0,0,W,H);
+  for(let y=0;y<8;y++)for(let x=0;x<10;x++){const c=hTile(x,y),sx=ox+x*T,sy=oy+y*T;
+    if(y===0){R('#2e1d10',sx,sy,T,T);R('#4a2f1c',sx,sy+12,T,4);continue}
+    if(y===1){R('#9c6b3f',sx,sy,T,T);for(let i=0;i<16;i+=5){R('#86592f',sx+i,sy,1,T);R('#b07d4c',sx+i+1,sy,1,T)}R('#5a3b22',sx,sy+13,T,3);continue}
+    if(x===0||x===9){R('#6b4426',sx,sy,T,T);R(x===0?'#4a2f1c':'#7a5230',x===0?sx+13:sx,sy,3,T);continue}
+    if(y===7&&c!=='D'){R('#4a2f1c',sx,sy,T,T);R('#6b4426',sx,sy,T,3);continue}
+    R('#b88550',sx,sy,T,T);for(let r=0;r<16;r+=4){R('#9a6a3c',sx,sy+r+3,T,1);R('#c99a64',sx+(hash(x,y*4+r)%12),sy+r,1,3)}
+    if(y===2)R('rgba(0,0,0,.22)',sx,sy,T,3);
+    if(c==='D'){R('#7a5a38',sx+2,sy+4,12,10);R('#5a3f25',sx+2,sy+8,12,1);R(night?'#1a2040':'#f2e2b0',sx+3,sy+14,10,2)}
+  }
+  const X=x=>ox+x*T,Y=y=>oy+y*T;
+  // woven mat
+  R('#a8783a',X(4)+2,Y(4)+2,44,44);R('#d9b56a',X(4)+3,Y(4)+3,42,42);
+  for(let i=0;i<42;i+=4)for(let j=0;j<42;j+=4)if(((i+j)/4)%2)R('#c49a48',X(4)+3+i,Y(4)+3+j,2,4);else R('#c49a48',X(4)+3+i,Y(4)+3+j,4,2);
+  R('#8a3a2a',X(4)+6,Y(4)+6,36,1);R('#8a3a2a',X(4)+6,Y(4)+41,36,1);
+  // bed
+  OL([['#7a4a28',X(6)+1,Y(2),30,31]],'#2e1d10');R('#5a3820',X(6)+1,Y(2),30,5);R('#f1ead8',X(6)+3,Y(2)+5,26,25);
+  OL([['#ffffff',X(6)+6,Y(2)+6,20,6]],'#c9c2b2');
+  for(let i=0;i<26;i+=4)for(let j=0;j<16;j+=4)R(((i+j)/4)%2?'#c8433a':'#e8a03a',X(6)+3+i,Y(2)+14+j,4,4);
+  R('#a8342c',X(6)+3,Y(2)+14,26,1);
+  // table with teapot
+  R('rgba(0,0,0,.25)',X(2)+2,Y(5)+12,30,3);
+  OL([['#8a5a30',X(2)+1,Y(4)+6,30,16]],'#2e1d10');R('#a8703a',X(2)+1,Y(4)+6,30,2);R('#5a3820',X(2)+3,Y(5)+6,2,6);R('#5a3820',X(3)+11,Y(5)+6,2,6);
+  disc('#1d3a2a',X(2)+11,Y(4)+12,4);disc('#3f7a5a',X(2)+11,Y(4)+12,3);R('#3f7a5a',X(2)+15,Y(4)+10,3,1);R('#3f7a5a',X(2)+17,Y(4)+9,1,1);R('#6aa880',X(2)+9,Y(4)+10,2,1);R('#2a5a40',X(2)+10,Y(4)+7,3,1);
+  [[X(3)+4],[X(3)+10]].forEach(([cx2])=>{OL([['#f4efe2',cx2,Y(4)+11,3,3]],'#8a7a6a');R('#b5763a',cx2,Y(4)+11,3,1)});
+  // chest
+  R('rgba(0,0,0,.25)',X(7)+1,Y(5)+14,15,2);OL([['#8b5a2b',X(7)+1,Y(5)+4,14,11],['#a8703a',X(7),Y(5)+2,16,4]],'#2e1d10');R('#9aa0a6',X(7)+3,Y(5)+2,1,13);R('#9aa0a6',X(7)+12,Y(5)+2,1,13);R('#f2c14e',X(7)+7,Y(5)+6,2,2);
+  // shrine
+  const sx=X(1),sy=Y(1);R('#5a3820',sx+1,sy+9,14,3);R('#3a2414',sx+1,sy+12,14,1);
+  R('#7a5410',sx+6,sy+1,5,8);disc('#e8b83a',sx+8,sy+3,2);R('#e8b83a',sx+6,sy+5,5,4);R('#ffe08a',sx+7,sy+5,1,2);
+  R('#f4efe2',sx+2,sy+5,2,4);R('#ffffff',sx+1,sy+3,2,2);R('#f6d35e',sx+3,sy+4,1,1);R('#f4efe2',sx+12,sy+5,2,4);R('#ffffff',sx+12,sy+3,2,2);R('#f6d35e',sx+13,sy+4,1,1);
+  if(night){R('#ffd36a',sx+4,sy+7,1,2);R('#fff4c0',sx+4,sy+6,1,1)}
+  // windows
+  const sky=m<420?'#f2b07a':m<1020?(S.weather==='rain'?'#8aa0b0':'#9fd3f0'):m<1110?'#f2955a':'#1c2850';
+  [X(3),X(6)].forEach(wx=>{OL([['#4a2f1c',wx+2,Y(1)+2,12,10]],'#24160c');R(sky,wx+3,Y(1)+3,10,8);R('#4a2f1c',wx+7,Y(1)+3,2,8);
+    if(m>=1110||m<390){R('#ffffff',wx+4,Y(1)+4,1,1);R('#ffffff',wx+11,Y(1)+6,1,1)}
+    if(S.weather==='rain'){R('#c8dcef',wx+5,Y(1)+5,1,2);R('#c8dcef',wx+10,Y(1)+4,1,2)}
+    R('#c8433a',wx+1,Y(1)+1,2,12);R('#c8433a',wx+13,Y(1)+1,2,12)});
+  // calendar
+  const kx=X(8),ky=Y(1);OL([['#f4efe2',kx+3,ky+1,10,11]],'#5a4a3a');R('#c8433a',kx+3,ky+1,10,3);
+  for(let i=0;i<4;i++)for(let j=0;j<3;j++)R('#8a7a6a',kx+4+i*2,ky+6+j*2,1,1);R(['#e2402f','#3f86c9','#7fa556'][curS()],kx+4+((S.day-1)%4)*2,ky+6+(((S.day-1)>>2)%3)*2,1,1);
+  // lamp
+  R('#3a2414',X(5),Y(1)+8,1,10);OL([['#c99a40',X(5)-2,Y(1)+18,5,5]],'#3a2414');R(night?'#ffe08a':'#e8c86a',X(5)-1,Y(1)+19,3,3);
+  const[rx,ry]=playerPos();drawPlayer(Math.round(ox+rx*T),Math.round(oy+ry*T)-7);
+  if(!paused){const[fx,fy]=front();if(HSOLID.has(hTile(fx,fy))&&fy>0)marker(ox+fx*T,oy+fy*T,now)}
+  if(night){C.fillStyle='rgba(10,8,30,.38)';C.fillRect(0,0,W,H);C.globalCompositeOperation='lighter';
+    const g=C.createRadialGradient(X(5),Y(1)+20,0,X(5),Y(1)+20,70);g.addColorStop(0,'rgba(255,170,70,.35)');g.addColorStop(1,'rgba(255,170,70,0)');C.fillStyle=g;C.fillRect(0,0,W,H);C.globalCompositeOperation='source-over'}
+}
+
+/* ----- farm ----- */
 function render(now){
   C=ctx;ctx.setTransform(SCALE,0,0,SCALE,0,0);ctx.imageSmoothingEnabled=false;
   if(!S){R('#3a6b2a',0,0,VW*T,VH*T);return}
+  if(S.scene==='house'){renderHouse(now);if(fade>0){R(`rgba(0,0,0,${fade})`,0,0,VW*T,VH*T)}return}
   if(dirty){buildBG();dirty=false}
-  let rx=S.px,ry=S.py;
-  if(mv){const k=Math.min(1,mv.t);rx=mv.fx+(S.px-mv.fx)*k;ry=mv.fy+(S.py-mv.fy)*k}
+  const[rx,ry]=playerPos(),s=curS();
   const cx=Math.round(Math.max(0,Math.min(MW*T-VW*T,rx*T+8-VW*T/2)));
   const cy=Math.round(Math.max(0,Math.min(MH*T-VH*T,ry*T+8-VH*T/2)));
   const x0=Math.floor(cx/T),y0=Math.floor(cy/T),day=S.min<1080,open=S.min>=480&&S.min<1080;
@@ -698,31 +936,26 @@ function render(now){
   for(let y=y0;y<=y0+VH&&y<MH;y++)for(let x=x0;x<=x0+VW&&x<MW;x++)if(S.tiles[y][x]===WATER)drawWater(x,y,x*T-cx,y*T-cy,now);
   for(const k in S.crops){const [x,y]=k.split(',').map(Number);if(x>=x0-1&&x<=x0+VW+1&&y>=y0-1&&y<=y0+VH+2)drawCrop(S.crops[k],x*T-cx,y*T-cy,now,x,y)}
   S.eggs.forEach(e=>{const sx=e.x*T-cx,sy=e.y*T-cy;R('rgba(0,0,0,.2)',sx+4,sy+12,8,2);disc('#6a5a40',sx+8,sy+9,4);disc('#f7efdc',sx+8,sy+9,3);R('#fffdf6',sx+6,sy+7,2,2)});
-  if(!paused){const [fx,fy]=front(),mx=fx*T-cx,my=fy*T-cy,p=((now/280)|0)%2,col='rgba(255,243,196,.95)';
-    const a=mx-p,b=my-p,c2=mx+15+p,d=my+15+p;
-    R(col,a,b,3,1);R(col,a,b,1,3);R(col,c2-2,b,3,1);R(col,c2,b,1,3);R(col,a,d,3,1);R(col,a,d-2,1,3);R(col,c2-2,d,3,1);R(col,c2,d-2,1,3)}
+  if(!paused){const [fx,fy]=front();marker(fx*T-cx,fy*T-cy,now)}
   const sprites=[];
   sprites.push({y:5.95,d:()=>{C.drawImage(HOUSE_SPR,3*T-cx-4,2*T-cy-6);
     if(!day){[[3*T+10,2*T+29],[3*T+58,2*T+29]].forEach(([wx,wy])=>{R('#f8d77a',wx-cx,wy-cy,12,8);R('#4a2f1c',wx-cx+5,wy-cy,2,8);R('#fff2b8',wx-cx,wy-cy,3,2)})}}});
   for(let y=y0;y<=y0+VH+2&&y<MH;y++)for(let x=x0-1;x<=x0+VW&&x<MW;x++){if(x<0||S.tiles[y][x]!==TREE)continue;
-    sprites.push({y:y+.9,d:()=>C.drawImage(TREES[hash(x,y)%5===0?1:0],x*T-cx-8,y*T-cy-22)})}
+    sprites.push({y:y+.9,d:()=>C.drawImage(TREES[s][hash(x,y)%5===0?1:0],x*T-cx-8,y*T-cy-22)})}
   if(open){const f=((now/700)|0)%2;sprites.push({y:18.5,d:()=>C.drawImage(MS.down[0],Math.round(24.5*T-cx),18*T-cy-7+f)})}
   sprites.push({y:19.2,d:()=>{const sx=24*T-cx,sy=19*T-cy;
     OL([['#8a5a30',sx,sy+4,32,10]],'#2e1d10');R('#a8703a',sx,sy+4,32,2);R('#6b4426',sx,sy+9,32,1);R('rgba(0,0,0,.25)',sx,sy+14,32,2);
-    [[2,'#e2402f'],[10,'#f2cf3a'],[18,'#f4eef6'],[25,'#c49a5a']].forEach(([o,col])=>{OL([['#b08a50',sx+o,sy+1,6,4]],'#4a3416');R(col,sx+o+1,sy,4,2);R(col,sx+o+2,sy-1,2,1)});}});
+    seasonCrops(s).concat(['egg']).forEach((id,i)=>{const col=id==='egg'?'#f7efdc':CROPS[id].col,col2=id==='egg'?'#ffffff':CROPS[id].col2,o=2+i*8;OL([['#b08a50',sx+o,sy+1,6,4]],'#4a3416');R(col,sx+o+1,sy,4,2);R(col2,sx+o+2,sy-1,2,1)})}});
   chickRT.forEach((c,i)=>sprites.push({y:c.y,d:()=>{const bob=!(((now/220+i)|0)%3)?1:0,px=Math.round(c.x*T-cx)+2,py=Math.round(c.y*T-cy)+3;
     R('rgba(0,0,0,.2)',px+2,py+11,8,2);C.drawImage(c.face>0?HENR:HENL,px,py+bob)}}));
-  const fr=mv?((stepCount+(mv.t>.5?1:0))%2?1:2):0;
-  sprites.push({y:ry+.01,d:()=>{
-    const px=Math.round(rx*T-cx),py=Math.round(ry*T-cy)-7-(fr?1:0)*(mv&&mv.t>.25&&mv.t<.75?1:0);
-    const tool=()=>{if(!anim||!ICON[anim.tool])return;const k=1-anim.t/220,[dx,dy]=DIRS[S.dir];
-      C.drawImage(ICON[anim.tool],px+dx*10+(dy?(S.dir==='down'?2:-2):0),py+6+dy*8-6+k*7)};
-    R('rgba(0,0,0,.28)',px+4,py+21,8,2);R('rgba(0,0,0,.18)',px+3,py+21,10,1);
-    if(S.dir==='up')tool();
-    C.drawImage(PS[S.dir][fr],px,py);
-    if(S.dir!=='up')tool();
-  }});
-  sprites.sort((a,b)=>a.y-b.y).forEach(s=>s.d());
+  npcRT.forEach((n,i)=>{if(!n.active)return;const d=NPCS[i],k=n.t,nx=n.fx+(n.x-n.fx)*k,ny=n.fy+(n.y-n.fy)*k;
+    sprites.push({y:ny+.005,d:()=>{const px=Math.round(nx*T-cx),py=Math.round(ny*T-cy)-7,fr=n.t<1?(n.steps%2?1:2):0;
+      R('rgba(0,0,0,.25)',px+4,py+21,8,2);C.drawImage(NS[d.id][n.dir][fr],px,py);
+      if(d.fish&&n.t>=1&&!n.path.length&&n.wait){const bob=((now/500)|0)%2;R('#6b4a2b',px+11,py+2,1,8);R('#6b4a2b',px+12,py-2,1,4);R('#6b4a2b',px+13,py-5,1,3);
+        R('rgba(255,255,255,.6)',px+14,py-5,1,8);R('#e2402f',px+14,py+3+bob,2,2);R('#ffffff',px+14,py+3+bob,1,1)}
+      if(n.wait&&!n.path.length&&!d.fish&&((now/1600)|0)%5===0){R('#ffffff',px+6,py-12,9,7);R('#ffffff',px+8,py-5,2,2);R('#2a1a12',px+8,py-9,1,1);R('#2a1a12',px+10,py-9,1,1);R('#2a1a12',px+12,py-9,1,1)}}})});
+  sprites.push({y:ry+.01,d:()=>drawPlayer(Math.round(rx*T-cx),Math.round(ry*T-cy)-7)});
+  sprites.sort((a,b)=>a.y-b.y).forEach(sp=>sp.d());
   if(open||!day){const sx=24*T-cx,sy=18*T-cy;
     R('#5a3b22',sx,sy-6,2,22);R('#5a3b22',sx+30,sy-6,2,22);
     if(open){R('#3a2414',sx-1,sy-11,34,1);for(let i=0;i<8;i++){const c=i%2?'#f6efe0':'#c8433a';R(c,sx+i*4,sy-10,4,5);R(c,sx+i*4+1,sy-5,2,1)}R('rgba(0,0,0,.25)',sx,sy-4,32,1)}
@@ -737,6 +970,8 @@ function render(now){
     for(let i=0;i<3;i++){const x=((now*.006+i*190)%(MW*T+240))-120-cx,y=((i*157)%(MH*T-80))+40-cy;C.beginPath();C.ellipse(x,y,64,26,0,0,Math.PI*2);C.ellipse(x+40,y+10,40,20,0,0,Math.PI*2);C.fill()}
     C.imageSmoothingEnabled=false;
   }
+  if(s!==1||S.weather!=='rain'){const W=VW*T,H=VH*T,cols=s===0?['#f6c829','#ffe46a']:s===2?['#e09a3a','#c8702a']:null;
+    if(cols)for(let i=0;i<(s===2?10:7);i++){const t=now/1000+i*3.1,x=((i*61+t*14+Math.sin(t*1.3+i)*10)%(W+20)+W+20)%(W+20)-10,y=((i*43+t*(s===2?16:10))%(H+20))-10;R(cols[i%2],x|0,y|0,2,1);R(cols[(i+1)%2],(x|0)+((t*4|0)%2),(y|0)+1,1,1)}}
   if(S.weather==='rain'){
     R('rgba(30,50,90,.16)',0,0,VW*T,VH*T);
     for(let i=0;i<55;i++){const x=(i*37+now*.12)%(VW*T),y=(i*53+now*.32)%(VH*T);R('rgba(200,225,255,.55)',x|0,y|0,1,5)}
@@ -746,9 +981,12 @@ function render(now){
   lighting(cx,cy,rx,ry,now);
   if(S.min>=1110&&S.weather!=='rain')flies.forEach(f=>{const t=now/1000+f.ph,x=Math.round(f.x+Math.sin(t*.6)*14-cx),y=Math.round(f.y+Math.cos(t*.8)*9-cy),a=(Math.sin(t*3)+1)/2;
     if(a>.3){C.globalAlpha=a*.35;R('#d8ff8a',x-1,y-1,3,3);C.globalAlpha=a;R('#f2ffb0',x,y,1,1);C.globalAlpha=1}});
+  if(fade>0)R(`rgba(0,0,0,${fade})`,0,0,VW*T,VH*T);
 }
+let lastSeason=-1;
 function loop(now){
   const dt=Math.min(100,now-(last||now));last=now;
+  if(S&&curS()!==lastSeason){lastSeason=curS();dirty=true}
   update(dt);render(now);hud();
   requestAnimationFrame(loop);
 }
@@ -756,7 +994,7 @@ function loop(now){
 /* ---------- boot ---------- */
 function start(data){
   fit();
-  if(data&&data.s){try{S=JSON.parse(data.s);syncChickens();paused=false;belt();hud()}catch(e){S=null}}
+  if(data&&data.s){try{S=migrate(JSON.parse(data.s));syncChickens();paused=false;belt();hud()}catch(e){S=null}}
   if(!S){
     const sv=loadSave();S=sv&&!sv.over?sv:fresh();syncChickens();belt();hud();intro();
   }
