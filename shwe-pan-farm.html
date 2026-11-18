@@ -43,7 +43,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #toast{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(20,14,8,.88);border:1px solid var(--plank);border-radius:8px;padding:4px 12px;font-size:14px;max-width:90%;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
 
-#belt{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+#belt{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.slot.off{opacity:.4}
 .slot{display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--wood-2);border:2px solid var(--plank);border-radius:8px;padding:4px 2px;min-width:0}
 .slot canvas{width:28px;height:28px;image-rendering:pixelated}
 .slot span{font-size:11px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
@@ -108,16 +109,16 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <button type="button" class="b" id="btnB"><span><b>B</b><br><small>ကိုင်မယ်</small></span></button>
     </div>
   </section>
-  <div id="keys">မြှားခလုတ် / WASD လမ်းလျှောက် · Z / Space ကိရိယာသုံး · X / Enter ရိတ်၊ ကောက်၊ ပို့၊ အိပ် · 1–6 ကိရိယာရွေး · R မျိုးစေ့ပြောင်း · အိမ်တံခါးဆီ လျှောက်ရင် အိမ်ထဲဝင်မယ်</div>
+  <div id="keys">မြှားခလုတ် / WASD လမ်းလျှောက် · Z / Space ကိရိယာသုံး · X / Enter ရိတ်၊ ကောက်၊ ပို့၊ အိပ် · 1–8 ကိရိယာရွေး · R မျိုးစေ့ပြောင်း · အိမ်တံခါးဆီ လျှောက်ရင် အိမ်ထဲဝင်မယ်</div>
   <div id="modal" hidden><div class="card" id="mcard"></div></div>
 </div>
 
 <script>
 (()=>{
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
-const T=16,VW=15,VH=11,MW=30,MH=22,GOAL=10000,DAYS=30,TICK=300,SLEN=10;
-const G=0,SOIL=1,WEED=2,ROCK=3,TREE=4,WATER=5,PATH=6,FENCE=7,HOUSE=8,BIN=9,TROUGH=10,STALL=11,FLOWER=12;
-const SOLID=new Set([ROCK,TREE,WATER,FENCE,HOUSE,BIN,TROUGH,STALL]);
+const T=16,VW=15,VH=11,MW=60,MH=36,GOAL=10000,DAYS=30,TICK=300,SLEN=10;
+const G=0,SOIL=1,WEED=2,ROCK=3,TREE=4,WATER=5,PATH=6,FENCE=7,HOUSE=8,BIN=9,TROUGH=10,STALL=11,FLOWER=12,BLD=13,SAND=14,BRIDGE=15,JETTY=16;
+const SOLID=new Set([ROCK,TREE,WATER,FENCE,HOUSE,BIN,TROUGH,STALL,BLD]);
 const SEASONS=[
   {name:'နွေ',rain:.08,grass:'#86a843',gs:['#7c9e3a','#6e8f33','#9cbc55','#b2c866'],path:'#dcb87f',flowers:['#f6c829','#f08a3a','#e2402f','#ffffff']},
   {name:'မိုး',rain:.55,grass:'#4f9e3c',gs:['#47933a','#3d8530','#5fb04a','#74c45a'],path:'#c09a66',flowers:['#ffffff','#b9a3ff','#7fb8ff','#f7a1c4']},
@@ -138,8 +139,8 @@ const CROPS={
 };
 const CROP_IDS=Object.keys(CROPS);
 const seasonCrops=s=>CROP_IDS.filter(id=>CROPS[id].s===s);
-const EXTRA={egg:{name:'ကြက်ဥ',sell:50},fish:{name:'ငါး',sell:120}};
-const TOOLS=[{id:'hoe',name:'ပေါက်ပြား'},{id:'can',name:'ရေပုံး'},{id:'sickle',name:'တံစဉ်'},{id:'hammer',name:'တူ'},{id:'seed',name:'မျိုးစေ့'},{id:'tea',name:'လက်ဖက်ရည်'}];
+const EXTRA={egg:{name:'ကြက်ဥ',sell:50},fish:{name:'ငါး',sell:120},catfish:{name:'ငါးခူ',sell:80},carp:{name:'ငါးကြင်း',sell:120},snakehead:{name:'ငါးရံ',sell:160},prawn:{name:'ပုစွန်ထုပ်',sell:220}};
+const TOOLS=[{id:'hoe',name:'ပေါက်ပြား'},{id:'can',name:'ရေပုံး'},{id:'sickle',name:'တံစဉ်'},{id:'hammer',name:'တူ'},{id:'seed',name:'မျိုးစေ့'},{id:'tea',name:'လက်ဖက်ရည်'},{id:'rod',name:'ငါးမျှားတံ'},{id:'kite',name:'စွန်'}];
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 const OPP={up:'down',down:'up',left:'right',right:'left'};
 const YARD={x0:22,x1:27,y0:11,y1:15};
@@ -170,6 +171,7 @@ function genMap(seed){
   for(let y=0;y<MH;y++){t[y]=[];for(let x=0;x<MW;x++)t[y][x]=G}
   for(let x=0;x<MW;x++){t[0][x]=TREE;t[MH-1][x]=TREE}
   for(let y=0;y<MH;y++){t[y][0]=TREE;t[y][MW-1]=TREE}
+  for(let x=0;x<30;x++)t[21][x]=TREE;for(let y=0;y<22;y++)t[y][29]=TREE;
   [[1,1],[2,1],[1,2],[11,1],[13,2],[16,1],[19,1],[20,2],[9,2],[1,19],[2,20],[1,20],[28,7],[27,8],[22,7],[1,8],[1,13],[28,19]].forEach(([x,y])=>t[y][x]=TREE);
   for(let y=2;y<=5;y++)for(let x=3;x<=7;x++)t[y][x]=HOUSE;
   for(let y=2;y<=5;y++)for(let x=23;x<=27;x++)t[y][x]=WATER;
@@ -180,21 +182,56 @@ function genMap(seed){
   t[13][21]=PATH;t[11][22]=TROUGH;t[19][24]=STALL;t[19][25]=STALL;
   for(let y=FIELD.y0;y<=FIELD.y1;y++)for(let x=FIELD.x0;x<=FIELD.x1;x++){const r=rnd();t[y][x]=r<.3?WEED:r<.42?ROCK:G}
   for(let i=0;i<40;i++){const x=1+Math.floor(rnd()*28),y=1+Math.floor(rnd()*20);if(t[y][x]===G&&!inField(x,y)&&!(x>=21&&y>=10&&y<=16))t[y][x]=FLOWER}
+  buildVillage(t);
   return t;
 }
+const BUILDINGS=[
+  {id:'h1',name:'ဦးဘ နဲ့ ဒေါ်အေးတို့ အိမ်',x:31,y:2,w:4,h:3,style:'thatch'},
+  {id:'h2',name:'မမြရဲ့ အိမ်',x:37,y:2,w:4,h:3,style:'bamboo'},
+  {id:'h8',name:'ဆရာမ မဥမ္မာတို့ အိမ်',x:52,y:2,w:4,h:3,style:'zinc'},
+  {id:'h4',name:'သူကြီး ဦးလှမောင်ရဲ့ အိမ်',x:46,y:3,w:5,h:4,style:'tile'},
+  {id:'store',name:'ကိုဇော်ရဲ့ ကုန်စုံဆိုင်',x:32,y:6,w:5,h:4,style:'shop',shop:'store'},
+  {id:'tea',name:'ဒေါ်စန်းစန်းရဲ့ လက်ဖက်ရည်ဆိုင်',x:38,y:6,w:5,h:4,style:'teashop',shop:'tea'},
+  {id:'smith',name:'ကိုထွန်းရဲ့ ပန်းပဲဖို',x:52,y:6,w:4,h:4,style:'smith',shop:'smith'},
+  {id:'h3',name:'ကိုအောင်နဲ့ ဖိုးလေးတို့ အိမ်',x:31,y:12,w:4,h:3,style:'bamboo'},
+  {id:'h9',name:'ဦးကျော်နဲ့ ကိုမင်းတို့ အိမ်',x:37,y:12,w:4,h:3,style:'thatch'},
+  {id:'h10',name:'မနှင်းနဲ့ ကိုစိုးတို့ အိမ်',x:47,y:12,w:4,h:3,style:'zinc'},
+  {id:'h11',name:'ဦးသန်းတို့ အိမ်',x:53,y:12,w:4,h:3,style:'thatch'},
+  {id:'school',name:'ရွာ မူလတန်းကျောင်း',x:33,y:23,w:6,h:4,style:'school'},
+  {id:'mon',name:'ဘုန်းကြီးကျောင်း',x:49,y:22,w:7,h:5,style:'monastery'},
+  {id:'stupa',name:'ရွှေစေတီ',x:56,y:23,w:2,h:3,style:'stupa'},
+  {id:'well',name:'ရွာ့ရေတွင်း',x:42,y:16,w:1,h:1,style:'well'},
+];
+const bAt=(x,y)=>BUILDINGS.find(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
+function buildVillage(t){
+  const r=mulberry32(4242);
+  for(let x=20;x<MW-1;x++)t[20][x]=PATH;
+  for(let y=3;y<=30;y++)t[y][44]=PATH;
+  for(let x=30;x<MW-1;x++)t[10][x]=PATH;
+  for(let x=34;x<=54;x++)t[27][x]=PATH;
+  for(let y=21;y<=29;y++)t[y][20]=PATH;
+  for(let x=1;x<MW-1;x++){t[30][x]=SAND;t[31][x]=WATER;t[32][x]=WATER;t[33][x]=WATER;t[34][x]=SAND}
+  t[31][20]=JETTY;t[32][20]=JETTY;
+  for(let y=31;y<=33;y++)t[y][44]=BRIDGE;t[30][44]=PATH;t[34][44]=PATH;
+  BUILDINGS.forEach(b=>{for(let y=b.y;y<b.y+b.h;y++)for(let x=b.x;x<b.x+b.w;x++)t[y][x]=BLD});
+  [[30,3],[36,3],[42,3],[51,8],[57,8],[30,8],[35,17],[45,13],[52,17],[57,17],[42,13],[41,18],[50,18],[3,23],[8,28],[26,23],[16,29],[27,28],[31,29],[40,23],[46,23],[47,29],[57,28],[8,34],[15,34],[30,34],[37,34],[52,34],[56,4]].forEach(([x,y])=>{if(t[y][x]===G)t[y][x]=TREE});
+  for(let i=0;i<120;i++){const x=1+Math.floor(r()*(MW-2)),y=1+Math.floor(r()*(MH-2));if(t[y][x]===G&&(x>=30||y>=22))t[y][x]=FLOWER}
+}
+
 function fresh(){
-  const seeds={},produce={};CROP_IDS.forEach(id=>{seeds[id]=0;produce[id]=0});seeds.kangkong=9;produce.egg=0;produce.fish=0;
+  const seeds={},produce={};CROP_IDS.forEach(id=>{seeds[id]=0;produce[id]=0});seeds.kangkong=9;for(const id in EXTRA)produce[id]=0;
   return{day:1,min:360,money:500,energy:100,maxE:100,water:30,canMax:30,weather:'sun',tomorrow:Math.random()<SEASONS[0].rain?'rain':'sun',
     tiles:genMap((Math.random()*1e9)|0),wet:Array.from({length:MH},()=>Array(MW).fill(0)),crops:{},
     seeds,seedSel:'kangkong',produce,shippedValue:0,shippedCount:0,
     feed:0,trough:0,chickens:[],eggs:[],tea:1,px:5,py:6,dir:'down',tool:0,scene:'farm',
-    friends:{},talked:{},gifts:{},daily:{},
+    friends:{},has:{},up:{},talked:{},gifts:{},daily:{},
     stats:{earned:0,harvested:0,eggs:0},over:false};
 }
 function migrate(s){
   CROP_IDS.forEach(id=>{s.seeds[id]??=0;s.produce[id]??=0});
-  s.produce.egg??=0;s.produce.fish??=0;s.scene??='farm';s.friends??={};s.talked??={};s.gifts??={};s.daily??={};
-  for(let x=20;x<=29;x++)if(s.tiles[20][x]===TREE||s.tiles[20][x]===G)s.tiles[20][x]=PATH;
+  for(const id in EXTRA)s.produce[id]??=0;s.has??={};s.up??={};s.scene??='farm';s.friends??={};s.talked??={};s.gifts??={};s.daily??={};
+  if(s.tiles.length<MH||s.tiles[0].length<MW){const nt=genMap(1),nw=Array.from({length:MH},()=>Array(MW).fill(0));for(let y=0;y<22;y++)for(let x=0;x<30;x++){nt[y][x]=s.tiles[y][x];nw[y][x]=s.wet[y]?s.wet[y][x]:0}s.tiles=nt;s.wet=nw}
+  s.tiles[20][29]=PATH;s.tiles[21][20]=PATH;
   if(!CROPS[s.seedSel]||CROPS[s.seedSel].s!==seasonOf(s.day))s.seedSel=seasonCrops(seasonOf(s.day))[0];
   return s;
 }
@@ -204,38 +241,76 @@ function clearSave(){try{localStorage.removeItem(KEY)}catch(e){}}
 function syncChickens(){dirty=true;chickRT=S.chickens.map(c=>({x:c.x,y:c.y,tx:c.x,ty:c.y,wait:Math.random()*2,face:1}));resetNPCs()}
 
 /* ---------- villagers ---------- */
+const sh=(hex,f)=>{const n=parseInt(hex.slice(1),16),c=v=>Math.max(0,Math.min(255,Math.round(v*f)));return '#'+((1<<24)|(c(n>>16)<<16)|(c(n>>8&255)<<8)|c(n&255)).toString(16).slice(1)};
+const mkPal=(s,k,w,l,p,h)=>({o:'#2a1a12',s,S:sh(s,.8),k,e:'#1b120c',w,W:sh(w,.8),l,L:sh(l,.72),p,f:'#7a4a28',h:h||'#e2c27a',H:sh(h||'#e2c27a',.8),j:sh(h||'#e2c27a',1.15),r:'#e2504a',t:'#f2dc9e'});
+const HOMES={h1:[33,5],h2:[39,5],h3:[33,15],h4:[48,7],store:[34,10],tea:[40,10],smith:[54,10],h8:[54,5],h9:[39,15],h10:[49,15],h11:[55,15],mon:[52,27]};
+const SEASON_TALK=[
+  ['ဒီနှစ် နွေက တော်တော်ပူတယ်နော်။','သင်္ကြန် နီးလာပြီ။ ရေပက်ဖို့ အဆင်သင့်ပဲလား?','ပိတောက်ပန်းတွေ ပွင့်နေတာ လှလိုက်တာ။'],
+  ['မိုးရွာတော့ လယ်ကွင်းတွေ စိမ်းလာပြီ။','ထီးမမေ့နဲ့နော်။','မြစ်ရေ တက်လာပြီ။ ငါးတွေ များလာတယ်။'],
+  ['မနက်ဆို အေးတယ်။ မီးလှုံရတာ ကောင်းတယ်။','ဆောင်းတွင်း ကောင်းကင်ကြည်တော့ စွန်လွှတ်လို့ ကောင်းတယ်။','ထမနဲပွဲ လုပ်ကြမယ်နော်။'],
+];
 const NPCS=[
-  {id:'ba',name:'ဦးဘ',role:'အိမ်နီးချင်း ခြံသမားအို',rainSkip:true,plan:[[480,[12,8],120,'down'],[0,[9,7],40,'up']],
+  {id:'ba',name:'ဦးဘ',role:'အိမ်နီးချင်း ခြံသမားအို',home:'h1',head:'BALD',pal:mkPal('#c98e5c','#cfcac2','#f2efe6','#7a5a3a','#a8835a'),rainSkip:true,plan:[[480,[12,8],120,'down'],[0,[9,7],40,'up']],
     gift:()=>{const id=seasonCrops(curS())[1];S.seeds[id]+=9;return `${CROPS[id].name} မျိုးစေ့ 9 စေ့ ပေးလိုက်တယ်`},
     lines:['ပေါင်းပင်တွေကို အမြဲရှင်းထားပါကွယ်။ ညတိုင်း နည်းနည်းစီ ပြန်ပေါက်တတ်တယ်။','ရေမလောင်းရတဲ့ နေ့က အပင်တွေ မကြီးဘူးနော်။','မင်းအဘိုးလည်း ဒီမြေမှာ တစ်သက်လုံး စိုက်ခဲ့တာ။ မင်းကို မြင်ရတာ ဝမ်းသာတယ်။'],
     season:['နွေရာသီ ပူတယ်။ ကန်စွန်းက မြန်မြန်ထွက်တယ်၊ ဖရဲသီးက ဈေးကောင်းတယ်။','မိုးရာသီဆို စပါးစိုက်ရမယ်ကွယ်။ မိုးရွာတဲ့နေ့ ရေလောင်းစရာ မလိုဘူး။','ဆောင်းမှာ ဂေါ်ဖီထုပ်နဲ့ အာလူး ကောင်းတယ်။ မနက်ခင်း မြူဆိုင်းနေတာ လှတယ်နော်။']},
-  {id:'mya',name:'မမြ',role:'ရွာက ပန်းသည်',rainSkip:false,plan:[[600,[25,20],60,'up'],[0,[20,13],40,'right'],[0,[6,7],30,'up']],
+  {id:'aye',name:'ဒေါ်အေး',role:'ဦးဘရဲ့ ဇနီး၊ ယက်ကန်းသည်',home:'h1',head:'BUN',thanaka:true,pal:mkPal('#c99568','#9a948c','#f4efe2','#6a3a5a','#c8a050'),plan:[[600,[31,6],300,'down']],
+    lines:['ငယ်ငယ်တုန်းက ဒီရွာမှာ ပိတောက်ပင်တွေ အများကြီးပဲ။','မင်းအဘိုးနဲ့ ငါတို့ အတူ ကြီးပြင်းခဲ့တာ။','ယက်ကန်းရက်နေတယ်။ အကြာကြီး ထိုင်ရတော့ ခါးနာတယ်။']},
+  {id:'mya',name:'မမြ',role:'ရွာက ပန်းသည်',home:'h2',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#fbe7c6','#2f7a5a','#e2b84a'),plan:[[600,[25,20],60,'up'],[0,[20,13],40,'right'],[0,[6,7],30,'up']],
     gift:()=>{S.tea+=3;return 'လက်ဖက်ရည် 3 ခွက် ပေးလိုက်တယ်'},
     lines:['ဒီနေ့ ဈေးထဲမှာ ကြက်ဥ ဈေးကောင်းတယ်တဲ့။','သနပ်ခါး လိမ်းထားတော့ နေပူလည်း အေးတယ်။','ရွာကို ကယ်ဖို့ ငါတို့လည်း ဆုတောင်းပေးနေတယ်နော်။'],
     season:['သင်္ကြန်ရောက်ရင် ရေပက်ကြမယ်နော်။ ပိတောက်ပန်းတွေ ပွင့်နေပြီ။','မိုးတွင်းဆို လမ်းတွေ ရွှံ့ထူတယ်။ ချော်မလဲနဲ့နော်။','ဆောင်းတွင်း မနက်ဆို အေးတယ်။ လက်ဖက်ရည် ပူပူလေး သောက်ရတာ ကောင်းတယ်။']},
-  {id:'aung',name:'ကိုအောင်',role:'ငါးမျှားဝါသနာရှင်',rainSkip:true,fish:true,plan:[[840,[25,6],150,'up']],
+  {id:'aung',name:'ကိုအောင်',role:'ငါးမျှားဝါသနာရှင်',home:'h3',head:'SHORT',pal:mkPal('#d39a68','#1e130b','#5a8ad6','#3a3a5a','#8a7ab8'),rainSkip:true,plan:[[840,[25,6],150,'up','fish']],
     gift:()=>{S.produce.fish+=2;return 'ငါး 2 ကောင် ပေးလိုက်တယ်။ ပို့ကုန်ပုံးထဲ ထည့်ရောင်းလို့ရတယ်'},
     lines:['ဒီကန်ထဲမှာ ငါးကြီးတွေ ရှိတယ်ဗျ။','ခြံလုပ်တာ ပင်ပန်းမှာပဲ။ အားမရှိရင် လက်ဖက်ရည် သောက်ဗျာ။','ကုမ္ပဏီက လူတွေ ရွာထဲ လာကြည့်သွားတယ်။ မြန်မြန် လုပ်မှ ဖြစ်မယ်။'],
     season:['နွေရာသီ ကန်ရေ နည်းလာတယ်။ ငါးတွေ အောက်ခြေမှာ ပုန်းနေကြတယ်။','မိုးရွာရင် ငါးမျှားလို့ မကောင်းဘူး။ ဒီနေ့တော့ ကံကောင်းတယ်။','ဆောင်းမှာ ကန်ရေ ကြည်တယ်။ ငါးတွေကို မြင်ရတယ်ဗျ။']},
+  {id:'pho',name:'ဖိုးလေး',role:'ကိုအောင်ရဲ့ ညီလေး',home:'h3',head:'SHORT',kid:true,pal:mkPal('#d8a070','#1e130b','#f2efe6','#3f6a3a','#7aa86a'),rainSkip:true,plan:[[700,[22,30],180,'down','fish']],
+    lines:['ငါးစာက တီကောင်ပဲ ကောင်းတယ်။','ငါးဖမ်းရင် ချက်ချင်း မဆွဲနဲ့။ ဖော့ငုပ်မှ ဆွဲ။','အစ်ကို ကိုအောင်က ငါ့ထက် ငါးများများ ရတယ်။']},
+  {id:'hla',name:'ဦးလှမောင်',role:'ရွာသူကြီး',home:'h4',head:'WRAP',pal:mkPal('#c98e5c','#8a8a8a','#f4f0e6','#4a3a6a','#8a7ab0','#f4efe2'),plan:[[450,[52,28],60,'up'],[0,[45,11],120,'left'],[0,[41,11],90,'up']],
+    lines:['ကုမ္ပဏီက စာလာပို့သွားတယ်။ ရက် 30 ပြည့်ရင် ဆုံးဖြတ်ရမယ်တဲ့။','ရွာကို ချစ်တဲ့ လူငယ်တွေ ရှိနေတာ ဝမ်းသာတယ်။','ရွာ့အသင်းကလည်း တတ်နိုင်သလောက် ငွေစုနေတယ်။']},
+  {id:'san',name:'ဒေါ်စန်းစန်း',role:'လက်ဖက်ရည်ဆိုင်ရှင်',home:'tea',head:'BUN',shop:'tea',late:1200,pal:mkPal('#d49c6c','#1e130b','#f2c4c4','#7a2a3a','#d8a040'),plan:[[390,[40,10],800,'down']],
+    lines:['လက်ဖက်ရည် ပေါ့ဆိမ့် သောက်မလား?','မုန့်ဟင်းခါး မနက်တိုင်း အသစ်ချက်တယ်။','ဆိုင်မှာ ရွာထဲ သတင်းအကုန် ကြားရတယ်။']},
+  {id:'zaw',name:'ကိုဇော်',role:'ကုန်စုံဆိုင်ရှင်',home:'store',head:'SHORT',shop:'store',pal:mkPal('#c99062','#1e130b','#8ab04a','#5a4a3a','#a8906a'),plan:[[470,[34,10],600,'down']],
+    lines:['ငါးမျှားတံ ရှိတယ်။ မြစ်ထဲမှာ ငါးရံကြီးတွေ ရှိတယ်တဲ့။','စွန်လည်း ရောင်းတယ်။ တောင်ဘက်ကွင်းမှာ လွှတ်လို့ကောင်းတယ်။','မြို့ကနေ ကုန်ပစ္စည်း အသစ်တွေ ရောက်ထားတယ်။']},
+  {id:'tun',name:'ကိုထွန်း',role:'ပန်းပဲဆရာ',home:'smith',head:'WRAP',shop:'smith',pal:mkPal('#b07a50','#1e130b','#6a6a6a','#3a3a3a','#8a6a4a','#c8433a'),late:1020,plan:[[470,[54,10],550,'down']],
+    lines:['ပေါက်ပြား ပိုကောင်းချင်ရင် လာခဲ့။ ပိုပေါ့အောင် ထုပေးမယ်။','သံကို ပူတုန်းထုရတယ်။','တူကောင်းရင် ကျောက်တုံးကို တစ်ချက်တည်းနဲ့ ခွဲနိုင်တယ်။']},
+  {id:'monk',name:'ဦးဇင်း ဦးပညာ',role:'ဘုန်းကြီးကျောင်း',home:'mon',head:'MONK',pal:{...mkPal('#c98e5c','#c98e5c','#9a3a20','#9a3a20','#8a3018'),k:'#c98e5c'},plan:[[380,[44,20],15,'down'],[0,[36,20],15,'down'],[0,[44,11],15,'down']],
+    lines:['ကျန်းမာချမ်းသာကြပါစေ။','စိတ်ကို အေးအေးထားပြီး ကြိုးစားပါ။','ရွာသူရွာသားတွေ ညီညွတ်ရင် အခက်အခဲ ကျော်လွှားနိုင်တယ်။']},
+  {id:'oo',name:'မဥမ္မာ',role:'ကျောင်းဆရာမ',home:'h8',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),plan:[[500,[37,28],420,'up']],
+    lines:['ကလေးတွေ စာကြိုးစားကြတယ်။','ကျောင်းဆောင်လေးကို ရွာက စုပြီး ဆောက်ပေးခဲ့တာ။','စက်ရုံဆောက်ရင် ကျောင်းလည်း ရွှေ့ရမှာတဲ့။']},
+  {id:'thida',name:'မသီတာ',role:'ဆရာမရဲ့ သမီးလေး',home:'h8',head:'BUN',kid:true,thanaka:true,pal:mkPal('#e0a676','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),rainSkip:true,plan:[[510,[35,28],380,'up'],[0,[10,25],100,'up','kite']],
+    lines:['စွန်လွှတ်တတ်လား? ငါ့စွန်က လိပ်ပြာပုံလေး။','ဒီနေ့ ဆရာမ ဂဏန်းတွက်ခိုင်းတယ်။','ကြက်ကလေးတွေ ချစ်စရာကောင်းတယ်နော်။']},
+  {id:'mgmg',name:'မောင်မောင်',role:'ကျောင်းသားလေး',home:'h11',head:'SHORT',kid:true,pal:mkPal('#d8a070','#1e130b','#ffffff','#2a5a3a','#3a7a4a'),rainSkip:true,plan:[[520,[38,28],370,'up'],[0,[14,26],110,'up','kite']],
+    lines:['ငါ့စွန်က ရွာမှာ အမြင့်ဆုံး ပျံတာ!','မြစ်ထဲ ရေမကူးရဘူးလို့ အမေက ပြောတယ်။','ကျောင်းဆင်းရင် ကွင်းထဲ ပြေးမယ်။']},
+  {id:'kyaw',name:'ဦးကျော်',role:'ငါးဖမ်းသမား',home:'h9',head:'HAT',pal:mkPal('#b07a50','#3a2a1a','#c8b890','#5a4a2a','#8a7a4a'),plan:[[420,[20,32],300,'down','fish'],[0,[39,11],90,'up']],
+    lines:['မိုးတွင်းဆို ပုစွန်ထုပ်တွေ မြစ်ထဲ ပိုများတယ်။','ငါးမျှားရင် ဖော့ငုပ်သွားမှ ချက်ချင်းဆွဲ။','ဒီမြစ်က ရွာကို အမြဲ ကျွေးမွေးခဲ့တာ။']},
+  {id:'min',name:'ကိုမင်း',role:'လယ်သမား လူငယ်',home:'h9',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#e8e0c8','#2a4a6a','#5a8ab0'),plan:[[470,[8,24],240,'right'],[0,[43,19],60,'left']],
+    lines:['စပါးစိုက်ရင် ရေဝဝ ရှိရမယ်။','မြို့တက်ပြီး အလုပ်လုပ်ဖို့ စဉ်းစားနေတာ။ ဒါပေမဲ့ ရွာကို ချစ်တယ်။','ပေါင်းပင်တွေ ရှင်းရတာ ပင်ပန်းတယ်ဗျာ။']},
+  {id:'hnin',name:'မနှင်း',role:'အပ်ချုပ်သမ',home:'h10',head:'BUN',thanaka:true,pal:mkPal('#dca274','#1e130b','#b8d8f0','#8a2a5a','#e2b84a'),plan:[[540,[25,22],40,'up'],[0,[47,19],180,'up'],[0,[45,9],60,'left']],
+    lines:['ထဘီ အသစ် ချုပ်နေတယ်။ ပွဲတော်အတွက်လေ။','မင်းလုံချည်လေး လှတယ်နော်။','အပ်ချုပ်စက်သံက ညတိုင်း ကြားရတယ်တဲ့။']},
+  {id:'soe',name:'ကိုစိုး',role:'စာပို့သမား',home:'h10',head:'HAT',pal:mkPal('#c98e5c','#1e130b','#3a6a9a','#3a3a3a','#6a6a8a','#3a5a8a'),plan:[[500,[32,5],5,'up'],[0,[53,5],5,'up'],[0,[47,7],5,'up'],[0,[6,7],10,'up'],[0,[50,15],5,'up']],
+    lines:['စာတွေ ပို့နေတယ်။ မြို့က စာ အများကြီးပဲ။','ရွာတစ်ပတ် နေ့တိုင်း လမ်းလျှောက်တော့ ခြေထောက်သန်တယ်။','ကုမ္ပဏီ စာအိတ်ကို သူကြီးအိမ် ပို့ခဲ့ရတယ်။']},
+  {id:'than',name:'ဦးသန်း',role:'ဆိုက်ကားသမား',home:'h11',head:'HAT',pal:mkPal('#b07a50','#4a4a4a','#e8d8b0','#4a5a3a','#7a8a5a'),plan:[[480,[30,20],20,'left'],[0,[44,4],20,'up'],[0,[57,20],20,'right'],[0,[44,29],20,'down'],[0,[31,20],20,'left']],
+    lines:['ဆိုက်ကား စီးမလား? ရွာထဲ အနီးလေးပဲ။','ဒီလမ်းတွေ ငါ့ထက် ဘယ်သူမှ ပိုမသိဘူး။','မိုးရွာရင် ဆိုက်ကားနင်းရတာ ခက်တယ်။']},
+  {id:'khine',name:'မခိုင်',role:'သူနာပြု',home:'h11',head:'BUN',pal:mkPal('#dca274','#1e130b','#ffffff','#2a4a8a','#6a8ad0'),plan:[[560,[50,11],240,'down'],[0,[35,11],30,'up']],
+    lines:['နေပူထဲ အကြာကြီး အလုပ်မလုပ်နဲ့။ ရေများများသောက်။','အိပ်ရေးဝမှ အားအင် ပြည့်မယ်။','ကျန်းမာရေး ဆေးပေးခန်းမှာ ဆေး လာယူလို့ရတယ်။']},
 ];
-const NPC_PAL={
-  ba:{o:'#2a1a12',k:'#cfcac2',s:'#c98e5c',S:'#a06a40',e:'#1b120c',w:'#f2efe6',W:'#c9c2b2',l:'#7a5a3a',L:'#5a3f25',p:'#a8835a',f:'#5a3a20'},
-  mya:{o:'#2a1a12',k:'#1e130b',r:'#e2504a',s:'#dca274',S:'#b07a50',t:'#f2dc9e',e:'#1b120c',w:'#fbe7c6',W:'#d9c39e',l:'#2f7a5a',L:'#1f5a40',p:'#e2b84a',f:'#7a4a28'},
-  aung:{o:'#2a1a12',k:'#1e130b',s:'#d39a68',S:'#a8714a',e:'#1b120c',w:'#5a8ad6',W:'#3f68a8',l:'#3a3a5a',L:'#26263e',p:'#8a7ab8',f:'#7a4a28'},
-};
-function resetNPCs(){npcRT=NPCS.map(()=>({active:false,done:false,x:GATE[0],y:GATE[1],fx:GATE[0],fy:GATE[1],t:1,path:[],leg:0,wait:0,leaving:false,dir:'left',steps:0}))}
+function resetNPCs(){npcRT=NPCS.map(d=>{const h=HOMES[d.home];return{active:false,done:false,x:h[0],y:h[1],fx:h[0],fy:h[1],t:1,path:[],leg:0,wait:0,leaving:false,dir:'down',steps:0,act:null}})}
 function bfs(sx,sy,tx,ty){
-  const ok=(x,y)=>{const t=tileAt(x,y);return t===PATH||t===G||t===FLOWER},key=(x,y)=>y*MW+x,prev=new Map(),q=[[sx,sy]];prev.set(key(sx,sy),-1);
-  while(q.length){const [x,y]=q.shift();
+  const ok=(x,y)=>{const t=tileAt(x,y);return t===PATH||t===G||t===FLOWER||t===SAND||t===BRIDGE||t===JETTY},key=(x,y)=>y*MW+x,prev=new Map(),q=[[sx,sy]];prev.set(key(sx,sy),-1);
+  let qi=0;
+  while(qi<q.length){const [x,y]=q[qi++];
     if(x===tx&&y===ty){const p=[];let k=key(x,y);while(k!==key(sx,sy)){p.unshift([k%MW,(k/MW)|0]);k=prev.get(k)}return p}
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=key(nx,ny);if(nx<0||ny<0||nx>=MW||ny>=MH||prev.has(k)||!ok(nx,ny))continue;prev.set(k,key(x,y));q.push([nx,ny])}}
   return [];
 }
 const dirOf=(dx,dy)=>dx>0?'right':dx<0?'left':dy>0?'down':'up';
 function updateNPCs(dt){
-  NPCS.forEach((d,i)=>{const n=npcRT[i];if(!n||n.done)return;
+  NPCS.forEach((d,i)=>{const n=npcRT[i];if(!n||n.done)return;const home=HOMES[d.home],late=d.late||1080;
     if(!n.active){
-      if(S.min>=d.plan[0][0]&&S.min<1020&&!(d.rainSkip&&S.weather==='rain')){Object.assign(n,{active:true,x:GATE[0],y:GATE[1],fx:GATE[0],fy:GATE[1],t:1,leg:0,wait:0,leaving:false});n.path=bfs(n.x,n.y,...d.plan[0][1])}
+      if(S.min>=d.plan[0][0]&&S.min<Math.min(1020,late-60)&&!(d.rainSkip&&S.weather==='rain')){
+        if(S.scene==='farm'&&S.px===home[0]&&S.py===home[1])return;
+        Object.assign(n,{active:true,x:home[0],y:home[1],fx:home[0],fy:home[1],t:1,leg:0,wait:0,leaving:false,act:null});n.path=bfs(n.x,n.y,...d.plan[0][1])}
       return;
     }
     if(n.t<1){n.t=Math.min(1,n.t+dt/230);return}
@@ -244,10 +319,10 @@ function updateNPCs(dt){
       n.path.shift();n.fx=n.x;n.fy=n.y;n.dir=dirOf(nx-n.x,ny-n.y);n.x=nx;n.y=ny;n.t=0;n.steps++;return}
     if(n.leaving){n.active=false;n.done=true;return}
     const leg=d.plan[n.leg];
-    if(!n.wait){n.wait=S.min+leg[2];n.dir=leg[3]}
-    if(S.min>=n.wait||S.min>=1080){n.wait=0;n.leg++;
-      if(n.leg<d.plan.length&&S.min<1080){const tg=d.plan[n.leg][1];n.path=bfs(n.x,n.y,tg[0],tg[1])}
-      else{n.leaving=true;n.path=bfs(n.x,n.y,GATE[0],GATE[1])}}
+    if(!n.wait){n.wait=S.min+leg[2];n.dir=leg[3];n.act=leg[4]||null}
+    if(S.min>=n.wait||S.min>=late){n.wait=0;n.act=null;n.leg++;
+      if(n.leg<d.plan.length&&S.min<late){const tg=d.plan[n.leg][1];n.path=bfs(n.x,n.y,tg[0],tg[1])}
+      else{n.leaving=true;n.path=bfs(n.x,n.y,home[0],home[1])}}
   });
 }
 function talk(i){
@@ -255,16 +330,17 @@ function talk(i){
   let gift='';
   if(!S.talked[d.id]){S.talked[d.id]=1;S.friends[d.id]=Math.min(10,(S.friends[d.id]||0)+1)}
   const f=S.friends[d.id]||0;
-  if(f>=3&&!S.gifts[d.id]){S.gifts[d.id]=1;gift=d.gift()}
-  const h=hash(S.day*7+i,S.min>>6);
-  let line=h%3===0?d.season[curS()]:d.lines[h%d.lines.length];
+  if(f>=3&&d.gift&&!S.gifts[d.id]){S.gifts[d.id]=1;gift=d.gift()}
+  const h=hash(S.day*7+i,S.min>>6),seasonLines=d.season?[d.season[curS()]]:SEASON_TALK[curS()];
+  let line=h%3===0?seasonLines[h%seasonLines.length]:d.lines[h%d.lines.length];
   if(S.day>=25&&S.money<GOAL&&h%2)line='ရက်နည်းနည်းပဲ ကျန်တော့တယ်။ အားတင်းထားနော်။ ငါတို့ ရွာလေး မပျောက်ပါစေနဲ့။';
   if(S.money>=GOAL*.7&&h%4===1)line=`ငွေ ${fmt(S.money)} ကျပ် ရှိပြီဆို ရွာကို ကယ်နိုင်တော့မှာပဲ!`;
   show(`<div class="who"><h2>${d.name}</h2><span class="hearts" aria-label="ခင်မင်မှု ${f}/10">${'♥'.repeat(f)}${'♡'.repeat(10-f)}</span></div>
     <p class="sub">${d.role}</p><p>“${line}”</p>${gift?`<p><b>${d.name}က ${gift}။</b></p>`:''}
-    <div class="btns"><button class="bt pri" type="button" id="mC">နှုတ်ဆက်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
+    <div class="btns"><button class="bt pri" type="button" id="mC">နှုတ်ဆက်မယ်</button>${d.shop?`<button class="bt" type="button" id="mShop">ဈေးဝယ်မယ်</button>`:''}</div>`,c=>{c.querySelector('#mC').onclick=close;const sb=c.querySelector('#mShop');if(sb)sb.onclick=()=>openShop(d.shop)});
   belt();
 }
+const friendsCount=()=>NPCS.filter(d=>(S.friends[d.id]||0)>=3).length;
 
 /* ---------- toast & effects ---------- */
 let toastT=0;const toastEl=document.getElementById('toast');
@@ -291,6 +367,7 @@ function spend(n){if(S.energy<n){toast('အားအင်ကုန်နေပ�
 function useTool(){
   if(paused||mv)return;
   dirty=true;
+  if(fishRT){if(fishRT.phase==='bite')catchFish();else{toast('စောလွန်းတယ်။ ငါးလန့်ပြေးသွားပြီ');fishRT=null}return}
   const tool=TOOLS[S.tool].id;
   if(tool==='tea'){
     if(S.tea<=0)toast('လက်ဖက်ရည် မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
@@ -300,16 +377,29 @@ function useTool(){
   }
   if(S.scene==='house')return toast('အိမ်ထဲမှာ ဒီကိရိယာ မသုံးနိုင်ဘူး');
   const [fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
+  if(tool==='rod'){
+    if(!S.has.rod)return toast('ငါးမျှားတံ မရှိသေးဘူး။ ရွာထဲက ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ ဝယ်ပါ');
+    if(t!==WATER)return toast('ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး ငါးမျှားပါ');
+    if(!spend(2))return;
+    fishRT={phase:'wait',t:1500+Math.random()*3500,x:fx,y:fy,river:fy>=30};return toast('ငါးမျှားချိတ် ချလိုက်ပြီ။ ဖော့ငုပ်ပြီး ! ပေါ်ရင် A ချက်ချင်းနှိပ်ပါ');
+  }
+  if(tool==='kite'){
+    if(!S.has.kite)return toast('စွန် မရှိသေးဘူး။ ရွာထဲက ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ ဝယ်ပါ');
+    if(kiteRT){kiteRT=null;return toast('စွန်ကို ပြန်ရစ်လိုက်တယ်')}
+    if(S.weather==='rain')return toast('မိုးရွာနေလို့ စွန် မလွှတ်နိုင်ဘူး');
+    if(!inMeadow(S.px,S.py))return toast('ရွာတောင်ဘက်က ကွင်းပြင်ကျယ်ကြီးမှာ လွှတ်ပါ');
+    kiteRT={h:0,min:0};return toast('စွန် လွှတ်လိုက်ပြီ! ကွင်းထဲ လမ်းလျှောက်လို့ရတယ်။ A ထပ်နှိပ်ရင် ပြန်ရစ်မယ်');
+  }
   anim={t:220,tool};
   if(tool==='hoe'){
     if(t===G||t===FLOWER){
       if(!inField(fx,fy)){toast('ခြံမြေကွက်ထဲမှာပဲ ထွန်လို့ရတယ်');return}
-      if(!spend(2))return;S.tiles[fy][fx]=SOIL;S.wet[fy][fx]=S.weather==='rain'?1:0;burst(fx,fy,'#7a4f2a');
+      if(!spend(S.up.hoe?1:2))return;S.tiles[fy][fx]=SOIL;S.wet[fy][fx]=S.weather==='rain'?1:0;burst(fx,fy,'#7a4f2a');
     }else if(t===WEED)toast('ပေါင်းပင်ကို တံစဉ်နဲ့ အရင်ရှင်းပါ');
     else if(t===ROCK)toast('ကျောက်တုံးကို တူနဲ့ ခွဲပါ');
     else if(t===SOIL)toast(crop?'ဒီမှာ စိုက်ထားပြီးသား':'ထွန်ပြီးသားပါ။ မျိုးစေ့ချလို့ရပြီ');
   }else if(tool==='can'){
-    if(t===WATER){S.water=S.canMax;toast(`ရေဖြည့်ပြီးပြီ (${S.water}/${S.canMax})`);burst(fx,fy,'#9fd0ff',8)}
+    if(t===WATER||(t===BLD&&bAt(fx,fy)?.style==='well')){S.water=S.canMax;toast(`ရေဖြည့်ပြီးပြီ (${S.water}/${S.canMax})`);burst(fx,fy,'#9fd0ff',8)}
     else if(t===SOIL){
       if(S.wet[fy][fx]){toast('ရေလောင်းပြီးသားပါ');return}
       if(S.water<=0){toast('ရေကုန်ပြီ။ ရေကန်ကို မျက်နှာမူပြီး A နှိပ်ပါ');return}
@@ -320,7 +410,7 @@ function useTool(){
     else if(crop&&crop.dead){delete S.crops[k];burst(fx,fy,'#8a6a3a',8)}
     else toast('ပေါင်းပင်နဲ့ ညှိုးနေတဲ့ အပင်ကို ရှင်းဖို့ သုံးပါ');
   }else if(tool==='hammer'){
-    if(t===ROCK){if(!spend(3))return;S.tiles[fy][fx]=G;burst(fx,fy,'#9a9ca0',10)}
+    if(t===ROCK){if(!spend(S.up.hammer?1:3))return;S.tiles[fy][fx]=G;burst(fx,fy,'#9a9ca0',10)}
     else toast('ကျောက်တုံးကို ခွဲဖို့ သုံးပါ');
   }else if(tool==='seed'){
     anim=null;const sp=S.seedSel,d=CROPS[sp];
@@ -340,8 +430,15 @@ function act(){
   const t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
   const ni=npcRT.findIndex(n=>n.active&&n.x===fx&&n.y===fy);
   if(ni>=0)return talk(ni);
+  if(t===BLD){const b=bAt(fx,fy);if(!b)return;
+    if(b.shop)return openShop(b.shop);
+    if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;S.energy=Math.min(S.maxE,S.energy+15);return toast(`${b.name}မှာ ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +15)`)}
+    if(b.style==='well'){S.water=S.canMax;return toast('ရေတွင်းကနေ ရေပုံး ဖြည့်လိုက်တယ်')}
+    if(b.style==='school')return toast('ရွာ မူလတန်းကျောင်း။ ကလေးတွေ စာအော်ကျက်သံ ကြားနေရတယ်');
+    const who=NPCS.filter(d=>d.home===b.id).map(d=>d.name).join('၊ ');
+    return toast(`${b.name}${who?' · '+who:''}`)}
   const egg=S.eggs.findIndex(e=>e.x===fx&&e.y===fy);
-  if(t===STALL)return openShop();
+  if(t===STALL)return openShop('stall');
   if(t===BIN)return ship();
   if(t===HOUSE){if(fx===DOOR[0]&&fy===DOOR[1])return enterHouse();return toast('အိမ်တံခါးက အလယ်မှာပါ')}
   if(t===TROUGH)return feedChickens();
@@ -405,7 +502,7 @@ function endDay(passedOut){
   S.weather=S.tomorrow;S.tomorrow=Math.random()<SEASONS[seasonOf(Math.min(DAYS,S.day+1))].rain?'rain':'sun';
   if(S.weather==='rain')for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(S.tiles[y][x]===SOIL)S.wet[y][x]=1;
   S.min=360;S.energy=passedOut?60:S.maxE;S.scene='house';S.px=5;S.py=3;S.dir='down';mv=null;
-  S.talked={};S.daily={};
+  S.talked={};S.daily={};fishRT=null;kiteRT=null;
   syncChickens();dirty=true;save();
   morning(income,count,laid,passedOut,ns!==oldS,withered);
 }
@@ -422,7 +519,7 @@ function intro(){
   show(`<h2 class="big">ရွှေပန်းရွာ ခြံလေး</h2>
   <p>အဘိုး ထားခဲ့တဲ့ ခြံလေးကို ပြန်ရောက်လာပြီ။ ဒါပေမဲ့ မြို့က ကုမ္ပဏီကြီးတစ်ခုက ရွာမြေတွေကို ဝယ်ပြီး စက်ရုံဆောက်တော့မယ်တဲ့။</p>
   <p><b>ရက် 30 အတွင်း ကျပ် 10,000 စုနိုင်ရင်</b> ရွာသားတွေနဲ့ အတူ မြေကို ပြန်ဝယ်ပြီး ရွာကို ကယ်နိုင်မယ်။</p>
-  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ရွာသားတွေနဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
+  <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>အရှေ့ဘက်မှာ ရွာ၊ တောင်ဘက်မှာ စွန်လွှတ်ကွင်းနဲ့ မြစ် ရှိတယ်။ ရွာသား 20 ယောက်နဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
   <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button></div>`,c=>{
     const cont=c.querySelector('#mCont');
     if(cont)cont.onclick=()=>{S=sv;syncChickens();card.dataset.dismiss='';close()};
@@ -446,7 +543,7 @@ function askSleep(){
   const late=S.min<1020;
   show(`<h2>အိပ်မလား?</h2><p>ဒီနေ့ကို ပြီးဆုံးပြီး မနက်ဖြန် ${S.day+1>DAYS?'နောက်ဆုံးနေ့':'နေ့ '+(S.day+1)} ကို စမယ်။${late?' နေမဝင်သေးဘူး။':''}</p>
   ${S.shippedValue?`<p class="sub">ဒီနေ့ ပို့ထားတာ +${fmt(S.shippedValue)} ကျပ် ရမယ်။</p>`:''}
-  ${CROP_IDS.some(id=>S.produce[id])||S.produce.egg||S.produce.fish?'<p class="sub">အိတ်ထဲမှာ မပို့ရသေးတဲ့ ပစ္စည်း ရှိသေးတယ်။</p>':''}
+  ${CROP_IDS.some(id=>S.produce[id])||Object.keys(EXTRA).some(id=>S.produce[id])?'<p class="sub">အိတ်ထဲမှာ မပို့ရသေးတဲ့ ပစ္စည်း ရှိသေးတယ်။</p>':''}
   ${S.day%SLEN===0&&S.day<DAYS?`<p class="sub">မနက်ဖြန် ${SEASONS[seasonOf(S.day+1)].name}ရာသီ ပြောင်းမယ်။ ${SEASONS[curS()].name}ရာသီ အပင်တွေ ညှိုးသွားမယ်။</p>`:''}
   ${S.day>=DAYS?'<p><b>ဒါ နောက်ဆုံးည ဖြစ်တယ်။ အိပ်ပြီးရင် ရလဒ် ကြေညာမယ်။</b></p>':''}
   <div class="btns"><button class="bt pri" type="button" id="mY">အိပ်မယ်</button><button class="bt" type="button" id="mN">မအိပ်သေးဘူး</button></div>`,c=>{
@@ -461,7 +558,7 @@ function calendar(){
   <span>စုထားတဲ့ ငွေ</span><span>${fmt(S.money)} / ${fmt(GOAL)}</span>
   <span>ကျန်ရက်</span><span>${DAYS-S.day+1}</span></div>
   <p class="sub">${SEASONS[s].name}ရာသီ သီးနှံ: ${seasonCrops(s).map(id=>`${CROPS[id].name} (${CROPS[id].grow} ရက်၊ ${CROPS[id].sell} ကျပ်)`).join('၊ ')}</p>
-  <p class="sub">ခင်မင်မှု: ${NPCS.map(d=>`${d.name} ${S.friends[d.id]||0}/10`).join(' · ')}</p>
+  <p class="sub">ခင်မင်ပြီးသူ (♥3 နှင့်အထက်): ${friendsCount()} / ${NPCS.length} ယောက်</p>
   <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
 function ending(){
@@ -470,7 +567,7 @@ function ending(){
   show(`<h2 class="big">${win?'ရွာကို ကယ်နိုင်ခဲ့ပြီ!':'ငွေ မလုံလောက်ခဲ့ဘူး'}</h2>
   <p>${win?`စုထားတဲ့ ငွေ ${fmt(S.money)} ကျပ်နဲ့ ရွာမြေကို ပြန်ဝယ်နိုင်ခဲ့တယ်။ ဦးဘ၊ မမြ၊ ကိုအောင် နဲ့ ရွာသားတွေ အားလုံး ဝမ်းသာနေကြတယ်။ ရွှေပန်းရွာ ဆက်ရှင်သန်နေပြီ။`:`ကျပ် ${fmt(S.money)} ပဲ စုနိုင်ခဲ့တယ်။ ${fmt(GOAL-S.money)} ကျပ် လိုသေးတယ်။ ထပ်ကြိုးစားကြည့်ရအောင်။`}</p>
   <div class="kv"><span>ရိတ်သိမ်းခဲ့တဲ့ အသီးအနှံ</span><span>${S.stats.harvested}</span><span>ကောက်ခဲ့တဲ့ ကြက်ဥ</span><span>${S.stats.eggs}</span><span>ရောင်းရငွေ စုစုပေါင်း</span><span>${fmt(S.stats.earned)} ကျပ်</span>
-  ${NPCS.map(d=>`<span>${d.name} ခင်မင်မှု</span><span>${S.friends[d.id]||0}/10</span>`).join('')}</div>
+  <span>ခင်မင်ခဲ့တဲ့ ရွာသား</span><span>${friendsCount()} / ${NPCS.length}</span><span>မျှားခဲ့တဲ့ ငါး</span><span>${S.stats.fish||0}</span></div>
   <div class="btns"><button class="bt pri" type="button" id="mR">ဂိမ်းအသစ် စမယ်</button></div>`,c=>c.querySelector('#mR').onclick=()=>{clearSave();S=fresh();syncChickens();save();card.dataset.dismiss='';close()});
 }
 function bag(){
@@ -492,34 +589,74 @@ function help(){
   <li>ရာသီ 3 ခု: နွေ (နေ့ 1–10)၊ မိုး (11–20)၊ ဆောင်း (21–30)။ ရာသီပြောင်းရင် အရင်ရာသီ အပင်တွေ ညှိုးမယ်</li>
   <li>မျိုးစေ့ အကွက်ကို ထပ်နှိပ်ရင် (ဒါမှမဟုတ် R) ဒီရာသီ မျိုးစေ့တွေကြား ပြောင်းမယ်</li>
   <li>ရွာသားတစ်ယောက်ကို နေ့တိုင်း စကားပြောရင် ခင်မင်မှု တက်မယ်။ ♥ 3 ရရင် လက်ဆောင် ပေးမယ်</li>
-  <li>ဈေးဆိုင် ဖွင့်ချိန် 8:00 – 18:00</li></ul>
+  <li>ငါးမျှားတံနဲ့ စွန်ကို ရွာထဲက ကုန်စုံဆိုင်မှာ ဝယ်ပါ။ ငါးမျှားရင် ဖော့ငုပ်ပြီး ! ပေါ်တာနဲ့ A နှိပ်ပါ။ စွန်ကို တောင်ဘက်ကွင်းမှာ လွှတ်ပါ</li>
+  <li>လက်ဖက်ရည်ဆိုင်မှာ စားရင် အားအင် ပြန်ရမယ်။ ပန်းပဲဖိုမှာ ကိရိယာ အဆင့်မြှင့်လို့ရတယ်။ ဘုန်းကြီးကျောင်းနဲ့ စေတီမှာ ဘုရားဖူးလို့ရတယ်</li>
+  <li>ဒေါ်ခင်ရဲ့ ဈေးဆိုင် ဖွင့်ချိန် 8:00 – 18:00</li></ul>
   <div class="btns"><button class="bt pri" type="button" id="mC">ရပြီ</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
-function openShop(){
-  if(S.min<480||S.min>=1080)return toast('ဈေးဆိုင် ပိတ်ထားတယ်။ ဖွင့်ချိန် 8:00 – 18:00');
-  const s=curS();
-  const items=[
-    ...seasonCrops(s).map(id=>{const d=CROPS[id];return{id:'s_'+id,label:`${d.name} မျိုးစေ့ (9 စေ့)`,desc:`${d.grow} ရက်နဲ့ ရင့်တယ် · တစ်ခု ${d.sell} ကျပ်${d.regrow?` · ${d.regrow} ရက်တစ်ခါ ထပ်သီးတယ်`:''}`,price:d.bag,ok:()=>true,buy:()=>{S.seeds[id]+=9;S.seedSel=id}}}),
+const SHOPS={
+  stall:{name:'ဒေါ်ခင်ရဲ့ ဈေးဆိုင်',open:480,close:1080,sub:()=>`${SEASONS[curS()].name}ရာသီ မျိုးစေ့တွေ ရောက်နေတယ်`,items:()=>[
+    ...seasonCrops(curS()).map(id=>{const d=CROPS[id];return{id:'s_'+id,label:`${d.name} မျိုးစေ့ (9 စေ့)`,desc:`${d.grow} ရက်နဲ့ ရင့်တယ် · တစ်ခု ${d.sell} ကျပ်${d.regrow?` · ${d.regrow} ရက်တစ်ခါ ထပ်သီးတယ်`:''}`,price:d.bag,ok:()=>true,buy:()=>{S.seeds[id]+=9;S.seedSel=id}}}),
     {id:'tea',label:'လက်ဖက်ရည် တစ်ခွက်',desc:'အားအင် +40 · ကိရိယာ အကွက်ကနေ သောက်ပါ',price:60,ok:()=>true,buy:()=>S.tea++},
     {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:50,ok:()=>true,buy:()=>S.feed+=5},
-    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:'',price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
+    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`,price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
+  ]},
+  store:{name:'ကိုဇော်ရဲ့ ကုန်စုံဆိုင်',open:480,close:1080,sub:()=>'ငါးမျှားတံ၊ စွန်နဲ့ အိမ်သုံးပစ္စည်း',items:()=>[
+    {id:'rod',label:'ငါးမျှားတံ',desc:'ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး သုံးပါ။ ဖော့ငုပ်ရင် A ချက်ချင်းနှိပ်',price:800,ok:()=>!S.has.rod,buy:()=>{S.has.rod=1;S.tool=6}},
+    {id:'kite',label:'စွန်',desc:'ရွာတောင်ဘက်က ကွင်းပြင်မှာ လွှတ်ပါ။ တစ်ရက် တစ်ကြိမ် စိတ်ကြည်လင်ပြီး အားအင် +20',price:300,ok:()=>!S.has.kite,buy:()=>{S.has.kite=1;S.tool=7}},
+    {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:50,ok:()=>true,buy:()=>S.feed+=5},
+    {id:'tea',label:'လက်ဖက်ရည်ခြောက် တစ်ထုပ်',desc:'လက်ဖက်ရည် 2 ခွက် ဖျော်လို့ရတယ်',price:110,ok:()=>true,buy:()=>S.tea+=2},
+  ]},
+  tea:{name:'ဒေါ်စန်းစန်းရဲ့ လက်ဖက်ရည်ဆိုင်',open:390,close:1200,sub:()=>'ဒီမှာ စားသောက်ရင် အားအင် ချက်ချင်း ပြန်ရမယ်',items:()=>[
+    {id:'mohinga',label:'မုန့်ဟင်းခါး တစ်ပွဲ',desc:'ချက်ချင်း စားမယ် · အားအင် +50',price:120,ok:()=>S.energy<S.maxE,buy:()=>{S.energy=Math.min(S.maxE,S.energy+50);toast('မုန့်ဟင်းခါး စားလိုက်တယ်။ အားအင် +50')}},
+    {id:'palata',label:'ပလာတာ နဲ့ လက်ဖက်ရည်',desc:'ချက်ချင်း စားမယ် · အားအင် +30',price:70,ok:()=>S.energy<S.maxE,buy:()=>{S.energy=Math.min(S.maxE,S.energy+30);toast('ပလာတာ စားလိုက်တယ်။ အားအင် +30')}},
+    {id:'teacup',label:'လက်ဖက်ရည် ပါဆယ်',desc:'နောက်မှ သောက်ဖို့ · အားအင် +40',price:60,ok:()=>true,buy:()=>S.tea++},
+  ]},
+  smith:{name:'ကိုထွန်းရဲ့ ပန်းပဲဖို',open:480,close:1020,sub:()=>'ကိရိယာတွေကို ပိုကောင်းအောင် ထုပေးမယ်',items:()=>[
+    {id:'uhoe',label:'ပေါက်ပြားကောင်း',desc:'မြေထွန်ရင် အားအင် 2 အစား 1 ပဲ ကုန်မယ်',price:1500,ok:()=>!S.up.hoe,buy:()=>S.up.hoe=1},
+    {id:'uham',label:'တူကောင်း',desc:'ကျောက်ခွဲရင် အားအင် 3 အစား 1 ပဲ ကုန်မယ်',price:900,ok:()=>!S.up.hammer,buy:()=>S.up.hammer=1},
     {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ်',price:1200,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
-  ];
-  const hen=items.find(i=>i.id==='hen');
-  const render=()=>{hen.desc=`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`;
-    return `<h2>ဒေါ်ခင်ရဲ့ ဈေးဆိုင်</h2><p class="sub">${SEASONS[s].name}ရာသီ မျိုးစေ့တွေ ရောက်နေတယ် · ငွေ ${fmt(S.money)} ကျပ် ရှိတယ်</p>
-    ${items.map(it=>`<div class="item"><b>${it.label}</b><span class="sub">${it.desc}</span><button class="bt" type="button" data-buy="${it.id}" ${(!it.ok()||S.money<it.price)?'disabled':''}>${fmt(it.price)} ကျပ်</button></div>`).join('')}
-    <div class="btns"><button class="bt pri" type="button" id="mC">ပြန်မယ်</button></div>`};
+  ]},
+};
+function openShop(id){
+  const sp=SHOPS[id];
+  if(S.min<sp.open||S.min>=sp.close){const f=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;return toast(`${sp.name} ပိတ်ထားတယ်။ ဖွင့်ချိန် ${f(sp.open)} – ${f(sp.close)}`)}
+  let items=sp.items();
+  const render=()=>`<h2>${sp.name}</h2><p class="sub">${sp.sub()} · ငွေ ${fmt(S.money)} ကျပ် ရှိတယ်</p>
+    ${items.map(it=>`<div class="item"><b>${it.label}</b><span class="sub">${it.desc}</span><button class="bt" type="button" data-buy="${it.id}" ${(!it.ok()||S.money<it.price)?'disabled':''}>${it.ok()?fmt(it.price)+' ကျပ်':'ရှိပြီ'}</button></div>`).join('')}
+    <div class="btns"><button class="bt pri" type="button" id="mC">ပြန်မယ်</button></div>`;
   const bind=c=>{
     c.querySelector('#mC').onclick=close;
     c.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
       const it=items.find(i=>i.id===b.dataset.buy);if(!it.ok()||S.money<it.price)return;
-      S.money-=it.price;it.buy();
+      S.money-=it.price;it.buy();items=sp.items();
       c.innerHTML=render();bind(c);hud();belt();
       const again=c.querySelector(`[data-buy="${it.id}"]`);(again&&!again.disabled?again:c.querySelector('#mC')).focus();
     });
   };
   show(render(),bind);
+}
+
+/* ---------- fishing & kite ---------- */
+let fishRT=null,kiteRT=null;
+const inMeadow=(x,y)=>x>=1&&x<=28&&y>=22&&y<=29;
+function catchFish(){
+  const r=Math.random();let id;
+  if(!fishRT.river)id=r<.6?'catfish':'carp';
+  else{const pr=curS()===1?.3:.15;id=r<pr?'prawn':r<pr+.4?'snakehead':'carp'}
+  S.produce[id]++;S.stats.fish=(S.stats.fish||0)+1;burst(fishRT.x,fishRT.y,'#bfe6fa',10);
+  toast(`${EXTRA[id].name} ရပြီ! (${EXTRA[id].sell} ကျပ်) · ပို့ကုန်ပုံးမှာ ရောင်းပါ`);fishRT=null;
+}
+function updateFun(dt,ticked){
+  if(fishRT){
+    if(held.length){fishRT=null;toast('ငါးမျှားတာ ရပ်လိုက်တယ်')}
+    else{fishRT.t-=dt;if(fishRT.t<=0){if(fishRT.phase==='wait'){fishRT.phase='bite';fishRT.t=800}else{toast('ငါးလွတ်သွားတယ်။ ထပ်ကြိုးစားပါ');fishRT=null}}}
+  }
+  if(kiteRT){
+    if(S.scene!=='farm'||S.weather==='rain'||!inMeadow(S.px,S.py)){kiteRT=null;toast('စွန်ကို ပြန်ရစ်လိုက်တယ်')}
+    else{kiteRT.h=Math.min(1,kiteRT.h+dt/2500);
+      if(ticked&&kiteRT.h>=1&&++kiteRT.min===20&&!S.daily.kite){S.daily.kite=1;S.energy=Math.min(S.maxE,S.energy+20);toast('စွန် မြင့်မြင့် ပျံနေတယ်။ စိတ်ကြည်လင်သွားတယ် (အားအင် +20)')}}
+  }
 }
 
 /* ---------- HUD & belt ---------- */
@@ -549,7 +686,7 @@ function cycleSeed(){const list=seasonCrops(curS()),i=list.indexOf(S.seedSel);S.
 function belt(){
   if(!S)return;
   slotEls.forEach((b,i)=>{
-    const t=TOOLS[i];b.classList.toggle('on',S.tool===i);
+    const t=TOOLS[i];b.classList.toggle('on',S.tool===i);b.classList.toggle('off',(t.id==='rod'&&!S.has.rod)||(t.id==='kite'&&!S.has.kite));
     b.querySelector('span').textContent=t.id==='seed'?CROPS[S.seedSel].name:t.name;
     b.querySelector('small').textContent=t.id==='can'?`${S.water}/${S.canMax}`:t.id==='seed'?`×${S.seeds[S.seedSel]}`:t.id==='tea'?`×${S.tea}`:String(i+1);
     drawIcon(b.querySelector('canvas').getContext('2d'),t.id);
@@ -562,6 +699,8 @@ function drawIcon(c,id){
   else if(id==='sickle'){r('#7a5230',2,10,2,5);r('#7a5230',3,9,2,2);r('#c8ccd2',5,3,2,7);r('#c8ccd2',6,2,5,2);r('#c8ccd2',10,3,3,2);r('#c8ccd2',12,5,2,2)}
   else if(id==='hammer'){for(let i=0;i<9;i++)r('#a0703c',3+i,13-i,2,2);r('#7f8389',8,1,7,5);r('#a5a9af',9,2,5,1)}
   else if(id==='seed'){const d=CROPS[S?S.seedSel:'kangkong'];r('#c9a46a',3,4,10,11);r('#b08850',3,4,10,2);r('#8a6a40',6,2,4,2);r(d.col,6,8,4,4);r(d.col2,7,9,2,2)}
+  else if(id==='rod'){for(let i=0;i<12;i++)r('#9a6a3c',2+i,14-i,1,1);r('#6b4426',2,12,3,3);r('#e0e0e0',14,2,1,8);r('#e2402f',13,10,3,2);r('#ffffff',13,10,3,1)}
+  else if(id==='kite'){for(let y=0;y<8;y++){const w=y<4?1+2*y:1+2*(7-y);r(y<4?'#e2402f':'#f2c14e',7-(w>>1),1+y,w,1)}r('#2a1a12',7,1,1,8);r('#6aa0d8',6,10,2,1);r('#e2402f',8,12,2,1);r('#6aa0d8',7,14,2,1)}
   else if(id==='tea'){r('#f1e7d6',3,6,9,7);r('#b5763a',4,7,7,3);r('#f1e7d6',12,8,2,3);r('#d9cdb8',3,13,9,1);r('#cfd8e0',5,2,1,3);r('#cfd8e0',8,1,1,3)}
 }
 
@@ -574,10 +713,10 @@ addEventListener('keydown',e=>{
   if(e.repeat)return;
   if(e.code==='KeyZ'||e.code==='Space'||e.code==='KeyJ'){e.preventDefault();useTool()}
   else if(e.code==='KeyX'||e.code==='Enter'||e.code==='KeyK'){e.preventDefault();act()}
-  else if(/^Digit[1-6]$/.test(e.code)){S.tool=+e.code.slice(5)-1;belt()}
+  else if(/^Digit[1-8]$/.test(e.code)){S.tool=+e.code.slice(5)-1;belt()}
   else if(e.code==='KeyR'||e.code==='Tab'){e.preventDefault();cycleSeed();S.tool=4;belt()}
-  else if(e.code==='KeyQ'){S.tool=(S.tool+5)%6;belt()}
-  else if(e.code==='KeyE'){S.tool=(S.tool+1)%6;belt()}
+  else if(e.code==='KeyQ'){S.tool=(S.tool+7)%8;belt()}
+  else if(e.code==='KeyE'){S.tool=(S.tool+1)%8;belt()}
   else if(e.code==='KeyI'||e.code==='KeyB'){bag()}
 });
 addEventListener('keyup',e=>{const d=KMAP[e.code];if(d)held=held.filter(h=>h!==d)});
@@ -601,10 +740,11 @@ function update(dt){
   if(anim&&(anim.t-=dt)<=0)anim=null;
   if(fade>0)fade=Math.max(0,fade-dt/300);
   if(paused||!S)return;
-  acc+=dt;while(acc>=TICK){acc-=TICK;S.min++;if(S.min%60===0)save()}
+  let ticked=false;acc+=dt;while(acc>=TICK){acc-=TICK;S.min++;ticked=true;if(S.min%60===0)save()}
   if(S.min>=1440){toast('');endDay(true);return}
   if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
-  if(!mv&&held.length&&fade<.5)tryMove(held[held.length-1]);
+  updateFun(dt,ticked);
+  if(!mv&&held.length&&fade<.5&&!fishRT)tryMove(held[held.length-1]);
   updateNPCs(dt);
   const night=S.min>=1140;
   chickRT.forEach(c=>{
@@ -637,9 +777,9 @@ const STX=SEASONS.map((s,i)=>({
   grass:tex(s.grass,[[s.gs[0],420,1,1],[s.gs[1],120,1,2],[s.gs[2],160,1,1],[s.gs[3],40,1,1]],11+i),
   path:tex(s.path,[['rgba(0,0,0,.08)',300,1,1],['rgba(255,255,255,.12)',140,1,1],['rgba(80,50,20,.25)',40,2,1],['rgba(255,240,210,.2)',24,2,1]],22+i),
 }));
-const TX={dry:tex('#9b6b3e',[['#8a5d34',260,1,1],['#ad7c4b',140,1,1]],33),wet:tex('#5f3c22',[['#54341d',260,1,1],['#6e4829',140,1,1]],44)};
+const TX={sand:tex('#e2cc96',[['#d4bc84',300,1,1],['#efdcaa',160,1,1],['#c8ae74',40,2,1]],55),dry:tex('#9b6b3e',[['#8a5d34',260,1,1],['#ad7c4b',140,1,1]],33),wet:tex('#5f3c22',[['#54341d',260,1,1],['#6e4829',140,1,1]],44)};
 const tx=(t,x,y,sx,sy)=>{const h=hash(x,y);C.drawImage(t,(h%4)*16,((h>>3)%4)*16,16,16,sx,sy,16,16)};
-const GRASSY=t=>t===G||t===FLOWER||t===WEED||t===ROCK||t===TREE||t===FENCE||t===TROUGH||t===BIN||t===HOUSE;
+const GRASSY=t=>t===BLD||t===G||t===FLOWER||t===WEED||t===ROCK||t===TREE||t===FENCE||t===TROUGH||t===BIN||t===HOUSE;
 
 /* ----- character sprites ----- */
 const HAT=["......oooo......",".....ojjhho.....","...oojhhhhHoo...",".oojhhhhhhhhHoo.","oHHHHHHHHHHHHHHo"];
@@ -655,14 +795,15 @@ const BODY_ST=BODY_S.slice();BODY_ST[2]="....okssstssso..";
 const LEGS_F=[["...osSo..osSo...","...offo..offo...","...ooo....ooo..."],["...osSo..osSo...","...offo..ooo....","...ooo.........."],["...osSo..osSo...","...ooo...offo...",".........ooo...."]];
 const LEGS_S=[[".....osSosSo....",".....offooffo...",".....ooo.ooo...."],["....osSo.osSo...","...offo...offo..","...ooo....ooo..."],[".....osSosSo....",".....offooffo...",".....ooo.ooo...."]];
 const fixRow=r=>(r+'................').slice(0,16);
-function buildPerson(pal,head,bd=BODY_D,bs=BODY_S){
-  const mkDir=(body,legs,flip)=>legs.map(l=>spr([...head,...body,...l].map(fixRow),pal,flip));
+function buildPerson(pal,head,bd=BODY_D,bs=BODY_S,kid){
+  const k=b=>kid?b.filter((_,i)=>i!==5&&i!==11):b;
+  const mkDir=(body,legs,flip)=>legs.map(l=>spr([...head,...k(body),...l].map(fixRow),pal,flip));
   return{down:mkDir(bd,LEGS_F),up:mkDir(BODY_U,LEGS_F),right:mkDir(bs,LEGS_S),left:mkDir(bs,LEGS_S,true)};
 }
 const PAL_F={o:'#2a1a12',h:'#e2c27a',H:'#b8913f',j:'#f6e0a4',s:'#e0a676',S:'#b97d52',k:'#2b1a10',e:'#1b120c',w:'#f4f0e6',W:'#c9c2b2',l:'#3f6f95',L:'#2a4d6c',p:'#7fb1d6',f:'#7a4a28'};
 const PAL_M={o:'#2a1a12',h:'#f0c64a',H:'#c99a28',j:'#fff0a8',s:'#cf9566',S:'#a8714a',k:'#1e130b',e:'#1b120c',w:'#eaa0b8',W:'#c27a93',l:'#7a3e6a',L:'#5a2a4e',p:'#d27ab0',f:'#7a4a28'};
 const PS=buildPerson(PAL_F,HAT),MS=buildPerson(PAL_M,WRAP);
-const NS={ba:buildPerson(NPC_PAL.ba,BALD),mya:buildPerson(NPC_PAL.mya,BUN,BODY_DT,BODY_ST),aung:buildPerson(NPC_PAL.aung,SHORT)};
+const HEADS={HAT,WRAP,BALD,BUN,SHORT,MONK:BALD},NS={};NPCS.forEach(d=>NS[d.id]=buildPerson(d.pal,HEADS[d.head],d.thanaka?BODY_DT:BODY_D,d.thanaka?BODY_ST:BODY_S,d.kid));
 const HEN=[".......oo...","......oRRo..",".....owwwwo.",".....owwewob","..o..owwwwo.",".owo.owwwwo.",".owwoowwWwo.",".owwwwwwWWo.","..oWwwwWWo..","...oooooo...","....y..y....","...yy.yy...."];
 const PAL_H={o:'#3a2a1e',R:'#d93a2a',w:'#fbf8f0',W:'#d9d2c0',e:'#1a1a1a',b:'#f0a830',y:'#e89a2a'};
 const HENR=spr(HEN,PAL_H),HENL=spr(HEN,PAL_H,true);
@@ -716,6 +857,103 @@ const HOUSE_SPR=(()=>{
   });
   return c;
 })();
+/* ----- village buildings ----- */
+const ROOFS={thatch:['#c79d48','#9c7631','#d7ae55','#e9c77a'],zinc:['#9aa4ac','#7a848c','#b8c0c6','#d0d6da'],red:['#b5463a','#8a3028','#c85a4a','#e07a68'],tile:['#a8502f','#7a3a20','#c06a40','#d88a5a'],green:['#4a8a5a','#336a44','#5a9a68','#7ab888']};
+const BSTYLE={thatch:{roof:'thatch',wall:'#a8794a',stilts:1},bamboo:{roof:'thatch',wall:'#d4b06a',weave:1,stilts:1},zinc:{roof:'zinc',wall:'#8e6a48'},tile:{roof:'tile',wall:'#e6dccb'},
+  shop:{roof:'red',wall:'#a8794a',awn:['#2f6aa8','#f6efe0'],sign:'bag'},teashop:{roof:'zinc',wall:'#c9a06a',awn:['#2f7a4a','#f6efe0'],sign:'cup'},smith:{roof:'zinc',wall:'#6a5444',sign:'anvil',dark:1},school:{roof:'green',wall:'#ece6d8'}};
+function roof(ox,y0,y1,W,type,inF=.3){
+  const p=ROOFS[type],rh=Math.max(1,y1-y0);
+  for(let r=0;r<=rh;r++){const k=r/rh,ins=Math.round((1-k)*W*inF),x0=ox-4+ins,w=W+8-2*ins,y=y0+r;
+    R('#2e1d10',x0-1,y,w+2,1);
+    for(let x=x0;x<x0+w;x++){let c;
+      if(type==='thatch'){const h=hash(x,r*3+y0)%9;c=h===0?p[1]:h<3?p[2]:h===8?p[3]:p[0]}
+      else if(type==='tile')c=r%4===3?p[1]:((x+(r>>2)*2)%5===0?p[1]:(r%4===0?p[2]:p[0]));
+      else c=x%3===0?p[1]:x%3===1?p[2]:p[0];
+      R(c,x,y,1,1)}}
+  R('#2e1d10',ox-5,y1+1,W+10,1);R(p[1],ox-4,y1,W+8,1);
+}
+function makeBuilding(b){
+  if(b.style==='stupa')return makeStupa(b);if(b.style==='monastery')return makeMonastery(b);if(b.style==='well')return makeWell();
+  const st=BSTYLE[b.style],W=b.w*T,H=b.h*T,top=12,ox=6,oy=top,c=mk(W+12,H+top+2),wins=[],lights=[];
+  withC(c.getContext('2d'),()=>{
+    const roofB=oy+Math.floor(H*.42),wallBot=oy+H-1-(st.stilts?8:0),dcol=Math.floor(b.w/2),dx=ox+dcol*T+3;
+    R('rgba(0,0,0,.25)',ox,oy+H-4,W,5);
+    if(st.stilts)for(let i=0;i<=b.w;i++){const x=ox+1+Math.round(i*(W-5)/b.w);OL([['#5a3b22',x,wallBot,3,8]],'#24160c')}
+    OL([[st.wall,ox+1,roofB-4,W-2,wallBot-roofB+4]],'#2e1d10');
+    if(st.weave){for(let y=roofB-4;y<wallBot;y+=2)for(let x=ox+1;x<ox+W-1;x+=4)R(sh(st.wall,.82),x+((y>>1)%2)*2,y,2,1)}
+    else for(let x=ox+2;x<ox+W-1;x+=5)R(sh(st.wall,.88),x,roofB-4,1,wallBot-roofB+4);
+    if(st.stilts)R('#3b2717',ox,wallBot-1,W,2);
+    const wy=roofB+(st.awn?8:3);
+    for(let i=0;i<b.w;i++){if(i===dcol)continue;const wx=ox+i*T+4;if(wallBot-wy<9)continue;OL([['#2c3f4f',wx,wy,8,7]],'#3a2414');R('#5f8fb0',wx,wy,3,1);R('#3a2414',wx+3,wy,1,7);wins.push([wx,wy,3,7],[wx+4,wy,4,7]);lights.push([wx+4,wy+4,24])}
+    const dh=Math.min(15,wallBot-roofB-1);
+    OL([[st.dark?'#2a1a10':'#7a4a28',dx,wallBot-dh,10,dh]],'#24160c');
+    if(st.dark){R('#e2702a',dx+2,wallBot-7,6,5);R('#ffc060',dx+3,wallBot-5,4,2);lights.push([dx+5,wallBot-4,28])}
+    else{R('#8f5a32',dx+1,wallBot-dh+1,3,dh-1);R('#f0c64a',dx+8,(wallBot-dh/2)|0,1,2)}
+    if(st.stilts)for(let i=0;i<4;i++)R(i%2?'#7a5230':'#9a6a3c',dx-1,wallBot+1+i*2,12,1);
+    roof(ox,2,roofB-1,W,st.roof);
+    if(st.awn){for(let i=0;i<W-4;i+=4){const col=st.awn[(i/4)%2];R(col,ox+2+i,roofB,4,5);R(col,ox+3+i,roofB+5,2,1)}R('rgba(0,0,0,.25)',ox+2,roofB+6,W-4,1)}
+    if(st.sign){const sx=(ox+W/2-9)|0,sy=roofB-11;OL([['#f4efe2',sx,sy,18,8]],'#3a2414');
+      if(st.sign==='cup'){R('#f6f6f6',sx+6,sy+2,6,5);R('#b5763a',sx+6,sy+2,6,2);R('#d8d8d8',sx+12,sy+3,2,2);R('#c8433a',sx+2,sy+2,2,4)}
+      else if(st.sign==='bag'){R('#e2b84a',sx+5,sy+3,8,4);R('#8a6a20',sx+7,sy+1,4,2);R('#3a9a4a',sx+6,sy+4,2,2);R('#e2402f',sx+10,sy+4,2,2)}
+      else{R('#5a5a60',sx+4,sy+2,10,2);R('#5a5a60',sx+7,sy+4,4,2);R('#5a5a60',sx+5,sy+6,8,1);R('#e2702a',sx+14,sy+1,2,2)}}
+  });
+  return{c,ox,top,wins,lights};
+}
+function makeMonastery(b){
+  const W=b.w*T,H=b.h*T,top=34,ox=8,oy=top,c=mk(W+16,H+top+2),wins=[],lights=[];
+  withC(c.getContext('2d'),()=>{
+    const base=oy+H-1,floor=base-10,wallT=oy+Math.floor(H*.38);
+    R('rgba(0,0,0,.25)',ox,base-3,W,5);
+    for(let i=0;i<=8;i++){const x=ox+2+Math.round(i*(W-7)/8);OL([['#4a2a18',x,floor,3,10]],'#1a0e08')}
+    R('#2a1a10',ox-2,floor-2,W+4,3);
+    OL([['#6a3a22',ox+2,wallT,W-4,floor-wallT-2]],'#1a0e08');
+    for(let x=ox+3;x<ox+W-3;x+=6){R('#5a3020',x,wallT,1,floor-wallT-2);R('#8a5030',x+1,wallT,1,floor-wallT-2)}
+    R('#e0b040',ox+2,wallT+2,W-4,1);
+    for(let i=0;i<b.w;i++){if(i===3)continue;const wx=ox+i*T+4,wy=wallT+6;OL([['#2a1a10',wx,wy,8,9]],'#e0b040');wins.push([wx,wy,8,9]);lights.push([wx+4,wy+4,22])}
+    const dx=ox+3*T+2;OL([['#3a1a10',dx,floor-20,12,18]],'#e0b040');R('#e0b040',dx+5,floor-20,2,18);lights.push([dx+6,floor-8,30]);
+    for(let i=0;i<5;i++)R(i%2?'#7a5230':'#a07040',dx-2,floor+1+i*2,16,1);
+    [[wallT-14,wallT,1],[wallT-26,wallT-14,.72],[wallT-36,wallT-26,.46]].forEach(([a,bb,f])=>{const w=Math.round(W*f),x=ox+Math.round((W-w)/2);
+      for(let r=0;r<=bb-a;r++){const ins=Math.round((1-r/(bb-a))*w*.18),x0=x-4+ins,ww=w+8-2*ins;R('#1a0e08',x0-1,a+r,ww+2,1);for(let xx=x0;xx<x0+ww;xx++)R(xx%3===0?'#3a2e2e':xx%3===1?'#5a4a4a':'#4a3c3c',xx,a+r,1,1)}
+      R('#e0b040',x-4,bb,w+8,1);R('#e0b040',x-5,bb-3,1,3);R('#e0b040',x+w+4,bb-3,1,3)});
+    const sx=(ox+W/2)|0;for(let i=0;i<12;i++){const w=Math.max(1,5-Math.floor(i/2.5));R('#e8b83a',sx-(w>>1),wallT-37-i,w,1)}R('#fff0a0',sx,wallT-48,1,1);
+  });
+  return{c,ox,top,wins,lights};
+}
+function makeStupa(b){
+  const W=b.w*T,H=b.h*T,top=30,ox=6,oy=top,c=mk(W+12,H+top+2),cx=ox+W/2;
+  withC(c.getContext('2d'),()=>{
+    const base=oy+H-2;R('rgba(0,0,0,.25)',ox,base-2,W,4);
+    [[30,6],[24,6],[18,5]].reduce((y,[w,h])=>{OL([['#f2eee4',cx-w/2,y-h,w,h]],'#8a8270');R('#d8d0c0',cx-w/2,y-2,w,2);return y-h},base);
+    const by=base-25;disc('#8a6410',cx,by,9);disc('#e8b83a',cx,by,8);R('#e8b83a',cx-8,by,17,8);R('#8a6410',cx-9,by+8,19,1);R('#fff0a0',cx-5,by-5,3,6);
+    for(let i=0;i<22;i++){const w=Math.max(1,9-Math.floor(i/2.6));R(i%5===4?'#c9961e':'#e8b83a',cx-(w>>1),by-8-i,w,1)}
+    R('#fff0a0',cx-1,by-12,1,6);R('#e8b83a',cx-3,by-31,7,1);R('#e8b83a',cx-2,by-32,5,1);R('#ffffff',cx,by-34,1,2);
+  });
+  return{c,ox,top,wins:[],lights:[[cx,oy+10,40]]};
+}
+function makeWell(){
+  const c=mk(28,34),ox=6,top=16;
+  withC(c.getContext('2d'),()=>{const x=ox,y=top;R('rgba(0,0,0,.25)',x,y+12,16,4);disc('#4a4a50',x+8,y+9,7);disc('#9a9aa0',x+8,y+9,6);disc('#2a4a6a',x+8,y+8,4);
+    R('#5a3b22',x+1,y-10,2,18);R('#5a3b22',x+13,y-10,2,18);roof(x,y-15,y-10,16,'thatch',.25);R('#6b4426',x+3,y-6,10,1);R('#8a6a3a',x+7,y-5,2,3)});
+  return{c,ox,top,wins:[],lights:[]};
+}
+const BSPR={};BUILDINGS.forEach(b=>BSPR[b.id]=makeBuilding(b));
+function lineP(x0,y0,x1,y1,col){x0|=0;y0|=0;x1|=0;y1|=0;const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;let e=dx+dy,n=0;while(n++<300){R(col,x0,y0,1,1);if(x0===x1&&y0===y1)break;const e2=2*e;if(e2>=dy){e+=dy;x0+=sx}if(e2<=dx){e+=dx;y0+=sy}}}
+function drawRod(px,py,dir,bx,by,bite){
+  const [dx,dy]=DIRS[dir],hx=px+8+dx*4,hy=py+13,tx=px+8+dx*13+(dy?4:0),ty=py+(dy>0?20:dy<0?-2:4);
+  lineP(hx,hy,tx,ty,'#7a5230');
+  const bb=by+(bite?2:0);lineP(tx,ty,bx,bb,'rgba(240,240,240,.75)');
+  R('#e2402f',bx-1,bb-1,3,2);R('#ffffff',bx-1,bb-1,3,1);if(bite)R('rgba(255,255,255,.8)',bx-3,bb+1,7,1);
+}
+function drawKite(hx,hy,h,now,i){
+  const t=now/1000+i,kx=Math.round(hx+18+Math.sin(t*.8)*8),ky=Math.round(hy-14-46*h+Math.cos(t*1.1)*4);
+  C.imageSmoothingEnabled=true;C.strokeStyle='rgba(255,255,255,.75)';C.lineWidth=.5;C.beginPath();C.moveTo(hx,hy);C.quadraticCurveTo((hx+kx)/2+6,(hy+ky)/2+8,kx,ky+3);C.stroke();C.imageSmoothingEnabled=false;
+  const cols=[['#e2402f','#f2c14e'],['#2f6aa8','#f6efe0'],['#3a9a4a','#f2c14e'],['#8a3ab0','#f7a1c4']][i%4];
+  for(let y=0;y<8;y++){const w=y<4?1+2*y:1+2*(7-y);R(y<4?cols[0]:cols[1],kx-(w>>1),ky-4+y,w,1)}
+  R('#2a1a12',kx,ky-4,1,8);R('#2a1a12',kx-3,ky-1,7,1);
+  for(let j=1;j<5;j++)R(j%2?cols[0]:cols[1],kx+Math.round(Math.sin(t*3+j)*2)-j,ky+4+j*3,2,1);
+}
+function bubble(px,py){R('#ffffff',px+6,py-12,9,7);R('#ffffff',px+8,py-5,2,2);R('#2a1a12',px+8,py-9,1,1);R('#2a1a12',px+10,py-9,1,1);R('#2a1a12',px+12,py-9,1,1)}
+
 const ICON={};['hoe','can','sickle','hammer'].forEach(id=>{const c=mk(16,16);drawIcon(c.getContext('2d'),id);ICON[id]=c});
 
 /* ----- static ground layer ----- */
@@ -758,6 +996,10 @@ function drawGround(t,x,y,sx,sy){
     if(s===1){R('#4f8a3a',sx+3,sy+11,3,1);R('#4f8a3a',sx+11,sy+12,2,1)}break}
   case TREE:grass(sx,sy,x,y);R('rgba(0,0,0,.25)',sx+1,sy+11,14,4);R('rgba(0,0,0,.18)',sx,sy+12,16,2);break;
   case WATER:R('#3f86c9',sx,sy,T,T);break;
+  case BLD:grass(sx,sy,x,y);break;
+  case SAND:tx(TX.sand,x,y,sx,sy);if(GRASSY(tileAt(x,y-1)))lip(sx,sy,x,y,0,GC,'rgba(90,70,30,.3)');if(GRASSY(tileAt(x,y+1)))lip(sx,sy,x,y,1,GC,'rgba(90,70,30,.3)');break;
+  case BRIDGE:R('#2e1d10',sx,sy,T,T);for(let r=0;r<16;r+=4){R('#a8783f',sx+1,sy+r,14,3);R('#c99058',sx+1,sy+r,14,1)}R('#6b4426',sx,sy,2,T);R('#6b4426',sx+14,sy,2,T);R('#4a2f1c',sx,sy+6,2,2);R('#4a2f1c',sx+14,sy+6,2,2);break;
+  case JETTY:R('#3f86c9',sx,sy,T,T);R('#2e1d10',sx+2,sy,12,T);for(let i=0;i<12;i+=4){R('#a8783f',sx+3+i,sy,3,T);R('#c99058',sx+3+i,sy,1,T)}R('#4a2f1c',sx+1,sy+11,2,5);R('#4a2f1c',sx+13,sy+11,2,5);break;
   case PATH:case STALL:{tx(STX[s].path,x,y,sx,sy);
     const g=(a,b)=>GRASSY(tileAt(a,b)),sh='rgba(90,60,30,.35)';
     if(s===1&&hash(x,y)%6===0){const a=2+hash(y,x)%6;disc('#7a6040',sx+a+4,sy+9,3);R('#8fb0c8',sx+a+2,sy+8,6,2);R('#c8e0f0',sx+a+3,sy+8,2,1)}
@@ -783,7 +1025,7 @@ function buildBG(){withC(bg,()=>{for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)drawG
 
 /* ----- live pieces ----- */
 function drawWater(x,y,sx,sy,now){
-  const W=(a,b)=>tileAt(a,b)===WATER,up=!W(x,y-1),dn=!W(x,y+1),lf=!W(x-1,y),rt=!W(x+1,y),s=curS();
+  const W=(a,b)=>{const q=tileAt(a,b);return q===WATER||q===BRIDGE||q===JETTY},up=!W(x,y-1),dn=!W(x,y+1),lf=!W(x-1,y),rt=!W(x+1,y),s=curS();
   R(s===0?(up||dn||lf||rt?'#5a9ccf':'#4a8cc4'):(up||dn||lf||rt?'#4690d2':'#3a7fc2'),sx,sy,T,T);
   const o=((now/130+x*5+y*3)|0)%18;R('#78b6ea',sx+o-2,sy+5,3,1);R('#78b6ea',sx+((o+9)%18)-2,sy+11,2,1);
   const h=hash(x,y);if((((now/450)|0)+h)%11===0)R('#e6f4ff',sx+h%12+2,sy+(h>>5)%10+3,1,1);
@@ -842,7 +1084,8 @@ function lighting(cx,cy,rx,ry,now){
   if(dark<=0)return;
   lg.globalCompositeOperation='source-over';lg.clearRect(0,0,W,H);lg.fillStyle=`rgba(8,14,46,${dark})`;lg.fillRect(0,0,W,H);
   const night=m>=1080,lights=[[rx*T+8,ry*T+6,26,.55]];
-  if(night){lights.push([3*T+16,2*T+33,30,.9],[3*T+64,2*T+33,30,.9],[3*T+40,2*T+40,22,.6]);if(m<1260)lights.push([26*T-2,18*T,34,.9])}
+  if(night){lights.push([3*T+16,2*T+33,30,.9],[3*T+64,2*T+33,30,.9],[3*T+40,2*T+40,22,.6]);if(m<1260)lights.push([26*T-2,18*T,34,.9]);
+    BUILDINGS.forEach(b=>{const sp=BSPR[b.id];sp.lights.forEach(([lx,ly,r])=>{const X=b.x*T-sp.ox+lx,Y=b.y*T-sp.top+ly;if(X-cx>-40&&X-cx<W+40&&Y-cy>-40&&Y-cy<H+40)lights.push([X,Y,r,.85])})})}
   lg.globalCompositeOperation='destination-out';
   lights.forEach(([x,y,r,st])=>{const gx=x-cx,gy=y-cy,g=lg.createRadialGradient(gx,gy,0,gx,gy,r);g.addColorStop(0,`rgba(0,0,0,${st})`);g.addColorStop(1,'rgba(0,0,0,0)');lg.fillStyle=g;lg.fillRect(gx-r,gy-r,r*2,r*2)});
   C.imageSmoothingEnabled=true;C.drawImage(LC,0,0);C.imageSmoothingEnabled=false;
@@ -942,20 +1185,29 @@ function render(now){
     if(!day){[[3*T+10,2*T+29],[3*T+58,2*T+29]].forEach(([wx,wy])=>{R('#f8d77a',wx-cx,wy-cy,12,8);R('#4a2f1c',wx-cx+5,wy-cy,2,8);R('#fff2b8',wx-cx,wy-cy,3,2)})}}});
   for(let y=y0;y<=y0+VH+2&&y<MH;y++)for(let x=x0-1;x<=x0+VW&&x<MW;x++){if(x<0||S.tiles[y][x]!==TREE)continue;
     sprites.push({y:y+.9,d:()=>C.drawImage(TREES[s][hash(x,y)%5===0?1:0],x*T-cx-8,y*T-cy-22)})}
+  BUILDINGS.forEach(b=>{const sp=BSPR[b.id],bx=b.x*T-cx-sp.ox,by=b.y*T-cy-sp.top;if(bx>VW*T||by>VH*T||bx+sp.c.width<0||by+sp.c.height<0)return;
+    sprites.push({y:b.y+b.h-.1,d:()=>{C.drawImage(sp.c,bx,by);if(!day)sp.wins.forEach(([wx,wy,ww,wh])=>R('#f8d77a',bx+wx,by+wy,ww,wh))}})});
   if(open){const f=((now/700)|0)%2;sprites.push({y:18.5,d:()=>C.drawImage(MS.down[0],Math.round(24.5*T-cx),18*T-cy-7+f)})}
   sprites.push({y:19.2,d:()=>{const sx=24*T-cx,sy=19*T-cy;
     OL([['#8a5a30',sx,sy+4,32,10]],'#2e1d10');R('#a8703a',sx,sy+4,32,2);R('#6b4426',sx,sy+9,32,1);R('rgba(0,0,0,.25)',sx,sy+14,32,2);
     seasonCrops(s).concat(['egg']).forEach((id,i)=>{const col=id==='egg'?'#f7efdc':CROPS[id].col,col2=id==='egg'?'#ffffff':CROPS[id].col2,o=2+i*8;OL([['#b08a50',sx+o,sy+1,6,4]],'#4a3416');R(col,sx+o+1,sy,4,2);R(col2,sx+o+2,sy-1,2,1)})}});
   chickRT.forEach((c,i)=>sprites.push({y:c.y,d:()=>{const bob=!(((now/220+i)|0)%3)?1:0,px=Math.round(c.x*T-cx)+2,py=Math.round(c.y*T-cy)+3;
     R('rgba(0,0,0,.2)',px+2,py+11,8,2);C.drawImage(c.face>0?HENR:HENL,px,py+bob)}}));
+  const kites=[];
   npcRT.forEach((n,i)=>{if(!n.active)return;const d=NPCS[i],k=n.t,nx=n.fx+(n.x-n.fx)*k,ny=n.fy+(n.y-n.fy)*k;
-    sprites.push({y:ny+.005,d:()=>{const px=Math.round(nx*T-cx),py=Math.round(ny*T-cy)-7,fr=n.t<1?(n.steps%2?1:2):0;
-      R('rgba(0,0,0,.25)',px+4,py+21,8,2);C.drawImage(NS[d.id][n.dir][fr],px,py);
-      if(d.fish&&n.t>=1&&!n.path.length&&n.wait){const bob=((now/500)|0)%2;R('#6b4a2b',px+11,py+2,1,8);R('#6b4a2b',px+12,py-2,1,4);R('#6b4a2b',px+13,py-5,1,3);
-        R('rgba(255,255,255,.6)',px+14,py-5,1,8);R('#e2402f',px+14,py+3+bob,2,2);R('#ffffff',px+14,py+3+bob,1,1)}
-      if(n.wait&&!n.path.length&&!d.fish&&((now/1600)|0)%5===0){R('#ffffff',px+6,py-12,9,7);R('#ffffff',px+8,py-5,2,2);R('#2a1a12',px+8,py-9,1,1);R('#2a1a12',px+10,py-9,1,1);R('#2a1a12',px+12,py-9,1,1)}}})});
+    if(nx<x0-2||nx>x0+VW+2||ny<y0-2||ny>y0+VH+3)return;
+    sprites.push({y:ny+.005,d:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),fr=n.t<1?(n.steps%2?1:2):0,idle=n.wait&&!n.path.length&&n.t>=1;
+      R('rgba(0,0,0,.25)',px+4,gy+14,8,2);C.drawImage(NS[d.id][n.dir][fr],px,py);
+      if(idle&&n.act==='fish'){const[dx,dy]=DIRS[n.dir];drawRod(px,py,n.dir,(n.x+dx)*T+8-cx,(n.y+dy)*T+8-cy,((now/600+i)|0)%5===0)}
+      else if(idle&&n.act==='kite'&&S.weather!=='rain')kites.push([px+12,py+8,i]);
+      else if(idle&&((now/1600+i)|0)%6===0)bubble(px,py)}})});
   sprites.push({y:ry+.01,d:()=>drawPlayer(Math.round(rx*T-cx),Math.round(ry*T-cy)-7)});
   sprites.sort((a,b)=>a.y-b.y).forEach(sp=>sp.d());
+  kites.forEach(([hx,hy,i])=>drawKite(hx,hy,1,now,i));
+  {const ppx=Math.round(rx*T-cx),ppy=Math.round(ry*T-cy)-7;
+    if(fishRT){const bite=fishRT.phase==='bite';drawRod(ppx,ppy,S.dir,fishRT.x*T+8-cx,fishRT.y*T+8-cy,bite);
+      if(bite){R('#2a1a12',ppx+4,ppy-14,8,11);R('#ffffff',ppx+5,ppy-13,6,9);R('#e2402f',ppx+7,ppy-12,2,4);R('#e2402f',ppx+7,ppy-7,2,2)}}
+    if(kiteRT)drawKite(ppx+12,ppy+8,kiteRT.h,now,0)}
   if(open||!day){const sx=24*T-cx,sy=18*T-cy;
     R('#5a3b22',sx,sy-6,2,22);R('#5a3b22',sx+30,sy-6,2,22);
     if(open){R('#3a2414',sx-1,sy-11,34,1);for(let i=0;i<8;i++){const c=i%2?'#f6efe0':'#c8433a';R(c,sx+i*4,sy-10,4,5);R(c,sx+i*4+1,sy-5,2,1)}R('rgba(0,0,0,.25)',sx,sy-4,32,1)}
