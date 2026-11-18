@@ -43,7 +43,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #toast{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(20,14,8,.88);border:1px solid var(--plank);border-radius:8px;padding:4px 12px;font-size:14px;max-width:90%;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.on{opacity:1}
 #dlg{position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:10px;align-items:flex-start;background:rgba(30,21,13,.95);border:2px solid var(--gold);border-radius:10px;padding:10px 12px 14px;z-index:5;cursor:pointer;max-height:80%;overflow:auto}
-#dlgFace{width:56px;height:76px;image-rendering:pixelated;border:1px solid var(--plank);border-radius:6px;flex:none}
+#dlgFace{width:72px;height:90px;border:1px solid var(--plank);border-radius:6px;flex:none}
 #dlg .dt{flex:1;min-width:0}
 #dlgName{color:var(--gold);font-size:14px}
 #dlgText{margin:2px 0 0;line-height:1.8;font-size:15px}
@@ -54,6 +54,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .card.letter{background:#efe2c4;color:#3a2a18;border-color:#b89a6a}
 .card.letter h2{color:#7a3a20}
 .card.letter p{line-height:1.9}
+.tk{display:flex;gap:12px;align-items:flex-start}
+.pt{width:84px;height:105px;border-radius:8px;border:2px solid var(--plank);flex:none}
 .qp{grid-row:1/3;grid-column:2;font-family:var(--display);color:var(--gold);font-size:18px}
 
 #belt{display:grid;grid-template-columns:repeat(9,1fr);gap:4px}
@@ -109,7 +111,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
       <div class="bar"><span>ရွာကယ်ငွေ</span><i><b id="gBar" class="g"></b></i><em id="gTxt"></em></div>
     </div>
   </header>
-  <main id="stage"><canvas id="cv" aria-label="ခြံ မြေပုံ"></canvas><div id="toast" role="status"></div><div id="dlg" hidden><canvas id="dlgFace" width="32" height="44"></canvas><div class="dt"><b id="dlgName"></b><p id="dlgText"></p><div id="dlgOpts"></div></div><span id="dlgMore" hidden>▼ ဆက်ရန်</span></div></main>
+  <main id="stage"><canvas id="cv" aria-label="ခြံ မြေပုံ"></canvas><div id="toast" role="status"></div><div id="dlg" hidden><canvas id="dlgFace" width="192" height="240"></canvas><div class="dt"><b id="dlgName"></b><p id="dlgText"></p><div id="dlgOpts"></div></div><span id="dlgMore" hidden>▼ ဆက်ရန်</span></div></main>
   <nav id="belt" aria-label="ကိရိယာများ"></nav>
   <section id="pad">
     <div class="dpad">
@@ -349,9 +351,9 @@ function talk(i){
   let line=h%3===0?seasonLines[h%seasonLines.length]:d.lines[h%d.lines.length];
   if(S.day>=25&&S.money<GOAL&&h%2)line='ရက်နည်းနည်းပဲ ကျန်တော့တယ်။ အားတင်းထားနော်။ ငါတို့ ရွာလေး မပျောက်ပါစေနဲ့။';
   if(S.money>=GOAL*.7&&h%4===1)line=`ငွေ ${fmt(S.money)} ကျပ် ရှိပြီဆို ရွာကို ကယ်နိုင်တော့မှာပဲ!`;
-  show(`<div class="who"><h2>${d.name}</h2><span class="hearts" aria-label="ခင်မင်မှု ${f}/10">${'♥'.repeat(f)}${'♡'.repeat(10-f)}</span></div>
-    <p class="sub">${d.role}</p><p>“${line}”</p>${gift?`<p><b>${d.name}က ${gift}။</b></p>`:''}
-    <div class="btns"><button class="bt pri" type="button" id="mC">နှုတ်ဆက်မယ်</button>${d.shop?`<button class="bt" type="button" id="mShop">ဈေးဝယ်မယ်</button>`:''}</div>`,c=>{c.querySelector('#mC').onclick=close;const sb=c.querySelector('#mShop');if(sb)sb.onclick=()=>openShop(d.shop)});
+  show(`<div class="tk"><canvas class="pt" width="192" height="240"></canvas><div style="flex:1;min-width:0"><div class="who"><h2>${d.name}</h2><span class="hearts" aria-label="ခင်မင်မှု ${f}/10">${'♥'.repeat(f)}${'♡'.repeat(10-f)}</span></div>
+    <p class="sub">${d.role}</p><p>“${line}”</p></div></div>${gift?`<p><b>${d.name}က ${gift}။</b></p>`:''}
+    <div class="btns"><button class="bt pri" type="button" id="mC">နှုတ်ဆက်မယ်</button>${d.shop?`<button class="bt" type="button" id="mShop">ဈေးဝယ်မယ်</button>`:''}</div>`,c=>{drawPortrait(c.querySelector('.pt'),d.id,f>=5?'h':undefined);c.querySelector('#mC').onclick=close;const sb=c.querySelector('#mShop');if(sb)sb.onclick=()=>openShop(d.shop)});
   belt();
 }
 const friendsCount=()=>NPCS.filter(d=>(S.friends[d.id]||0)>=3).length;
@@ -379,16 +381,72 @@ function tryMove(d){
 
 /* ---------- actions ---------- */
 function spend(n){if(S.energy<n){toast('အားအင်ကုန်နေပြီ။ လက်ဖက်ရည်သောက် ဒါမှမဟုတ် အိမ်ပြန်အိပ်ပါ');return false}S.energy-=n;return true}
+/* ---------- actions with motion ---------- */
+const ACTS={hoe:{dur:560,at:.58},can:{dur:760,at:.5},fill:{dur:620,at:.55},sickle:{dur:400,at:.5},hammer:{dur:660,at:.62},axe:{dur:660,at:.62},
+  seed:{dur:460,at:.55},tea:{dur:980,at:.6},pick:{dur:560,at:.4},harvest:{dur:900,at:.32},cast:{dur:560,at:.72},reel:{dur:520,at:.3}};
+let shake=0;
+function doAct(kind,fn,extra){const a=ACTS[kind];anim={kind,t:0,dur:a.dur,at:a.at,fn,fired:false,...(extra||{})}}
+function updateAct(dt){
+  if(shake>0)shake=Math.max(0,shake-dt/60);
+  if(!anim)return;anim.t+=dt;
+  if(!anim.fired&&anim.t>=anim.dur*anim.at){anim.fired=true;anim.fn&&anim.fn()}
+  if(anim.kind==='can'&&anim.ok){const k=anim.t/anim.dur;if(k>.22&&k<.88){const [dx,dy]=DIRS[S.dir],sx=S.px*T+8+dx*13,sy=S.py*T-1+(dy>0?8:dy<0?-6:0);
+    for(let i=0;i<2;i++)parts.push({x:sx+(Math.random()-.5)*3,y:sy,vx:dx*26+(Math.random()-.5)*16,vy:20+Math.random()*30+(dy>0?20:0),life:260,col:Math.random()<.5?'#9fd0ff':'#d8f0ff'})}}
+  if(anim.t>=anim.dur)anim=null;
+}
+const ease=k=>k<0?0:k>1?1:k*k*(3-2*k);
+function swingAngle(kind,k,at){
+  if(kind==='sickle')return k<at?-1.9+ease(k/at)*3.5:1.6-((k-at)/(1-at))*.4;
+  if(kind==='cast'){const r=at*.55;return k<r?-.3-ease(k/r)*1.9:k<at?-2.2+ease((k-r)/(at-r))*2.8:.6}
+  const up=at*.78;if(k<up)return -.35-ease(k/up)*2.05;if(k<at)return -2.4+((k-up)/(at-up))*3.75;return 1.35-((k-at)/(1-at))*.35;
+}
+function drawTool(icon,a,px,py,dir){
+  const img=ICON[icon];if(!img)return;
+  const piv={right:[px+11,py+12],left:[px+5,py+12],down:[px+8,py+13],up:[px+8,py+10]}[dir];
+  const th=dir==='left'||dir==='right'?a:-Math.PI/2+(a+2.4)/3.75*Math.PI;
+  C.save();C.translate(piv[0],piv[1]);if(dir==='left')C.scale(-1,1);C.rotate(th+Math.PI/4);C.drawImage(img,-3,-13);C.restore();
+  R('#e0a676',piv[0]-1,piv[1]-1,3,3);R('#b97d52',piv[0]-1,piv[1]+1,3,1);
+}
+function itemIcon(it,x,y){
+  if(it.kind==='egg'){disc('#6a5a40',x+4,y+4,4);disc('#f7efdc',x+4,y+4,3);R('#fffdf6',x+2,y+2,2,2);return}
+  if(it.kind==='crop'){const d=CROPS[it.type];disc('#24452a',x+4,y+5,5);disc(d.col,x+4,y+5,4);R(d.col2,x+2,y+3,2,2);R('#4fa23a',x+3,y-1,3,3);R('#6cc04a',x+5,y-2,2,2);return}
+  if(it.kind==='mushroom'){disc('#3a1a10',x+4,y+3,4);disc('#c8433a',x+4,y+3,3);R('#f2e6d0',x+3,y+5,2,4);R('#ffffff',x+2,y+2,1,1);return}
+  if(it.kind==='shoot'){R('#4a4a14',x+2,y,5,9);R('#c8b060',x+3,y+1,3,7);R('#8aa83a',x+3,y+1,3,2);return}
+  if(it.kind==='berry'){disc('#2f6a28',x+4,y+4,4);R('#e8a020',x+2,y+3,2,2);R('#e8a020',x+5,y+2,2,2);R('#e8a020',x+4,y+5,2,2);return}
+  if(it.kind==='fish'){R('#2a3a48',x-1,y+2,11,5);R('#7aa0c0',x,y+3,9,3);R('#c8dcef',x+1,y+3,5,1);R('#2a3a48',x+9,y+1,3,7);R('#1a1a1a',x+1,y+3,1,1)}
+}
+function drawPlayer(px,py){
+  const fr=mv?((stepCount+(mv.t>.5?1:0))%2?1:2):0;py-=(mv&&mv.t>.25&&mv.t<.75)?1:0;
+  let crouch=0,tool=null,item=null,cup=null;const dir=S.dir;
+  if(anim){const k=anim.t/anim.dur,at=anim.at,K=anim.kind;
+    if(K==='hoe'||K==='hammer'||K==='axe'){tool={icon:K,a:swingAngle(K,k,at)};crouch=k>=at&&k<at+.2?2:(k>at*.6&&k<at?-1:0)}
+    else if(K==='sickle'){tool={icon:'sickle',a:swingAngle(K,k,at)};crouch=1}
+    else if(K==='cast'||K==='reel'){tool={icon:'rod',a:K==='cast'?swingAngle('cast',k,at):-1.9+ease(Math.min(1,k/.5))*1.2}}
+    else if(K==='can'){const p=k<.22?ease(k/.22):k>.88?1-ease((k-.88)/.12):1;tool={icon:'can',a:-.2+p*.95};crouch=1}
+    else if(K==='fill'){tool={icon:'can',a:1.1};crouch=k>.2&&k<.85?3:1}
+    else if(K==='seed'){crouch=k<at?Math.round(ease(k/at)*3):Math.round(3-ease((k-at)/(1-at))*3);tool={icon:'seed',a:k<at?.2:-.6}}
+    else if(K==='pick'||K==='harvest'){if(k<at){crouch=Math.round(ease(k/at)*4)}else{crouch=Math.max(0,4-Math.round(ease((k-at)/.2)*5));if(k>at+.1)crouch=-1;item=anim.item}}
+    else if(K==='tea'){cup=k<.25?ease(k/.25):k>.85?1-ease((k-.85)/.15):1}
+  }
+  R('rgba(0,0,0,.28)',px+4,py+21,8,2);R('rgba(0,0,0,.18)',px+3,py+21,10,1);
+  const behind=tool&&(dir==='up'||(tool.a<-1.2&&(dir==='left'||dir==='right')));
+  if(tool&&behind)drawTool(tool.icon,tool.a,px,py+Math.max(0,crouch),dir);
+  const spr=PS[dir][fr];
+  if(crouch>0)C.drawImage(spr,0,0,16,22,px-(crouch>2?1:0),py+crouch,16+(crouch>2?2:0),22-crouch);
+  else C.drawImage(spr,px,py+crouch);
+  if(tool&&!behind)drawTool(tool.icon,tool.a,px,py+Math.max(0,crouch),dir);
+  if(cup){const cx=px+(dir==='left'?2:dir==='right'?9:6),cy=py+12-Math.round(cup*6);R('#f1e7d6',cx,cy,5,4);R('#b5763a',cx+1,cy,3,1);R('#e0a676',cx+1,cy+4,3,2);if(cup>.8&&((performance.now()/200)|0)%2){R('rgba(255,255,255,.7)',cx+1,cy-4,1,2);R('rgba(255,255,255,.7)',cx+3,cy-6,1,2)}}
+  if(item){const bob=((performance.now()/180)|0)%2;R('#e0a676',px+3,py-3,2,4);R('#e0a676',px+11,py-3,2,4);itemIcon(item,px+4,py-12-bob);if(((performance.now()/120)|0)%3===0){R('#fff6c0',px+1,py-14,1,1);R('#fff6c0',px+14,py-10,1,1)}}
+}
 function useTool(){
-  if(paused||mv||CUT)return;
+  if(paused||mv||CUT||anim)return;
   dirty=true;
-  if(fishRT){if(fishRT.phase==='bite')catchFish();else{toast('စောလွန်းတယ်။ ငါးလန့်ပြေးသွားပြီ');fishRT=null}return}
+  if(fishRT){if(fishRT.phase==='bite'){doAct('reel');catchFish();anim.item={kind:'fish'}}else{toast('စောလွန်းတယ်။ ငါးလန့်ပြေးသွားပြီ');fishRT=null}return}
   const tool=TOOLS[S.tool].id;
   if(tool==='tea'){
-    if(S.tea<=0)toast('လက်ဖက်ရည် မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
-    else if(S.energy>=S.maxE)toast('အားအင် ပြည့်နေတယ်');
-    else{S.tea--;S.energy=Math.min(S.maxE,S.energy+40);toast('လက်ဖက်ရည် သောက်လိုက်တယ်။ အားအင် +40')}
-    return belt();
+    if(S.tea<=0)return toast('လက်ဖက်ရည် မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
+    if(S.energy>=S.maxE)return toast('အားအင် ပြည့်နေတယ်');
+    S.tea--;belt();doAct('tea',()=>{S.energy=Math.min(S.maxE,S.energy+40);toast('လက်ဖက်ရည် ပူပူလေး သောက်လိုက်တယ်။ အားအင် +40')});return;
   }
   if(S.scene==='house')return toast('အိမ်ထဲမှာ ဒီကိရိယာ မသုံးနိုင်ဘူး');
   const [fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.map==='farm'?S.crops[k]:null;
@@ -396,11 +454,11 @@ function useTool(){
     if(!S.has.rod)return toast('ငါးမျှားတံ မရှိသေးဘူး။ ရွာထဲက ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ ဝယ်ပါ');
     if(t!==WATER)return toast('ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး ငါးမျှားပါ');
     if(!spend(2))return;
-    fishRT={phase:'wait',t:1500+Math.random()*3500,x:fx,y:fy,river:S.map!=='farm'};return toast('ငါးမျှားချိတ် ချလိုက်ပြီ။ ဖော့ငုပ်ပြီး ! ပေါ်ရင် A ချက်ချင်းနှိပ်ပါ');
+    doAct('cast',()=>{fishRT={phase:'wait',t:1500+Math.random()*3500,x:fx,y:fy,river:S.map!=='farm'};burst(fx,fy,'#cfe8ff',6);toast('ငါးမျှားချိတ် ချလိုက်ပြီ။ ဖော့ငုပ်ပြီး ! ပေါ်ရင် A ချက်ချင်းနှိပ်ပါ')});return;
   }
   if(tool==='axe'){
     if(!S.has.axe)return toast('ပုဆိန် မရှိသေးဘူး။ ရွာထဲက ကိုထွန်းရဲ့ ပန်းပဲဖိုမှာ ဝယ်ပါ');
-    if(t===LOG){if(!spend(4))return;S.tiles[fy][fx]=G;S.produce.wood+=3;dirty=true;burst(fx,fy,'#a8783f',12);anim={t:220,tool:'hammer'};return toast('ထင်း 3 စည်း ရပြီ။ ပို့ကုန်ပုံးမှာ ရောင်းလို့ရတယ်')}
+    if(t===LOG){if(!spend(4))return;doAct('axe',()=>{S.tiles[fy][fx]=G;S.produce.wood+=3;dirty=true;burst(fx,fy,'#c8945a',16);shake=3;toast('ထင်း 3 စည်း ရပြီ။ ပို့ကုန်ပုံးမှာ ရောင်းလို့ရတယ်')});return}
     if(t===TREE)return toast('အရှင်သစ်ပင်တွေကို မခုတ်ပါနဲ့။ လဲနေတဲ့ သစ်တုံးကိုပဲ ခုတ်ပါ');
     return toast('တောထဲက လဲနေတဲ့ သစ်တုံးကို ခုတ်ဖို့ သုံးပါ');
   }
@@ -411,40 +469,41 @@ function useTool(){
     if(!inMeadow(S.px,S.py))return toast('တောထဲက ကွင်းပြင်ကျယ်ကြီးမှာ လွှတ်ပါ (ခြံရဲ့ တောင်ဘက်)');
     kiteRT={h:0,min:0};return toast('စွန် လွှတ်လိုက်ပြီ! ကွင်းထဲ လမ်းလျှောက်လို့ရတယ်။ A ထပ်နှိပ်ရင် ပြန်ရစ်မယ်');
   }
-  anim={t:220,tool};
   if(tool==='hoe'){
     if(t===G||t===FLOWER){
-      if(S.map!=='farm'||!inField(fx,fy)){toast('ခြံမြေကွက်ထဲမှာပဲ ထွန်လို့ရတယ်');return}
-      if(!spend(S.up.hoe?1:2))return;S.tiles[fy][fx]=SOIL;S.wet[fy][fx]=S.weather==='rain'?1:0;burst(fx,fy,'#7a4f2a');
+      if(S.map!=='farm'||!inField(fx,fy))return toast('ခြံမြေကွက်ထဲမှာပဲ ထွန်လို့ရတယ်');
+      if(!spend(S.up.hoe?1:2))return;
+      doAct('hoe',()=>{S.tiles[fy][fx]=SOIL;S.wet[fy][fx]=S.weather==='rain'?1:0;dirty=true;burst(fx,fy,'#7a4f2a',12);burst(fx,fy,'#a8784a',6);shake=1.5});
     }else if(t===WEED)toast('ပေါင်းပင်ကို တံစဉ်နဲ့ အရင်ရှင်းပါ');
     else if(t===ROCK)toast('ကျောက်တုံးကို တူနဲ့ ခွဲပါ');
     else if(t===SOIL)toast(crop?'ဒီမှာ စိုက်ထားပြီးသား':'ထွန်ပြီးသားပါ။ မျိုးစေ့ချလို့ရပြီ');
+    else toast('မြေကွက်ကို မျက်နှာမူပြီး ထွန်ပါ');
   }else if(tool==='can'){
-    if(t===WATER||(t===BLD&&bAt(fx,fy)?.style==='well')){S.water=S.canMax;toast(`ရေဖြည့်ပြီးပြီ (${S.water}/${S.canMax})`);burst(fx,fy,'#9fd0ff',8)}
+    if(t===WATER||(t===BLD&&bAt(fx,fy)?.style==='well')){doAct('fill',()=>{S.water=S.canMax;burst(fx,fy,'#9fd0ff',10);toast(`ရေဖြည့်ပြီးပြီ (${S.water}/${S.canMax})`);belt()})}
     else if(t===SOIL){
-      if(S.wet[fy][fx]){toast('ရေလောင်းပြီးသားပါ');return}
-      if(S.water<=0){toast('ရေကုန်ပြီ။ ရေကန်ကို မျက်နှာမူပြီး A နှိပ်ပါ');return}
-      if(!spend(1))return;S.water--;S.wet[fy][fx]=1;burst(fx,fy,'#7fc0ff');
+      if(S.wet[fy][fx])return toast('ရေလောင်းပြီးသားပါ');
+      if(S.water<=0)return toast('ရေကုန်ပြီ။ ရေကန်ကို မျက်နှာမူပြီး A နှိပ်ပါ');
+      if(!spend(1))return;S.water--;belt();doAct('can',()=>{S.wet[fy][fx]=1;dirty=true},{ok:1});
     }else toast('ထွန်ထားတဲ့ မြေကို ရေလောင်းပါ');
   }else if(tool==='sickle'){
-    if(t===WEED){if(!spend(1))return;S.stats.cleared=(S.stats.cleared||0)+1;S.tiles[fy][fx]=G;burst(fx,fy,'#3f8a2c',8)}
-    else if(crop&&crop.dead){delete S.crops[k];burst(fx,fy,'#8a6a3a',8)}
+    if(t===WEED){if(!spend(1))return;doAct('sickle',()=>{S.stats.cleared=(S.stats.cleared||0)+1;S.tiles[fy][fx]=G;dirty=true;burst(fx,fy,'#3f8a2c',12);burst(fx,fy,'#7fd65a',6)})}
+    else if(crop&&crop.dead)doAct('sickle',()=>{delete S.crops[k];burst(fx,fy,'#8a6a3a',10)});
     else toast('ပေါင်းပင်နဲ့ ညှိုးနေတဲ့ အပင်ကို ရှင်းဖို့ သုံးပါ');
   }else if(tool==='hammer'){
-    if(t===ROCK){if(!spend(S.up.hammer?1:3))return;S.stats.cleared=(S.stats.cleared||0)+1;S.tiles[fy][fx]=G;burst(fx,fy,'#9a9ca0',10)}
+    if(t===ROCK){if(!spend(S.up.hammer?1:3))return;doAct('hammer',()=>{S.stats.cleared=(S.stats.cleared||0)+1;S.tiles[fy][fx]=G;dirty=true;burst(fx,fy,'#9a9ca0',14);burst(fx,fy,'#d4d6da',6);shake=3})}
     else toast('ကျောက်တုံးကို ခွဲဖို့ သုံးပါ');
   }else if(tool==='seed'){
-    anim=null;const sp=S.seedSel,d=CROPS[sp];
-    if(d.s!==curS()){toast(`${d.name}ကို ${SEASONS[d.s].name}ရာသီမှာပဲ စိုက်လို့ရတယ်`);return}
-    if(S.seeds[sp]<=0){toast(`${d.name} မျိုးစေ့ မရှိတော့ဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ`);return}
-    if(t===SOIL&&!crop){S.crops[k]={type:sp,age:0};S.seeds[sp]--;burst(fx,fy,'#e8d18a',4)}
+    const sp=S.seedSel,d=CROPS[sp];
+    if(d.s!==curS())return toast(`${d.name}ကို ${SEASONS[d.s].name}ရာသီမှာပဲ စိုက်လို့ရတယ်`);
+    if(S.seeds[sp]<=0)return toast(`${d.name} မျိုးစေ့ မရှိတော့ဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ`);
+    if(t===SOIL&&!crop){S.seeds[sp]--;belt();doAct('seed',()=>{S.crops[k]={type:sp,age:0};for(let i=0;i<6;i++)parts.push({x:S.px*T+8,y:S.py*T+4,vx:(fx-S.px)*40+(Math.random()-.5)*30,vy:-30-Math.random()*20,life:380,col:'#e8d18a'})})}
     else if(t===SOIL)toast('ဒီမှာ စိုက်ထားပြီးသား');
     else toast('ထွန်ထားတဲ့ မြေပေါ်မှာ စိုက်ပါ');
   }
   belt();
 }
 function act(){
-  if(paused||mv||CUT)return;
+  if(paused||mv||CUT||anim)return;
   dirty=true;
   const [fx,fy]=front();
   if(S.scene==='house')return actHouse(hTile(fx,fy));
@@ -455,7 +514,7 @@ function act(){
   if(t===CAVE)return toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းလို့ အခုတော့ မဝင်ရဲသေးဘူး။');
   if(t===LOG)return toast('လဲနေတဲ့ သစ်တုံး။ ပုဆိန်နဲ့ ခုတ်ရင် ထင်း ရမယ်');
   if(t===FALL)return toast('ရေတံခွန်က ရေစက်တွေ အေးမြလိုက်တာ');
-  if(S.map==='forest'){const fi=S.maps.forest.forage.findIndex(o=>o.x===fx&&o.y===fy);if(fi>=0){const o=S.maps.forest.forage.splice(fi,1)[0];S.produce[o.k]++;burst(fx,fy,'#f6e08a');return toast(`${EXTRA[o.k].name} ရှာတွေ့ပြီ! ပို့ကုန်ပုံးမှာ ရောင်းလို့ရတယ်`)}}
+  if(S.map==='forest'){const fi=S.maps.forest.forage.findIndex(o=>o.x===fx&&o.y===fy);if(fi>=0){const o=S.maps.forest.forage.splice(fi,1)[0];return doAct('pick',()=>{S.produce[o.k]++;burst(fx,fy,'#f6e08a');toast(`${EXTRA[o.k].name} ရှာတွေ့ပြီ! ပို့ကုန်ပုံးမှာ ရောင်းလို့ရတယ်`)},{item:{kind:o.k}})}}
   if(t===BLD){const b=bAt(fx,fy);if(!b)return;
     if(b.shop)return openShop(b.shop);
     if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;S.energy=Math.min(S.maxE,S.energy+15);return toast(`${b.name}မှာ ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +15)`)}
@@ -474,14 +533,13 @@ function act(){
   if(t===BIN)return ship();
   if(t===HOUSE){if(fx===DOOR[0]&&fy===DOOR[1])return enterHouse();return toast('အိမ်တံခါးက အလယ်မှာပါ')}
   if(t===TROUGH)return feedChickens();
-  if(egg>=0){S.eggs.splice(egg,1);S.produce.egg++;S.stats.eggs++;burst(fx,fy,'#fff6dc');return toast('ကြက်ဥ ကောက်လိုက်တယ်')}
+  if(egg>=0){S.eggs.splice(egg,1);return doAct('pick',()=>{S.produce.egg++;S.stats.eggs++;burst(fx,fy,'#fff6dc');toast('ကြက်ဥ ကောက်လိုက်တယ်')},{item:{kind:'egg'}})}
   if(crop){
     const d=CROPS[crop.type];
     if(crop.dead){delete S.crops[k];burst(fx,fy,'#8a6a3a',8);return toast('ညှိုးနေတဲ့ အပင်ကို ရှင်းလိုက်တယ်')}
     if(crop.age>=d.grow){
-      S.produce[crop.type]++;S.stats.harvested++;burst(fx,fy,d.col,8);
-      if(d.regrow)crop.age=d.grow-d.regrow;else delete S.crops[k];
-      toast(`${d.name} ရိတ်သိမ်းပြီ။ ပို့ကုန်ပုံးထဲ ထည့်ပါ`);
+      const ty=crop.type;
+      doAct('harvest',()=>{S.produce[ty]++;S.stats.harvested++;burst(fx,fy,d.col,10);if(d.regrow)crop.age=d.grow-d.regrow;else delete S.crops[k];dirty=true;toast(`${d.name} ရိတ်သိမ်းပြီ။ ပို့ကုန်ပုံးထဲ ထည့်ပါ`)},{item:{kind:'crop',type:ty}});
     }else toast(`${d.name} ရင့်ဖို့ ${d.grow-crop.age} ရက် လိုသေးတယ်${S.wet[fy][fx]?'':' · ရေမလောင်းရသေးဘူး'}`);
     return;
   }
@@ -699,11 +757,115 @@ function updateFun(dt,ticked){
   }
 }
 
+/* ---------- anime-style portraits (Myanmar dress) ---------- */
+const PT={
+  hla:{skin:'#e2ac80',hair:'short',hc:'#4a4a4a',head:'gaung',hw:'#f2ede0',outfit:'taikpon',oc:'#f6f2e8',jc:'#3e3630',old:1,mus:1,bg:'#d8b468'},
+  aye:{skin:'#dca47a',hair:'bun',hc:'#9a9a9a',outfit:'blouse',oc:'#f0e6d0',shawl:'#8a3a5a',old:1,thanaka:1,flower:'#ffffff',glasses:1,bg:'#d0a8c0'},
+  mya:{skin:'#e8b088',hair:'bun',hc:'#1e1612',outfit:'blouse',oc:'#fbe2c6',shawl:'#2f7a5a',thanaka:1,flower:'#f6c829',ear:1,bg:'#f2c878'},
+  aung:{skin:'#d8a070',hair:'short',hc:'#1e1612',outfit:'shirt',oc:'#5a8ad6',bg:'#8ab8e0'},
+  pho:{skin:'#e0a676',hair:'kid',hc:'#1e1612',outfit:'tee',oc:'#f2efe6',kid:1,thanaka:1,bg:'#a8d070'},
+  san:{skin:'#dca070',hair:'bun',hc:'#2a1e16',outfit:'blouse',oc:'#f2c4c4',shawl:'#7a2a3a',thanaka:1,flower:'#e2402f',ear:1,bg:'#e8a888'},
+  zaw:{skin:'#d09a68',hair:'short',hc:'#1e1612',outfit:'shirt',oc:'#8ab04a',glasses:1,bg:'#b8d088'},
+  tun:{skin:'#b8805a',hair:'short',hc:'#1e1612',head:'band',hw:'#c8433a',outfit:'tank',oc:'#5a5a5a',bg:'#e0905a'},
+  monk:{skin:'#d8a070',hair:'shaved',outfit:'robe',oc:'#9a3a20',calm:1,bg:'#ecc878'},
+  oo:{skin:'#e8b088',hair:'bun',hc:'#1e1612',outfit:'blouse',oc:'#ffffff',thanaka:1,flower:'#ffffff',ear:1,bg:'#a8d0a8'},
+  thida:{skin:'#eab48a',hair:'pony',hc:'#1e1612',outfit:'blouse',oc:'#ffffff',kid:1,thanaka:1,flower:'#f7a1c4',bg:'#f6c0d0'},
+  mgmg:{skin:'#dca070',hair:'kid',hc:'#1e1612',outfit:'shirt',oc:'#ffffff',kid:1,bg:'#9ad0e8'},
+  kyaw:{skin:'#b8805a',hair:'short',hc:'#6a6a6a',head:'kamauk',outfit:'shirt',oc:'#c8b890',old:1,bg:'#88b8d8'},
+  min:{skin:'#c98e5c',hair:'short',hc:'#1e1612',head:'kamauk',outfit:'shirt',oc:'#e8e0c8',bg:'#b8d870'},
+  hnin:{skin:'#e6ae86',hair:'bun',hc:'#1e1612',outfit:'blouse',oc:'#b8d8f0',shawl:'#8a2a5a',thanaka:1,flower:'#e85aa8',tape:1,ear:1,bg:'#d8b8e8'},
+  soe:{skin:'#c98e5c',hair:'short',hc:'#1e1612',head:'cap',hw:'#3a5a8a',outfit:'shirt',oc:'#6a8ab8',bg:'#c8d8e8'},
+  than:{skin:'#b8805a',hair:'short',hc:'#7a7a7a',outfit:'shirt',oc:'#e8d8b0',old:1,towel:1,bg:'#d8c090'},
+  khine:{skin:'#e6ae86',hair:'bun',hc:'#1e1612',head:'nurse',outfit:'blouse',oc:'#ffffff',thanaka:1,bg:'#c0e0e8'},
+  rep:{skin:'#e0a878',hair:'slick',hc:'#14100c',outfit:'suit',oc:'#34343c',glasses:1,smug:1,bg:'#9aa0b0'},
+};
+function drawPortrait(cv,id,ex){
+  const p=PT[id];const g=cv.getContext('2d');g.setTransform(cv.width/96,0,0,cv.height/120,0,0);g.clearRect(0,0,96,120);if(!p)return;
+  ex=ex||(p.smug?'a':p.calm?'c':'n');
+  const L='#3a2418',sk=p.skin,skS=sh(sk,.84),hc=p.hc||'#1e1612';
+  const F=(col,fn,st=L,lw=1)=>{g.beginPath();fn();if(col){g.fillStyle=col;g.fill()}if(st){g.strokeStyle=st;g.lineWidth=lw;g.stroke()}};
+  const E=(x,y,rx,ry,col,st,lw)=>F(col,()=>g.ellipse(x,y,rx,ry,0,0,Math.PI*2),st,lw);
+  // background with a soft halo and a Myanmar 'kanote' style scroll motif
+  const bg=g.createRadialGradient(48,50,6,48,60,75);bg.addColorStop(0,sh(p.bg,1.25));bg.addColorStop(1,p.bg);g.fillStyle=bg;g.fillRect(0,0,96,120);
+  g.strokeStyle='rgba(255,255,255,.28)';g.lineWidth=1.2;for(let i=0;i<4;i++){g.beginPath();g.arc(8+i*28,110,9,Math.PI,Math.PI*2);g.stroke();g.beginPath();g.arc(22+i*28,110,5,0,Math.PI);g.stroke()}
+  g.save();if(p.kid){g.translate(48,120);g.scale(.9,.9);g.translate(-48,-112)}
+  // back hair
+  if(p.hair==='bun'||p.hair==='pony'){E(48,52,22,24,hc,L);if(p.hair==='bun'){E(60,25,10,9,hc,L);g.strokeStyle='rgba(255,255,255,.25)';g.beginPath();g.arc(60,24,6,3.6,5.2);g.stroke()}else{F(hc,()=>{g.moveTo(64,44);g.quadraticCurveTo(78,60,72,84);g.quadraticCurveTo(66,66,60,52)})}}
+  // body & outfit
+  const body=()=>{g.moveTo(10,121);g.bezierCurveTo(12,100,26,93,40,90);g.lineTo(56,90);g.bezierCurveTo(70,93,84,100,86,121);g.closePath()};
+  const o=p.outfit;
+  if(o==='robe'){F(p.oc,body);F(sk,()=>{g.moveTo(62,92);g.bezierCurveTo(72,94,82,102,84,121);g.lineTo(68,121);g.quadraticCurveTo(66,104,58,96)});F(sh(p.oc,.8),()=>{g.moveTo(34,91);g.quadraticCurveTo(54,104,64,121);g.lineTo(58,121);g.quadraticCurveTo(48,106,34,95)},null)}
+  else if(o==='tank'){F(sk,body);F(p.oc,()=>{g.moveTo(32,121);g.lineTo(36,96);g.quadraticCurveTo(48,104,60,96);g.lineTo(64,121)});g.strokeStyle='rgba(0,0,0,.15)';g.beginPath();g.moveTo(26,104);g.quadraticCurveTo(30,100,36,100);g.stroke()}
+  else{F(o==='taikpon'?p.jc:p.oc,body);
+    if(o==='taikpon'){F(p.oc,()=>{g.moveTo(41,90);g.lineTo(48,121);g.lineTo(55,90)});F(p.oc,()=>g.rect(40,87,16,4));for(let y=98;y<120;y+=6)E(53,y,1.2,1.2,'#e0b040',null)}
+    else if(o==='suit'){F('#ffffff',()=>{g.moveTo(41,90);g.lineTo(48,112);g.lineTo(55,90)});F('#a8303a',()=>{g.moveTo(46.5,92);g.lineTo(49.5,92);g.lineTo(50.5,108);g.lineTo(48,112);g.lineTo(45.5,108)});F(sh(p.oc,.8),()=>{g.moveTo(41,90);g.lineTo(46,104);g.lineTo(38,96)});F(sh(p.oc,.8),()=>{g.moveTo(55,90);g.lineTo(50,104);g.lineTo(58,96)})}
+    else if(o==='blouse'){F(null,()=>{g.moveTo(40,90);g.quadraticCurveTo(48,98,56,90)});for(let i=0;i<4;i++)E(57+i*3,97+i*5,1.1,1.1,'#e0b040',null);if(p.shawl)F(p.shawl,()=>{g.moveTo(22,98);g.quadraticCurveTo(36,92,44,93);g.quadraticCurveTo(40,110,46,121);g.lineTo(30,121);g.quadraticCurveTo(26,108,22,98)})}
+    else if(o==='shirt'){F(sh(p.oc,.9),()=>{g.moveTo(40,89);g.lineTo(46,98);g.lineTo(48,91)});F(sh(p.oc,.9),()=>{g.moveTo(56,89);g.lineTo(50,98);g.lineTo(48,91)});g.strokeStyle='rgba(0,0,0,.2)';g.beginPath();g.moveTo(48,92);g.lineTo(48,121);g.stroke()}
+    else{F(null,()=>{g.moveTo(41,90);g.quadraticCurveTo(48,96,55,90)})}}
+  if(p.towel){F('#e8e8e8',()=>{g.moveTo(18,104);g.quadraticCurveTo(26,92,40,91);g.lineTo(42,96);g.quadraticCurveTo(30,98,24,110)});g.strokeStyle='#c8433a';g.lineWidth=1;for(let i=0;i<3;i++){g.beginPath();g.moveTo(22+i*6,104-i*3);g.lineTo(25+i*6,99-i*3);g.stroke()}}
+  if(p.tape){g.strokeStyle='#f2c14e';g.lineWidth=2.2;g.beginPath();g.moveTo(36,90);g.quadraticCurveTo(34,104,36,121);g.moveTo(60,90);g.quadraticCurveTo(62,104,60,121);g.stroke();g.lineWidth=1}
+  // neck & face
+  F(sk,()=>g.rect(42,78,12,14),null);F(skS,()=>{g.moveTo(42,80);g.quadraticCurveTo(48,88,54,80);g.lineTo(54,84);g.quadraticCurveTo(48,90,42,84)},null);
+  E(30.5,61,3,5,sk,L);E(65.5,61,3,5,sk,L);if(p.ear){E(30.5,67,1.3,1.3,'#e0b040',null);E(65.5,67,1.3,1.3,'#e0b040',null)}
+  F(sk,()=>{g.moveTo(30,50);g.quadraticCurveTo(29,74,40,84);g.quadraticCurveTo(48,90,56,84);g.quadraticCurveTo(67,74,66,50);g.quadraticCurveTo(66,28,48,28);g.quadraticCurveTo(30,28,30,50)});
+  // cheeks: blush and thanaka
+  g.globalAlpha=.35;E(37,71,5,2.4,'#f07a7a',null);E(59,71,5,2.4,'#f07a7a',null);g.globalAlpha=1;
+  if(p.thanaka){g.globalAlpha=.85;E(37,69,6,4.5,'#f3e3a8',null);E(59,69,6,4.5,'#f3e3a8',null);g.globalAlpha=.5;g.strokeStyle='#d8c080';g.lineWidth=.6;for(const cx of [37,59])for(let i=-1;i<=1;i++){g.beginPath();g.moveTo(cx-4,69+i*1.8);g.lineTo(cx+4,68+i*1.8);g.stroke()}g.globalAlpha=1}
+  // eyes
+  const eye=(x,y,flip)=>{
+    if(ex==='h'||ex==='c'){g.strokeStyle=L;g.lineWidth=1.8;g.beginPath();if(ex==='h')g.arc(x,y+2,4,Math.PI*1.15,Math.PI*1.85);else g.arc(x,y-2,4,Math.PI*.15,Math.PI*.85);g.stroke();return}
+    const ry=p.old?3.2:ex==='o'?3.6:4.6;
+    E(x,y,4.6,ry+.6,'#ffffff',null);
+    const ig=g.createLinearGradient(0,y-ry,0,y+ry);ig.addColorStop(0,'#2a140a');ig.addColorStop(1,'#8a5228');E(x,y+.4,3.2,ry,null,null);g.fillStyle=ig;g.fill();
+    E(x,y+.6,1.6,ry*.5,'#120a06',null);E(x+1.3,y-1.4,1.25,1.25,'#ffffff',null);E(x-1.2,y+1.8,.6,.6,'#ffffff',null);
+    g.strokeStyle=L;g.lineWidth=1.9;g.beginPath();g.moveTo(x-5,y-ry+1.2);g.quadraticCurveTo(x,y-ry-2.4,x+5,y-ry+.6);g.stroke();
+    g.lineWidth=1;g.beginPath();g.moveTo(x+(flip?-5:5),y-ry+.6);g.lineTo(x+(flip?-6.5:6.5),y-ry-.6);g.stroke();
+    g.globalAlpha=.6;g.beginPath();g.moveTo(x-3,y+ry+.8);g.lineTo(x+3,y+ry+.8);g.stroke();g.globalAlpha=1;
+    if(ex==='a'){F(sk,()=>g.rect(x-5.5,y-ry-2.5,11,ry+.6),null);g.strokeStyle=L;g.lineWidth=1.6;g.beginPath();g.moveTo(x-5,y-1.4);g.lineTo(x+5,y-1.8);g.stroke()}
+    if(p.old){g.strokeStyle='rgba(90,50,30,.45)';g.lineWidth=.7;g.beginPath();g.moveTo(x-3,y+ry+3);g.quadraticCurveTo(x,y+ry+4,x+3,y+ry+3);g.moveTo(x+(flip?-6:6),y+1);g.lineTo(x+(flip?-8:8),y+2.5);g.stroke()}
+  };
+  eye(40,61,true);eye(56,61,false);
+  // brows
+  g.strokeStyle=sh(hc==='#9a9a9a'||hc==='#7a7a7a'?'#5a5a5a':hc,1);g.lineWidth=1.6;
+  const bi=ex==='s'?-2.5:ex==='a'?1.5:0;
+  g.beginPath();g.moveTo(35,53);g.quadraticCurveTo(39,51,44,53+bi);g.moveTo(52,53+bi);g.quadraticCurveTo(57,51,61,53);g.stroke();
+  // nose & mouth
+  g.strokeStyle=sh(sk,.7);g.lineWidth=1;g.beginPath();g.moveTo(48.5,68);g.lineTo(47.5,71.5);g.lineTo(49,71.8);g.stroke();
+  g.strokeStyle=L;g.lineWidth=1.2;
+  if(ex==='h'){F('#8a2a2a',()=>{g.moveTo(43.5,76);g.quadraticCurveTo(48,84,52.5,76);g.closePath()},L);F('#e87a7a',()=>g.ellipse(48,79.5,2.4,1.3,0,0,Math.PI*2),null)}
+  else if(ex==='s'){g.beginPath();g.moveTo(45,79);g.quadraticCurveTo(48,76.8,51,79);g.stroke()}
+  else if(ex==='o'){E(48,78,2,2.4,'#8a2a2a',L)}
+  else if(ex==='a'){g.beginPath();g.moveTo(44,77.5);g.quadraticCurveTo(49,79.5,53,75.5);g.stroke()}
+  else{g.beginPath();g.moveTo(45,77);g.quadraticCurveTo(48,79,51,77);g.stroke()}
+  if(p.mus)F(hc,()=>{g.moveTo(42,74.5);g.quadraticCurveTo(48,71.5,54,74.5);g.quadraticCurveTo(48,73.6,42,74.5)});
+  if(p.old){g.strokeStyle='rgba(90,50,30,.35)';g.lineWidth=.7;g.beginPath();g.moveTo(41,73);g.quadraticCurveTo(40,77,42,80);g.moveTo(55,73);g.quadraticCurveTo(56,77,54,80);g.moveTo(42,44);g.lineTo(54,44);g.stroke()}
+  // front hair
+  const shine=(x,y,r)=>{g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1.6;g.beginPath();g.arc(x,y,r,3.7,4.9);g.stroke()};
+  if(p.hair==='short'||p.hair==='kid'){F(hc,()=>{g.moveTo(28,60);g.bezierCurveTo(24,34,40,22,50,23);g.bezierCurveTo(64,24,72,36,68,60);g.lineTo(64,46);
+      if(p.hair==='kid'){g.lineTo(60,47);g.lineTo(56,45);g.lineTo(50,47);g.lineTo(45,45);g.lineTo(40,47);g.lineTo(35,45);g.lineTo(32,48)}
+      else{g.lineTo(60,42);g.lineTo(57,46);g.lineTo(52,40);g.lineTo(48,45);g.lineTo(42,39);g.lineTo(38,45);g.lineTo(33,42)}
+      g.closePath()});shine(48,40,13)}
+  else if(p.hair==='bun'||p.hair==='pony'){F(hc,()=>{g.moveTo(29,58);g.bezierCurveTo(26,32,40,25,48,25);g.bezierCurveTo(58,25,70,32,67,58);g.quadraticCurveTo(64,42,49,37);g.quadraticCurveTo(36,40,29,58)});shine(48,40,14);
+    if(p.flower){for(let i=0;i<5;i++){const a=i/5*Math.PI*2;E(66+Math.cos(a)*3,30+Math.sin(a)*3,2.2,2.2,p.flower,'rgba(0,0,0,.25)',.6)}E(66,30,1.4,1.4,'#f2a020',null);
+      if(p.flower==='#ffffff'){for(let i=0;i<4;i++)E(58+i*3,24-i,1.3,1.3,'#ffffff','rgba(0,0,0,.2)',.5)}}}
+  else if(p.hair==='slick'){F(hc,()=>{g.moveTo(28,58);g.bezierCurveTo(24,32,42,22,52,24);g.bezierCurveTo(66,26,72,38,68,58);g.lineTo(66,44);g.quadraticCurveTo(56,34,40,40);g.quadraticCurveTo(34,44,30,52)});g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=1;for(let i=0;i<3;i++){g.beginPath();g.moveTo(40+i*6,30);g.quadraticCurveTo(54+i*3,32,62,42);g.stroke()}}
+  else if(p.hair==='shaved'){g.globalAlpha=.18;F('#5a4030',()=>{g.moveTo(31,46);g.quadraticCurveTo(32,28,48,28);g.quadraticCurveTo(64,28,65,46);g.quadraticCurveTo(48,38,31,46)},null);g.globalAlpha=1;shine(48,42,14)}
+  // headwear
+  if(p.head==='gaung'){F(p.hw,()=>{g.moveTo(27,46);g.bezierCurveTo(28,30,44,22,50,22);g.bezierCurveTo(62,22,70,32,69,46);g.quadraticCurveTo(48,38,27,46)});
+    g.strokeStyle='rgba(0,0,0,.18)';g.lineWidth=.8;for(let i=0;i<4;i++){g.beginPath();g.moveTo(30+i*2,44-i*4);g.quadraticCurveTo(48,36-i*4,66-i*2,44-i*4);g.stroke()}
+    F(p.hw,()=>{g.moveTo(28,40);g.quadraticCurveTo(16,30,12,38);g.quadraticCurveTo(18,40,16,48);g.quadraticCurveTo(24,44,29,46)})}
+  else if(p.head==='kamauk'){F('#d8b56a',()=>{g.moveTo(48,6);g.lineTo(76,32);g.quadraticCurveTo(48,38,20,32);g.closePath()});E(48,32,34,6,'#e2c27a',L);g.strokeStyle='rgba(120,80,20,.4)';g.lineWidth=.7;for(let i=1;i<6;i++){g.beginPath();g.moveTo(48,6);g.lineTo(20+i*9.5,33);g.stroke()}}
+  else if(p.head==='cap'){F(p.hw,()=>{g.moveTo(29,44);g.bezierCurveTo(30,26,66,26,67,44);g.closePath()});F(sh(p.hw,.75),()=>{g.moveTo(30,44);g.quadraticCurveTo(48,50,70,44);g.lineTo(70,47);g.quadraticCurveTo(48,52,30,47)});E(48,36,3,2.4,'#f2c14e',null)}
+  else if(p.head==='nurse'){F('#ffffff',()=>{g.moveTo(34,36);g.quadraticCurveTo(48,22,62,36);g.lineTo(58,40);g.quadraticCurveTo(48,34,38,40)});F('#e2402f',()=>{g.rect(46.5,28,3,8);g.rect(44,30.5,8,3)},null)}
+  else if(p.head==='band'){F(p.hw,()=>{g.moveTo(29,44);g.quadraticCurveTo(48,36,67,44);g.lineTo(67,48);g.quadraticCurveTo(48,40,29,48)});F(p.hw,()=>{g.moveTo(66,45);g.lineTo(76,40);g.lineTo(74,48)})}
+  if(p.glasses){g.strokeStyle='#3a3030';g.lineWidth=1.1;g.beginPath();g.arc(40,61.5,6,0,Math.PI*2);g.moveTo(62,61.5);g.arc(56,61.5,6,0,Math.PI*2);g.moveTo(46,61);g.lineTo(50,61);g.stroke();g.strokeStyle='rgba(255,255,255,.6)';g.beginPath();g.moveTo(36,58);g.lineTo(38,56);g.moveTo(52,58);g.lineTo(54,56);g.stroke()}
+  g.restore();
+}
 /* ---------- story: chapter 1 ---------- */
 let CUT=null,DLG=null;const ACT=[];
 const LETTERS={
   l1:{title:'အဘိုးရဲ့ စာ (၁)',body:['ချစ်လှစွာသော မြေးလေး —','ဒီစာကို ဖတ်နေချိန်မှာ အဘိုး မရှိတော့ဘူး ဖြစ်မယ်။ ခြံလေးကို မြေးလေးဆီ ထားခဲ့တယ်။ မြေကြီးဟာ ရိုးသားတယ်။ ချွေးထွက်အောင် လုပ်ရင် အသီးအနှံနဲ့ ပြန်ပေးတတ်တယ်။','ရွာက လူတွေဟာ အဘိုးရဲ့ မိသားစုပဲ။ ဒုက္ခရောက်ရင် သူတို့ကို အားကိုးပါ။ သူတို့ ဒုက္ခရောက်ရင်လည်း ကူညီပါ။','ဘာပဲဖြစ်ဖြစ် ဒီမြေကို မရောင်းပါနဲ့။ အကြောင်းရင်းကို နောက်မှ သိလာလိမ့်မယ်။','— အဘိုး']},
-  l2:{title:'အဘိုးရဲ့ စာ (၂)',body:['မြေးလေး —','ဒီသေတ္တာကို တွေ့ပြီဆိုတော့ ဒေါ်အေး ပြောပြလိုက်ပြီ ထင်တယ်။','ဒီတောင်ကုန်းအောက်မှာ ဘယ်တော့မှ မခန်းခြောက်တဲ့ စမ်းရေတစ်ခု ရှိတယ်။ ရွာက ရေတွင်းတွေ၊ လယ်ကွင်းတွေ အားလုံး ဒီရေကြောင့် အသက်ရှင်နေကြတာ။ မြို့က လူတချို့ ဒီရေကို မျက်စိကျနေတယ်လို့ အဘိုး ကြားထားတယ်။','ဒီမြေဟာ ဘိုးဘွားလက်ထက်က စေတီကို လှူထားတဲ့ မြေဖြစ်ကြောင်း ရေးထားတဲ့ ကျောက်စာ တစ်ချပ်ကို ဂူထဲမှာ အဘိုး ဝှက်ထားခဲ့တယ်။ ဂူထဲ မှောင်တယ်။ မီးအိမ် ယူသွားပါ။ မိုးတွင်းဆို ဂူထဲ ရေဝင်တတ်လို့ သတိထားနော်။','— အဘိုး']},
+  l2:{title:'အဘိုးရဲ့ စာ (၂)',body:['မြေးလေး —','ဒီသေတ္တာကို တွေ့ပြီဆိုတော့ ဒေါ်အေး ပြောပြလိုက်ပြီ ထင်တယ်။','ဒီတောင်ကုန်းက ဂူထဲမှာ ရှေးဘိုးဘွားတွေ ထားခဲ့တဲ့ ရှေးဟောင်းအမွေအနှစ်တွေ ရှိတယ်။ နှစ်ပေါင်း ထောင်ချီ ကြာခဲ့ပြီဖြစ်တဲ့ ကြေးဆင်းတုတော်တွေ၊ မြေအိုးမြေခွက်တွေ၊ ရွှေငွေ အဆင်တန်ဆာတွေ။ ရွှေပန်းရွာဟာ ရှေးဟောင်းမြို့ဟောင်းတစ်ခုရဲ့ နေရာပေါ်မှာ တည်ထားတာ ဖြစ်တယ်။','ဒီအမွေအနှစ်တွေကို လူသိရှင်ကြား ပြနိုင်ရင် ဒီဒေသတစ်ခုလုံးကို ယဉ်ကျေးမှု အမွေအနှစ်နယ်မြေအဖြစ် ထိန်းသိမ်းရမှာ ဖြစ်လို့ ဘယ်သူမှ ဖျက်ဆီးခွင့် ရှိမှာ မဟုတ်ဘူး။ ဒါပေမဲ့ မှားတဲ့လက်ထဲ ရောက်ရင် ခိုးယူရောင်းစားခံရမှာ စိုးလို့ အဘိုး ဝှက်ထားခဲ့တာ။','ဂူထဲ မှောင်တယ်။ မီးအိမ် ယူသွားပါ။ မိုးတွင်းဆို ဂူထဲ ရေဝင်တတ်လို့ သတိထားနော်။','— အဘိုး']},
 };
 const QUESTS={
   q_harvest:{title:'ပထမဆုံး ရိတ်သိမ်းမှု',desc:'အသီးအနှံ 5 ခု ရိတ်သိမ်းပြီး ပို့ကုန်ပုံးထဲ ထည့်ပါ',prog:()=>[Math.min(5,S.stats.shipped||0),5],reward:()=>{S.money+=200;return '200 ကျပ်'}},
@@ -721,7 +883,7 @@ function qUpdate(){
 }
 function chapterCard(){
   show(`<h2 class="big">အခန်း ၁ · ပြန်ရောက်ခြင်း</h2><p><b>ပြီးဆုံးပါပြီ။</b></p>
-  <p>အဘိုးရဲ့ စာထဲက လျှို့ဝှက်ချက်: တောင်ကုန်းအောက်က စမ်းရေနဲ့ ဂူထဲက ကျောက်စာ။ ကုမ္ပဏီ တကယ် လိုချင်တာ စက်ရုံမြေလား၊ ရေလား?</p>
+  <p>အဘိုးရဲ့ စာထဲက လျှို့ဝှက်ချက်: တောင်ကုန်းက ဂူထဲမှာ ရှေးဟောင်းမြို့ဟောင်းရဲ့ အမွေအနှစ်တွေ။ ကုမ္ပဏီ တကယ် လိုချင်တာ စက်ရုံမြေလား၊ ဒီအမွေအနှစ်တွေလား?</p>
   <p class="sub">အခန်း ၂ "ရေကြီးခြင်း" (မိုးရာသီ) ကို မကြာခင် ထည့်ပေးပါမယ်။ အဲဒီအထိ ခြံအလုပ် ဆက်လုပ်ပြီး ငွေဆက်စုပါ။</p>
   <div class="btns"><button class="bt pri" type="button" id="mC">ဆက်ဆော့မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
@@ -744,10 +906,9 @@ const SEG=typeof Intl!=='undefined'&&Intl.Segmenter?new Intl.Segmenter('my',{gra
 const SPEAK={nar:{name:''},rep:{name:'ကိုဝင်းနိုင် · ရွှေမြို့ ကုမ္ပဏီ'}};
 function speaker(who){if(SPEAK[who])return SPEAK[who];const d=NPCS.find(n=>n.id===who);return d?{name:d.name}:{name:''}}
 function faceOf(who){return who==='rep'?REP_SPR.down[0]:NS[who]?NS[who].down[0]:null}
-function showDlg(who,text,opts,res){
-  const el=$('dlg'),fc=$('dlgFace'),f=faceOf(who),g=fc.getContext('2d');el.hidden=false;
-  $('dlgName').textContent=speaker(who).name;fc.hidden=!f;
-  if(f){g.clearRect(0,0,32,44);g.fillStyle='#5b4128';g.fillRect(0,0,32,44);g.imageSmoothingEnabled=false;g.drawImage(f,0,0,16,16,0,4,32,32);g.drawImage(f,0,16,16,f.height-16,0,36,32,(f.height-16)*2)}
+function showDlg(who,text,opts,res,ex){
+  const el=$('dlg'),fc=$('dlgFace');el.hidden=false;
+  $('dlgName').textContent=speaker(who).name;fc.hidden=!PT[who];if(PT[who])drawPortrait(fc,who,ex);
   const parts=SEG?Array.from(SEG.segment(text),s=>s.segment):[text];
   DLG={parts,shown:0,opts,res,done:false,sel:0};$('dlgText').textContent='';$('dlgOpts').innerHTML='';$('dlgMore').hidden=true;
 }
@@ -758,8 +919,8 @@ function dlgPick(i){if(!DLG)return;const r=DLG.res;DLG=null;$('dlg').hidden=true
 function dlgAdvance(){if(!DLG)return;if(!DLG.done)return dlgFinish();if(DLG.opts)return dlgPick(DLG.sel);dlgPick(0)}
 function dlgSel(d){if(!DLG||!DLG.opts||!DLG.done)return;DLG.sel=(DLG.sel+d+DLG.opts.length)%DLG.opts.length;$('dlgOpts').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('sel',i===DLG.sel))}
 function updateDlg(dt){if(!DLG||DLG.done)return;DLG.shown+=dt*.045;const n=Math.min(DLG.parts.length,DLG.shown|0);$('dlgText').textContent=DLG.parts.slice(0,n).join('');if(n>=DLG.parts.length)dlgFinish()}
-const say=(who,text)=>new Promise(res=>showDlg(who,text,null,res));
-const choose=(who,text,opts)=>new Promise(res=>showDlg(who,text,opts,res));
+const say=(who,text,ex)=>new Promise(res=>showDlg(who,text,null,res,ex));
+const choose=(who,text,opts,ex)=>new Promise(res=>showDlg(who,text,opts,res,ex));
 /* actors */
 function addActor(id,spr,map,x,y){const a={id,spr,map,x,y,fx:x,fy:y,t:1,dir:'down',path:[],steps:0,res:null};ACT.push(a);return a}
 function moveActor(a,tx,ty){return new Promise(res=>{a.path=bfs(a.map,a.x,a.y,tx,ty);if(!a.path.length){a.x=a.fx=tx;a.y=a.fy=ty;return res()}a.res=res})}
@@ -774,10 +935,10 @@ function nearSpot(){for(const [dx,dy,dir] of [[0,1,'up'],[1,0,'left'],[-1,0,'rig
 async function introScene(){
   const a=addActor('hla',NS.hla,'farm',20,9);const [tx,ty]=nearSpot();
   await wait(400);await moveActor(a,tx,ty);faceTo(a);
-  await say('hla','မင်္ဂလာပါ ကလေးရေ။ ငါက ရွှေပန်းရွာရဲ့ သူကြီး ဦးလှမောင်ပါ။ ရောက်လာတာ ဝမ်းသာတယ်။');
-  await say('hla','မင်းအဘိုး ဆုံးသွားတာ ရွာတစ်ရွာလုံး ဝမ်းနည်းကြတယ်။ ဒီစာကို မင်းဆီ ပေးဖို့ မှာသွားတယ်။');
+  await say('hla','မင်္ဂလာပါ ကလေးရေ။ ငါက ရွှေပန်းရွာရဲ့ သူကြီး ဦးလှမောင်ပါ။ ရောက်လာတာ ဝမ်းသာတယ်။','h');
+  await say('hla','မင်းအဘိုး ဆုံးသွားတာ ရွာတစ်ရွာလုံး ဝမ်းနည်းကြတယ်။ ဒီစာကို မင်းဆီ ပေးဖို့ မှာသွားတယ်။','s');
   await letter('l1');
-  await say('hla','ပြောရမှာ ခက်ပေမဲ့... မြို့က ကုမ္ပဏီတစ်ခုက ရွာမြေတွေကို ဝယ်ဖို့ ကြိုးစားနေတယ်။');
+  await say('hla','ပြောရမှာ ခက်ပေမဲ့... မြို့က ကုမ္ပဏီတစ်ခုက ရွာမြေတွေကို ဝယ်ဖို့ ကြိုးစားနေတယ်။','s');
   await say('hla','ရက် 30 အတွင်း ကျပ် 10,000 စုနိုင်ရင် ရွာ့အသင်းက မြေကို ပြန်ဝယ်ထားနိုင်မယ်။ မင်းခြံက ရွာရဲ့ မျှော်လင့်ချက်ပဲ။');
   const c=await choose('hla','မင်း ဘယ်လို သဘောရလဲ?',['ကြိုးစားပါ့မယ်။ ရွာကို အတူ ကယ်ကြမယ်။','ခြံအလုပ် မလုပ်ဖူးသေးဘူး။ ဘယ်က စရမလဲ?']);
   await say('hla',c===0?'ဒါမှ အဘိုးရဲ့ မြေးပဲ! ရွာသားတွေ အားလုံး မင်းဘက်က ရှိတယ်။':'စိတ်မပူနဲ့။ ငါတို့ ရွာသားတွေ ကူညီမယ်။ တဖြည်းဖြည်း သင်ယူရမှာပေါ့။');
@@ -789,26 +950,26 @@ async function introScene(){
 async function repScene(){
   const a=addActor('rep',REP_SPR,'farm',28,20);const [tx,ty]=nearSpot();
   await moveActor(a,tx,ty);faceTo(a);
-  await say('rep','ဟဲလို... ဒီခြံရဲ့ ပိုင်ရှင်လား။ ကျွန်တော် ရွှေမြို့ ကုမ္ပဏီက ကိုဝင်းနိုင်ပါ။');
-  await say('rep','ကုမ္ပဏီက ဒီရွာနဲ့ ပတ်ဝန်းကျင် မြေတွေကို ဝယ်ယူပြီး စက်ရုံကြီး ဆောက်မှာပါ။ အလုပ်အကိုင်တွေလည်း ရမှာပေါ့။');
-  await say('rep','ဒီခြံကိုလည်း ဈေးကောင်းပေးပြီး ဝယ်ချင်ပါတယ်။ ဒါ ကုမ္ပဏီရဲ့ စာပါ။');
+  await say('rep','ဟဲလို... ဒီခြံရဲ့ ပိုင်ရှင်လား။ ကျွန်တော် ရွှေမြို့ ကုမ္ပဏီက ကိုဝင်းနိုင်ပါ။','a');
+  await say('rep','ကုမ္ပဏီက ဒီရွာနဲ့ ပတ်ဝန်းကျင် မြေတွေကို ဝယ်ယူပြီး စက်ရုံကြီး ဆောက်မှာပါ။ အလုပ်အကိုင်တွေလည်း ရမှာပေါ့။','a');
+  await say('rep','ဒီခြံကိုလည်း ဈေးကောင်းပေးပြီး ဝယ်ချင်ပါတယ်။ ဒါ ကုမ္ပဏီရဲ့ စာပါ။','a');
   const c=await choose('rep','ဘယ်လိုလဲ?',['ဒီခြံ မရောင်းဘူး။ အဘိုးရဲ့ မြေ။','စဉ်းစားကြည့်ပါ့မယ်။']);S.flags.repAnswer=c;
   await say('rep',c===0?'ဟား... ရက် 30 ပြည့်ရင် ရွာမြေတွေ အလိုလို ကုမ္ပဏီပိုင် ဖြစ်သွားမှာပါ။ စောင့်ကြည့်ကြတာပေါ့။':'ကောင်းပါတယ်။ ပညာရှိတဲ့ ရွေးချယ်မှုပေါ့။ ကျွန်တော် ပြန်လာခဲ့မယ်။');
   a.dir='down';await wait(500);
-  await say('rep','...ဒါနဲ့ ခြံတောင်ဘက် တောင်ကုန်းနားက ရေက တော်တော် ကြည်တယ်ဆို။ ဟုတ်လား?');
+  await say('rep','...ဒါနဲ့ ခြံတောင်ဘက် တောင်ကုန်းက ဂူထဲမှာ ရှေးဟောင်းပစ္စည်းတွေ ရှိတယ်လို့ ကြားဖူးတယ်။ ဟုတ်လား?','a');
   await say('nar','ကိုဝင်းနိုင်က တောင်ဘက်ကို ခဏ ငေးကြည့်ပြီး ပြုံးကာ ထွက်သွားတယ်။');
   qStart('q_report');
   await moveActor(a,28,20);
 }
 async function reportScene(){
   await say('hla','ကိုဝင်းနိုင် ဆိုတဲ့လူ မင်းဆီလည်း ရောက်သွားပြီလား။ ငါ့ဆီ လာပြီး ရွာမြေစာရင်းတွေ တောင်းသွားတယ်။');
-  await say('hla','စက်ရုံဆောက်မယ် ဆိုပေမဲ့... သူ မေးတာတွေက တောင်ကုန်းနဲ့ ရေတွင်းတွေ အကြောင်းချည်းပဲ။ ထူးဆန်းတယ်။');
+  await say('hla','စက်ရုံဆောက်မယ် ဆိုပေမဲ့... သူ မေးတာတွေက တောင်ကုန်းနဲ့ ဂူတွေ အကြောင်းချည်းပဲ။ ထူးဆန်းတယ်။','s');
   await say('hla','မင်းအဘိုးလည်း နောက်ဆုံး နှစ်တွေမှာ တောင်ကုန်းပေါ် ခဏခဏ တက်သွားတတ်တယ်။ ဒေါ်အေးကို မေးကြည့်ပါ။ အဘိုးနဲ့ ငယ်သူငယ်ချင်းပဲ။');
   S.flags.reported=1;qStart('q_letter');
 }
 async function ayeScene(){
   await say('aye','မင်းအဘိုးလား... လပြည့်နေ့တိုင်း တောင်ကုန်းပေါ်က စေတီပျက်ဆီ ဆီမီးသွားထွန်းတယ်။');
-  await say('aye','"အဲဒီမှာ ရွာရဲ့ အသက် ရှိတယ်" လို့ ပြောတတ်တယ်။ ဘာကို ဆိုလိုတာလဲ ငါလည်း မသိဘူး။');
+  await say('aye','"အဲဒီမှာ ရွာရဲ့ ဘိုးဘွား အမွေ ရှိတယ်" လို့ ပြောတတ်တယ်။ ဘာကို ဆိုလိုတာလဲ ငါလည်း မသိဘူး။','s');
   await say('aye','ခြံရဲ့ တောင်ဘက် တောထဲ ဝင်ပြီး ကျောက်လှေကားကနေ တောင်ကုန်းပေါ် တက်လို့ရတယ်။ သတိထားသွားနော်။');
   S.flags.ayeHint=1;
 }
@@ -920,7 +1081,7 @@ cv.addEventListener('contextmenu',e=>e.preventDefault());
 function update(dt){
   if(toastT>0){toastT-=dt;if(toastT<=0)toastEl.classList.remove('on')}
   parts=parts.filter(p=>(p.life-=dt)>0);parts.forEach(p=>{p.x+=p.vx*dt/1000;p.y+=p.vy*dt/1000;p.vy+=200*dt/1000});
-  if(anim&&(anim.t-=dt)<=0)anim=null;
+  updateAct(dt);
   if(fade>0)fade=Math.max(0,fade-dt/300);
   updateDlg(dt);updateActors(dt);
   if(paused||!S||CUT)return;
@@ -929,7 +1090,7 @@ function update(dt){
   if(S.min>=1440){toast('');endDay(true);return}
   if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
   updateFun(dt,ticked);
-  if(!mv&&held.length&&fade<.5&&!fishRT)tryMove(held[held.length-1]);
+  if(!mv&&held.length&&fade<.5&&!fishRT&&!anim)tryMove(held[held.length-1]);
   updateNPCs(dt);
   const night=S.min>=1140;
   chickRT.forEach(c=>{
@@ -1348,7 +1509,7 @@ function treeKind(x,y){const h=hash(x*3,y*5);
   if(y>=34)return h%3?'round':'coco';
   return SP_FOREST[h%SP_FOREST.length];}
 function drawTreeAt(x,y,cx,cy,s){const c=SPECIES[s][treeKind(x,y)];C.drawImage(c,x*T-cx+8-(c.width>>1),y*T-cy+17-c.height)}
-const ICON={};['hoe','can','sickle','hammer'].forEach(id=>{const c=mk(16,16);drawIcon(c.getContext('2d'),id);ICON[id]=c});
+const ICON={};['hoe','can','sickle','hammer','axe','seed','tea','rod'].forEach(id=>{const c=mk(16,16);drawIcon(c.getContext('2d'),id);ICON[id]=c});
 
 /* ----- static ground layer ----- */
 const BG=mk(96*T,58*T),bg=BG.getContext('2d');
@@ -1510,15 +1671,6 @@ function fit(){
 addEventListener('resize',fit);
 
 function playerPos(){let rx=S.px,ry=S.py;if(mv){const k=Math.min(1,mv.t);rx=mv.fx+(S.px-mv.fx)*k;ry=mv.fy+(S.py-mv.fy)*k}return[rx,ry]}
-function drawPlayer(px,py){
-  const fr=mv?((stepCount+(mv.t>.5?1:0))%2?1:2):0;py-=(mv&&mv.t>.25&&mv.t<.75)?1:0;
-  const tool=()=>{if(!anim||!ICON[anim.tool])return;const k=1-anim.t/220,[dx,dy]=DIRS[S.dir];
-    C.drawImage(ICON[anim.tool],px+dx*10+(dy?(S.dir==='down'?2:-2):0),py+dy*8+k*7)};
-  R('rgba(0,0,0,.28)',px+4,py+21,8,2);R('rgba(0,0,0,.18)',px+3,py+21,10,1);
-  if(S.dir==='up')tool();
-  C.drawImage(PS[S.dir][fr],px,py);
-  if(S.dir!=='up')tool();
-}
 function marker(mx,my,now){const p=((now/280)|0)%2,col='rgba(255,243,196,.95)',a=mx-p,b=my-p,c2=mx+15+p,d=my+15+p;
   R(col,a,b,3,1);R(col,a,b,1,3);R(col,c2-2,b,3,1);R(col,c2,b,1,3);R(col,a,d,3,1);R(col,a,d-2,1,3);R(col,c2-2,d,3,1);R(col,c2,d-2,1,3)}
 
@@ -1581,8 +1733,9 @@ function render(now){
   if(S.scene==='house'){renderHouse(now);if(fade>0){R(`rgba(0,0,0,${fade})`,0,0,VW*T,VH*T)}return}
   if(dirty){buildBG();dirty=false}
   const[rx,ry]=playerPos(),s=curS();
-  const cx=Math.round(Math.max(0,Math.min(MW*T-VW*T,rx*T+8-VW*T/2)));
-  const cy=Math.round(Math.max(0,Math.min(MH*T-VH*T,ry*T+8-VH*T/2)));
+  let cx=Math.round(Math.max(0,Math.min(MW*T-VW*T,rx*T+8-VW*T/2)));
+  let cy=Math.round(Math.max(0,Math.min(MH*T-VH*T,ry*T+8-VH*T/2)));
+  if(shake>0){cx+=Math.round((Math.random()-.5)*shake*2);cy+=Math.round((Math.random()-.5)*shake*2)}
   const x0=Math.floor(cx/T),y0=Math.floor(cy/T),day=S.min<1080,open=S.min>=480&&S.min<1080;
   ctx.drawImage(BG,cx,cy,VW*T,VH*T,0,0,VW*T,VH*T);
   for(let y=y0;y<=y0+VH&&y<MH;y++)for(let x=x0;x<=x0+VW&&x<MW;x++){const q=S.tiles[y][x];if(q===WATER)drawWater(x,y,x*T-cx,y*T-cy,now);else if(q===FALL)drawFall(x,y,x*T-cx,y*T-cy,now)}
