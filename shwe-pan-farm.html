@@ -1,0 +1,616 @@
+<title>Shwe Pan Farm</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&family=VT323&display=swap">
+<style>
+:root{
+  /* Layout: one-screen game. HUD strip, pixel stage, tool belt, touch pad. Single dark "teak wood" look by choice. */
+  --wood:#22190f;
+  --wood-2:#352617;
+  --plank:#5b4128;
+  --paper:#f1e2c2;
+  --muted:#c2ab84;
+  --leaf:#8fd16a;
+  --gold:#f2c14e;
+  --sky:#7cc4f0;
+  --danger:#ef7a5d;
+  --display:'VT323','Padauk',system-ui,sans-serif;
+  --body:'Padauk','VT323',system-ui,sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--wood);color:var(--paper);font-family:var(--body);font-size:15px;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#app{height:100%;box-sizing:border-box;display:flex;flex-direction:column;gap:8px;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:880px;margin:0 auto}
+
+#hud{display:grid;grid-template-columns:1fr auto;gap:6px 8px;align-items:center}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
+.chip{font-size:19px;background:var(--wood-2);border:1px solid var(--plank);border-radius:6px;padding:2px 8px;font-family:var(--display);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.6}
+.chip.gold{color:var(--gold)}
+.chip.btn:hover{border-color:var(--gold)}
+.bars{grid-column:1/-1;display:grid;grid-template-columns:1fr 1.4fr;gap:10px}
+.bar{display:flex;align-items:center;gap:6px;min-width:0;font-size:13px;color:var(--muted)}
+.bar i{flex:1;height:10px;background:#120d08;border:1px solid var(--plank);border-radius:3px;overflow:hidden;min-width:40px}
+.bar b{display:block;height:100%;background:var(--leaf);transition:width .3s}
+.bar b.g{background:var(--gold)}
+.bar em{font-style:normal;font-family:var(--display);color:var(--paper);font-size:16px;white-space:nowrap}
+
+#stage{flex:1;min-height:0;position:relative;display:grid;place-items:center}
+#cv{image-rendering:pixelated;image-rendering:crisp-edges;border:3px solid var(--plank);border-radius:6px;background:#3a6b2a;touch-action:none;max-width:100%}
+#toast{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(20,14,8,.88);border:1px solid var(--plank);border-radius:8px;padding:4px 12px;font-size:14px;max-width:90%;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s}
+#toast.on{opacity:1}
+
+#belt{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.slot{display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--wood-2);border:2px solid var(--plank);border-radius:8px;padding:4px 2px;min-width:0}
+.slot canvas{width:28px;height:28px;image-rendering:pixelated}
+.slot span{font-size:11px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.slot small{font-family:var(--display);font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.slot.on{border-color:var(--gold);background:#4a3520}
+
+#pad{display:flex;justify-content:space-between;align-items:center;gap:12px;touch-action:none}
+.dpad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,48px);gap:3px}
+.dpad button,.ab button{background:var(--wood-2);border:2px solid var(--plank);border-radius:10px;font-family:var(--display);font-size:18px;touch-action:none}
+.dpad button:active,.dpad button.held,.ab button:active{background:var(--plank)}
+.ab{display:flex;gap:14px;align-items:center}
+.ab button{width:70px;height:70px;border-radius:50%;display:grid;place-items:center;line-height:1.1}
+.ab button b{font-family:var(--display);font-size:22px}
+.ab button small{font-size:11px;color:var(--muted)}
+.ab .a{border-color:#7a9a4a}
+.ab .b{border-color:#9a6a3a;transform:translateY(-18px)}
+#keys{display:none;text-align:center;color:var(--muted);font-size:13px}
+@media (hover:hover) and (pointer:fine){#pad{display:none}#keys{display:block}}
+
+#modal{position:fixed;inset:0;background:rgba(10,7,4,.72);display:grid;place-items:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));z-index:20}
+.card{background:var(--wood-2);border:3px solid var(--plank);border-radius:12px;padding:18px;max-width:440px;width:100%;max-height:86vh;overflow:auto;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+.card h2{margin:0;font-family:var(--display);font-size:22px;color:var(--gold);text-wrap:balance;line-height:1.5}
+.card h2.big{font-size:30px}
+.card p{margin:0;line-height:1.8}
+.card .sub{color:var(--muted);font-size:13px}
+.card ul{margin:0;padding-left:18px;line-height:1.8}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.bt{background:var(--plank);border:2px solid #7a5a38;border-radius:8px;padding:6px 14px}
+.bt.pri{background:#4d6b2a;border-color:var(--leaf)}
+.bt:disabled{opacity:.4;cursor:default}
+.item{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:8px 0;border-top:1px solid var(--plank)}
+.item b{font-weight:700}
+.item .sub{grid-column:1}
+.item .bt{grid-row:1/3;grid-column:2;font-family:var(--display);font-variant-numeric:tabular-nums;white-space:nowrap}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-variant-numeric:tabular-nums}
+.kv span:nth-child(even){font-family:var(--display);text-align:right}
+@media (max-width:420px){.dpad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,44px)}.ab button{width:62px;height:62px}}
+@media (prefers-reduced-motion:reduce){#toast,.bar b{transition:none}}
+</style>
+
+<div id="app">
+  <header id="hud">
+    <div class="row"><span class="chip" id="hDay"></span><span class="chip" id="hTime"></span><span class="chip" id="hWx"></span></div>
+    <div class="row"><span class="chip gold" id="hMoney"></span><button class="chip btn" id="bBag" type="button">အိတ်</button></div>
+    <div class="bars">
+      <div class="bar"><span>အားအင်</span><i><b id="eBar"></b></i></div>
+      <div class="bar"><span>ရွာကယ်ငွေ</span><i><b id="gBar" class="g"></b></i><em id="gTxt"></em></div>
+    </div>
+  </header>
+  <main id="stage"><canvas id="cv" aria-label="ခြံ မြေပုံ"></canvas><div id="toast" role="status"></div></main>
+  <nav id="belt" aria-label="ကိရိယာများ"></nav>
+  <section id="pad">
+    <div class="dpad">
+      <span></span><button type="button" data-d="up" aria-label="အပေါ်">▲</button><span></span>
+      <button type="button" data-d="left" aria-label="ဘယ်">◀</button><span></span><button type="button" data-d="right" aria-label="ညာ">▶</button>
+      <span></span><button type="button" data-d="down" aria-label="အောက်">▼</button><span></span>
+    </div>
+    <div class="ab">
+      <button type="button" class="a" id="btnA"><span><b>A</b><br><small>သုံးမယ်</small></span></button>
+      <button type="button" class="b" id="btnB"><span><b>B</b><br><small>ကိုင်မယ်</small></span></button>
+    </div>
+  </section>
+  <div id="keys">မြှားခလုတ် / WASD လမ်းလျှောက် · Z / Space ကိရိယာသုံး · X / Enter ရိတ်၊ ကောက်၊ ပို့၊ အိပ် · 1–6 ကိရိယာရွေး · R မျိုးစေ့ပြောင်း</div>
+  <div id="modal" hidden><div class="card" id="mcard"></div></div>
+</div>
+
+<script>
+(()=>{
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const T=16,VW=15,VH=11,MW=30,MH=22,GOAL=10000,DAYS=30,TICK=300;
+const G=0,SOIL=1,WEED=2,ROCK=3,TREE=4,WATER=5,PATH=6,FENCE=7,HOUSE=8,BIN=9,TROUGH=10,STALL=11,FLOWER=12;
+const SOLID=new Set([ROCK,TREE,WATER,FENCE,HOUSE,BIN,TROUGH,STALL]);
+const CROPS={
+  turnip:{name:'မုန်လာဥ',grow:4,regrow:0,sell:50,bag:120,col:'#f4eef6',col2:'#a35bb5'},
+  potato:{name:'အာလူး',grow:6,regrow:0,sell:80,bag:200,col:'#c49a5a',col2:'#f6f1d0'},
+  tomato:{name:'ခရမ်းချဉ်သီး',grow:8,regrow:3,sell:60,bag:300,col:'#e2402f',col2:'#ff8a6c'},
+  corn:{name:'ပြောင်းဖူး',grow:11,regrow:4,sell:100,bag:400,col:'#f2cf3a',col2:'#fbe68a'},
+};
+const CROP_IDS=Object.keys(CROPS);
+const EGG_PRICE=50;
+const TOOLS=[{id:'hoe',name:'ပေါက်ပြား'},{id:'can',name:'ရေပုံး'},{id:'sickle',name:'တံစဉ်'},{id:'hammer',name:'တူ'},{id:'seed',name:'မျိုးစေ့'},{id:'tea',name:'လက်ဖက်ရည်'}];
+const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
+const YARD={x0:22,x1:27,y0:11,y1:15};
+const FIELD={x0:4,x1:18,y0:9,y1:19};
+const DOOR=[5,5];
+const KEY='shwepan-farm-v1';
+
+let S=null;
+let mv=null, held=[], paused=true, acc=0, last=0, anim=null, parts=[], chickRT=[];
+
+/* ---------- helpers ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const hash=(x,y)=>{let h=x*374761393+y*668265263;h=(h^(h>>13))*1274126177;return (h^(h>>16))>>>0};
+const fmt=n=>n.toLocaleString('en-US');
+const inField=(x,y)=>x>=FIELD.x0&&x<=FIELD.x1&&y>=FIELD.y0&&y<=FIELD.y1;
+const tileAt=(x,y)=>(x<0||y<0||x>=MW||y>=MH)?TREE:S.tiles[y][x];
+const walkable=(x,y)=>!SOLID.has(tileAt(x,y));
+const front=()=>{const d=DIRS[S.dir];return[S.px+d[0],S.py+d[1]]};
+const R=(c,x,y,w,h)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h)};
+
+/* ---------- world ---------- */
+function genMap(seed){
+  const rnd=mulberry32(seed),t=[];
+  for(let y=0;y<MH;y++){t[y]=[];for(let x=0;x<MW;x++)t[y][x]=G}
+  for(let x=0;x<MW;x++){t[0][x]=TREE;t[MH-1][x]=TREE}
+  for(let y=0;y<MH;y++){t[y][0]=TREE;t[y][MW-1]=TREE}
+  [[1,1],[2,1],[1,2],[11,1],[13,2],[16,1],[19,1],[20,2],[9,2],[1,19],[2,20],[1,20],[28,7],[27,8],[22,7],[1,8],[1,13],[28,19]].forEach(([x,y])=>t[y][x]=TREE);
+  for(let y=2;y<=5;y++)for(let x=3;x<=7;x++)t[y][x]=HOUSE;
+  for(let y=2;y<=5;y++)for(let x=23;x<=27;x++){const c=(y===2||y===5)&&(x===23||x===27);t[y][x]=c?G:WATER}
+  t[6][5]=PATH;for(let x=5;x<=20;x++)t[7][x]=PATH;for(let y=7;y<=20;y++)t[y][20]=PATH;for(let x=20;x<=27;x++)t[20][x]=PATH;
+  t[6][9]=BIN;
+  for(let x=21;x<=28;x++){t[10][x]=FENCE;t[16][x]=FENCE}
+  for(let y=10;y<=16;y++){t[y][21]=FENCE;t[y][28]=FENCE}
+  t[13][21]=PATH;
+  t[11][22]=TROUGH;
+  t[19][24]=STALL;t[19][25]=STALL;
+  for(let y=FIELD.y0;y<=FIELD.y1;y++)for(let x=FIELD.x0;x<=FIELD.x1;x++){const r=rnd();t[y][x]=r<.3?WEED:r<.42?ROCK:G}
+  for(let i=0;i<40;i++){const x=1+Math.floor(rnd()*28),y=1+Math.floor(rnd()*20);if(t[y][x]===G&&!inField(x,y)&&!(x>=21&&y>=10&&y<=16))t[y][x]=FLOWER}
+  return t;
+}
+function fresh(){
+  const seed=(Math.random()*1e9)|0;
+  return{day:1,min:360,money:500,energy:100,maxE:100,water:30,canMax:30,weather:'sun',tomorrow:Math.random()<.25?'rain':'sun',
+    tiles:genMap(seed),wet:Array.from({length:MH},()=>Array(MW).fill(0)),crops:{},
+    seeds:{turnip:9,potato:0,tomato:0,corn:0},seedSel:'turnip',
+    produce:{turnip:0,potato:0,tomato:0,corn:0,egg:0},shippedValue:0,shippedCount:0,
+    feed:0,trough:0,chickens:[],eggs:[],tea:1,px:5,py:6,dir:'down',tool:0,
+    stats:{earned:0,harvested:0,eggs:0},over:false};
+}
+function save(){if(!S)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function loadSave(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}}
+function clearSave(){try{localStorage.removeItem(KEY)}catch(e){}}
+function syncChickens(){chickRT=S.chickens.map(c=>({x:c.x,y:c.y,tx:c.x,ty:c.y,wait:Math.random()*2,face:1}))}
+
+/* ---------- toast & effects ---------- */
+let toastT=0;const toastEl=document.getElementById('toast');
+function toast(m){toastEl.textContent=m;toastEl.classList.add('on');toastT=2600}
+function burst(x,y,col,n=6){for(let i=0;i<n;i++)parts.push({x:x*T+8,y:y*T+8,vx:(Math.random()-.5)*60,vy:-Math.random()*60-10,life:400,col})}
+
+/* ---------- actions ---------- */
+function spend(n){if(S.energy<n){toast('အားအင်ကုန်နေပြီ။ လက်ဖက်ရည်သောက် ဒါမှမဟုတ် အိမ်ပြန်အိပ်ပါ');return false}S.energy-=n;return true}
+function useTool(){
+  if(paused||mv)return;
+  const tool=TOOLS[S.tool].id,[fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
+  anim={t:220,tool};
+  if(tool==='hoe'){
+    if(t===G||t===FLOWER){
+      if(!inField(fx,fy)){toast('ခြံမြေကွက်ထဲမှာပဲ ထွန်လို့ရတယ်');return}
+      if(!spend(2))return;S.tiles[fy][fx]=SOIL;S.wet[fy][fx]=S.weather==='rain'?1:0;burst(fx,fy,'#7a4f2a');
+    }else if(t===WEED)toast('ပေါင်းပင်ကို တံစဉ်နဲ့ အရင်ရှင်းပါ');
+    else if(t===ROCK)toast('ကျောက်တုံးကို တူနဲ့ ခွဲပါ');
+    else if(t===SOIL)toast(crop?'ဒီမှာ စိုက်ထားပြီးသား':'ထွန်ပြီးသားပါ။ မျိုးစေ့ချလို့ရပြီ');
+  }else if(tool==='can'){
+    if(t===WATER){S.water=S.canMax;toast(`ရေဖြည့်ပြီးပြီ (${S.water}/${S.canMax})`);burst(fx,fy,'#9fd0ff',8)}
+    else if(t===SOIL){
+      if(S.wet[fy][fx]){toast('ရေလောင်းပြီးသားပါ');return}
+      if(S.water<=0){toast('ရေကုန်ပြီ။ ရေကန်ကို မျက်နှာမူပြီး A နှိပ်ပါ');return}
+      if(!spend(1))return;S.water--;S.wet[fy][fx]=1;burst(fx,fy,'#7fc0ff');
+    }else toast('ထွန်ထားတဲ့ မြေကို ရေလောင်းပါ');
+  }else if(tool==='sickle'){
+    if(t===WEED){if(!spend(1))return;S.tiles[fy][fx]=G;burst(fx,fy,'#3f8a2c',8)}
+    else toast('ပေါင်းပင်ကို ရှင်းဖို့ သုံးပါ');
+  }else if(tool==='hammer'){
+    if(t===ROCK){if(!spend(3))return;S.tiles[fy][fx]=G;burst(fx,fy,'#9a9ca0',10)}
+    else toast('ကျောက်တုံးကို ခွဲဖို့ သုံးပါ');
+  }else if(tool==='seed'){
+    anim=null;const sp=S.seedSel;
+    if(S.seeds[sp]<=0){toast(`${CROPS[sp].name} မျိုးစေ့ မရှိတော့ဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ`);return}
+    if(t===SOIL&&!crop){S.crops[k]={type:sp,age:0};S.seeds[sp]--;burst(fx,fy,'#e8d18a',4)}
+    else if(t===SOIL)toast('ဒီမှာ စိုက်ထားပြီးသား');
+    else toast('ထွန်ထားတဲ့ မြေပေါ်မှာ စိုက်ပါ');
+  }else if(tool==='tea'){
+    anim=null;
+    if(S.tea<=0)toast('လက်ဖက်ရည် မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
+    else if(S.energy>=S.maxE)toast('အားအင် ပြည့်နေတယ်');
+    else{S.tea--;S.energy=Math.min(S.maxE,S.energy+40);toast('လက်ဖက်ရည် သောက်လိုက်တယ်။ အားအင် +40')}
+  }
+  belt();
+}
+function act(){
+  if(paused||mv)return;
+  const [fx,fy]=front(),t=tileAt(fx,fy),k=fx+','+fy,crop=S.crops[k];
+  const egg=S.eggs.findIndex(e=>e.x===fx&&e.y===fy);
+  if(t===STALL)return openShop();
+  if(t===BIN)return ship();
+  if(t===HOUSE){if(fx===DOOR[0]&&fy===DOOR[1])return askSleep();return toast('အိမ်တံခါးက အလယ်မှာပါ')}
+  if(t===TROUGH)return feedChickens();
+  if(egg>=0){S.eggs.splice(egg,1);S.produce.egg++;S.stats.eggs++;burst(fx,fy,'#fff6dc');return toast('ကြက်ဥ ကောက်လိုက်တယ်')}
+  if(crop){
+    const d=CROPS[crop.type];
+    if(crop.age>=d.grow){
+      S.produce[crop.type]++;S.stats.harvested++;burst(fx,fy,d.col,8);
+      if(d.regrow)crop.age=d.grow-d.regrow;else delete S.crops[k];
+      toast(`${d.name} ရိတ်သိမ်းပြီ။ ပို့ကုန်ပုံးထဲ ထည့်ပါ`);
+    }else toast(`${d.name} ရင့်ဖို့ ${d.grow-crop.age} ရက် လိုသေးတယ်${S.wet[fy][fx]?'':' · ရေမလောင်းရသေးဘူး'}`);
+    return;
+  }
+  if(t===WATER)return toast('ရေပုံးကိုင်ပြီး A နှိပ်ရင် ရေဖြည့်မယ်');
+  if(t===SOIL)return toast('မျိုးစေ့ကိုင်ပြီး A နှိပ်ရင် စိုက်မယ်');
+}
+function ship(){
+  let n=0,v=0;
+  CROP_IDS.forEach(id=>{n+=S.produce[id];v+=S.produce[id]*CROPS[id].sell;S.produce[id]=0});
+  n+=S.produce.egg;v+=S.produce.egg*EGG_PRICE;S.produce.egg=0;
+  if(!n)return toast('ပို့စရာ မရှိသေးဘူး။ ရိတ်သိမ်းထားတာကို ဒီပုံးထဲ ထည့်ပါ');
+  S.shippedValue+=v;S.shippedCount+=n;
+  toast(`${n} ခု ပို့လိုက်ပြီ (+${fmt(v)} ကျပ်)။ မနက်ဖြန် ငွေရမယ်`);
+}
+function feedChickens(){
+  const need=S.chickens.length-S.trough;
+  if(!S.chickens.length)return toast('ကြက် မရှိသေးဘူး။ ဈေးဆိုင်မှာ ဝယ်လို့ရတယ်');
+  if(need<=0)return toast('ကြက်စာ ပြည့်နေပြီ');
+  if(S.feed<=0)return toast('ကြက်စာ မရှိဘူး။ ဈေးဆိုင်မှာ ဝယ်ပါ');
+  const put=Math.min(need,S.feed);S.feed-=put;S.trough+=put;
+  toast(`ကြက်စာ ${put} ခွက် ထည့်လိုက်တယ် (${S.trough}/${S.chickens.length})`);
+}
+
+/* ---------- day cycle ---------- */
+function endDay(passedOut){
+  const income=S.shippedValue,count=S.shippedCount;
+  S.money+=income;S.stats.earned+=income;S.shippedValue=0;S.shippedCount=0;
+  for(const k in S.crops){const [x,y]=k.split(',').map(Number);if(S.wet[y][x])S.crops[k].age++}
+  for(let y=0;y<MH;y++)S.wet[y].fill(0);
+  const fed=Math.min(S.trough,S.chickens.length);S.trough=0;let laid=0;
+  for(let i=0;i<fed&&S.eggs.length<14;i++){
+    for(let tries=0;tries<20;tries++){
+      const x=YARD.x0+Math.floor(Math.random()*(YARD.x1-YARD.x0+1)),y=YARD.y0+Math.floor(Math.random()*(YARD.y1-YARD.y0+1));
+      if(S.tiles[y][x]===G&&!S.eggs.some(e=>e.x===x&&e.y===y)){S.eggs.push({x,y});laid++;break}
+    }
+  }
+  for(let i=0;i<5;i++){const x=FIELD.x0+Math.floor(Math.random()*15),y=FIELD.y0+Math.floor(Math.random()*11);if(S.tiles[y][x]===G)S.tiles[y][x]=WEED}
+  if(S.day>=DAYS){S.over=true;save();return ending()}
+  S.day++;S.weather=S.tomorrow;S.tomorrow=Math.random()<.25?'rain':'sun';
+  if(S.weather==='rain')for(let y=0;y<MH;y++)for(let x=0;x<MW;x++)if(S.tiles[y][x]===SOIL)S.wet[y][x]=1;
+  S.min=360;S.energy=passedOut?60:S.maxE;S.px=5;S.py=6;S.dir='down';mv=null;
+  syncChickens();save();
+  morning(income,count,laid,passedOut);
+}
+
+/* ---------- modals ---------- */
+const modal=document.getElementById('modal'),card=document.getElementById('mcard');
+function show(html,bind){card.innerHTML=html;modal.hidden=false;paused=true;held=[];bind&&bind(card);const b=card.querySelector('.bt.pri')||card.querySelector('.bt');b&&b.focus()}
+function close(){modal.hidden=true;paused=false;last=performance.now();hud();belt()}
+modal.addEventListener('click',e=>{if(e.target===modal&&!S.over&&card.dataset.dismiss!=='no')close()});
+
+function intro(){
+  const sv=loadSave();
+  card.dataset.dismiss='no';
+  show(`<h2 class="big">ရွှေပန်းရွာ ခြံလေး</h2>
+  <p>အဘိုး ထားခဲ့တဲ့ ခြံလေးကို ပြန်ရောက်လာပြီ။ ဒါပေမဲ့ မြို့က ကုမ္ပဏီကြီးတစ်ခုက ရွာမြေတွေကို ဝယ်ပြီး စက်ရုံဆောက်တော့မယ်တဲ့။</p>
+  <p><b>ရက် 30 အတွင်း ကျပ် 10,000 စုနိုင်ရင်</b> ရွာသားတွေနဲ့ အတူ မြေကို ပြန်ဝယ်ပြီး ရွာကို ကယ်နိုင်မယ်။</p>
+  <ul class="sub"><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ကြက်မွေးပြီး ကြက်စာကျွေးရင် ကြက်ဥ ရမယ်</li><li>ညဘက် အိမ်တံခါးမှာ B နှိပ်ပြီး အိပ်ပါ</li></ul>
+  <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button></div>`,c=>{
+    const cont=c.querySelector('#mCont');
+    if(cont)cont.onclick=()=>{S=sv;syncChickens();card.dataset.dismiss='';close()};
+    c.querySelector('#mNew').onclick=()=>{S=fresh();syncChickens();save();card.dataset.dismiss='';close();toast('ပေါက်ပြားနဲ့ မြေထွန်ပြီး မုန်လာဥ စိုက်ကြည့်ပါ')};
+  });
+}
+function morning(income,count,laid,passedOut){
+  const left=DAYS-S.day+1;
+  show(`<h2>နေ့ ${S.day} · ${S.weather==='rain'?'မိုးရွာနေတယ်':'နေသာတယ်'}</h2>
+  ${passedOut?'<p>ညသန်းခေါင်ကျော်ထိ အလုပ်လုပ်လို့ မောပြီး အိပ်ပျော်သွားတယ်။ ဒီနေ့ အားအင် 60 ပဲ ရှိမယ်။</p>':''}
+  <div class="kv"><span>မနေ့က ရောင်းရငွေ</span><span>+${fmt(income)} ကျပ် (${count} ခု)</span>
+  <span>စုထားတဲ့ ငွေ</span><span>${fmt(S.money)} / ${fmt(GOAL)}</span>
+  ${laid?`<span>ကြက်ဥ</span><span>${laid} လုံး ဥထားတယ်</span>`:''}
+  <span>ကျန်ရက်</span><span>${left} ရက်</span></div>
+  ${S.weather==='rain'?'<p class="sub">မိုးရွာလို့ ဒီနေ့ ရေလောင်းစရာ မလိုဘူး။</p>':''}
+  ${left<=5?'<p class="sub">ရက်နည်းနည်းပဲ ကျန်တော့တယ်။ ရင့်မယ့် အသီးအနှံကိုပဲ စိုက်ပါ။</p>':''}
+  <div class="btns"><button class="bt pri" type="button" id="mGo">အလုပ်စမယ်</button></div>`,c=>c.querySelector('#mGo').onclick=close);
+}
+function askSleep(){
+  const late=S.min<1020;
+  show(`<h2>အိပ်မလား?</h2><p>ဒီနေ့ကို ပြီးဆုံးပြီး မနက်ဖြန် နေ့ ${S.day+1>DAYS?'နောက်ဆုံး':S.day+1} ကို စမယ်။${late?' နေမဝင်သေးဘူး။':''}</p>
+  ${S.shippedValue?`<p class="sub">ဒီနေ့ ပို့ထားတာ +${fmt(S.shippedValue)} ကျပ် ရမယ်။</p>`:''}
+  ${CROP_IDS.some(id=>S.produce[id])||S.produce.egg?'<p class="sub">အိတ်ထဲမှာ မပို့ရသေးတဲ့ ပစ္စည်း ရှိသေးတယ်။</p>':''}
+  ${S.day>=DAYS?'<p><b>ဒါ နောက်ဆုံးည ဖြစ်တယ်။ အိပ်ပြီးရင် ရလဒ် ကြေညာမယ်။</b></p>':''}
+  <div class="btns"><button class="bt pri" type="button" id="mY">အိပ်မယ်</button><button class="bt" type="button" id="mN">မအိပ်သေးဘူး</button></div>`,c=>{
+    c.querySelector('#mY').onclick=()=>{modal.hidden=true;endDay(false)};c.querySelector('#mN').onclick=close});
+}
+function ending(){
+  const win=S.money>=GOAL;
+  card.dataset.dismiss='no';
+  show(`<h2 class="big">${win?'ရွာကို ကယ်နိုင်ခဲ့ပြီ!':'ငွေ မလုံလောက်ခဲ့ဘူး'}</h2>
+  <p>${win?`စုထားတဲ့ ငွေ ${fmt(S.money)} ကျပ်နဲ့ ရွာမြေကို ပြန်ဝယ်နိုင်ခဲ့တယ်။ ရွှေပန်းရွာမှာ ဈေးဆိုင်လေး ဆက်ဖွင့်မယ်၊ ကလေးတွေ ကွင်းထဲ ဆက်ဆော့နိုင်မယ်။`:`ကျပ် ${fmt(S.money)} ပဲ စုနိုင်ခဲ့တယ်။ ${fmt(GOAL-S.money)} ကျပ် လိုသေးတယ်။ ထပ်ကြိုးစားကြည့်ရအောင်။`}</p>
+  <div class="kv"><span>ရိတ်သိမ်းခဲ့တဲ့ အသီးအနှံ</span><span>${S.stats.harvested}</span><span>ကောက်ခဲ့တဲ့ ကြက်ဥ</span><span>${S.stats.eggs}</span><span>ရောင်းရငွေ စုစုပေါင်း</span><span>${fmt(S.stats.earned)} ကျပ်</span></div>
+  <div class="btns"><button class="bt pri" type="button" id="mR">ဂိမ်းအသစ် စမယ်</button></div>`,c=>c.querySelector('#mR').onclick=()=>{clearSave();S=fresh();syncChickens();save();card.dataset.dismiss='';close()});
+}
+function bag(){
+  const rows=[];
+  CROP_IDS.forEach(id=>rows.push(`<span>${CROPS[id].name} မျိုးစေ့</span><span>${S.seeds[id]}</span>`));
+  CROP_IDS.forEach(id=>S.produce[id]&&rows.push(`<span>${CROPS[id].name} (မပို့ရသေး)</span><span>${S.produce[id]}</span>`));
+  if(S.produce.egg)rows.push(`<span>ကြက်ဥ (မပို့ရသေး)</span><span>${S.produce.egg}</span>`);
+  rows.push(`<span>ရေပုံးထဲက ရေ</span><span>${S.water}/${S.canMax}</span>`,`<span>ကြက်</span><span>${S.chickens.length}</span>`,`<span>ကြက်စာ</span><span>${S.feed}</span>`,`<span>လက်ဖက်ရည်</span><span>${S.tea}</span>`);
+  if(S.shippedValue)rows.push(`<span>ဒီနေ့ ပို့ထားတာ</span><span>+${fmt(S.shippedValue)}</span>`);
+  show(`<h2>အိတ်</h2><div class="kv">${rows.join('')}</div>
+  <p class="sub">အသီးအနှံ ဈေးနှုန်း: ${CROP_IDS.map(id=>`${CROPS[id].name} ${CROPS[id].sell}`).join('၊ ')}၊ ကြက်ဥ ${EGG_PRICE} ကျပ်</p>
+  <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button><button class="bt" type="button" id="mHelp">ဘယ်လိုဆော့ရမလဲ</button></div>`,c=>{c.querySelector('#mC').onclick=close;c.querySelector('#mHelp').onclick=help});
+}
+function help(){
+  show(`<h2>ဘယ်လိုဆော့ရမလဲ</h2><ul>
+  <li><b>A</b> (Z / Space): လက်ထဲက ကိရိယာကို ရှေ့က အကွက်မှာ သုံးမယ်</li>
+  <li><b>B</b> (X / Enter): ရိတ်၊ ကြက်ဥကောက်၊ ပို့ကုန်ပုံး၊ ဈေးဆိုင်၊ ကြက်စာခွက်၊ အိမ်တံခါး</li>
+  <li>မျိုးစေ့ အကွက်ကို ထပ်နှိပ်ရင် (ဒါမှမဟုတ် R) မျိုးစေ့အမျိုးအစား ပြောင်းမယ်</li>
+  <li>ရေလောင်းထားတဲ့ နေ့မှပဲ အပင်တွေ ကြီးတယ်</li>
+  <li>ခရမ်းချဉ်သီးနဲ့ ပြောင်းဖူးက ရိတ်ပြီးရင် ထပ်သီးတယ်</li>
+  <li>ဈေးဆိုင် ဖွင့်ချိန် 8:00 – 18:00</li></ul>
+  <div class="btns"><button class="bt pri" type="button" id="mC">ရပြီ</button></div>`,c=>c.querySelector('#mC').onclick=close);
+}
+function openShop(){
+  if(S.min<480||S.min>=1080)return toast('ဈေးဆိုင် ပိတ်ထားတယ်။ ဖွင့်ချိန် 8:00 – 18:00');
+  const items=[
+    ...CROP_IDS.map(id=>{const d=CROPS[id];return{id:'s_'+id,label:`${d.name} မျိုးစေ့ (9 စေ့)`,desc:`${d.grow} ရက်နဲ့ ရင့်တယ် · တစ်လုံး ${d.sell} ကျပ်${d.regrow?` · ${d.regrow} ရက်တစ်ခါ ထပ်သီးတယ်`:''}`,price:d.bag,ok:()=>true,buy:()=>{S.seeds[id]+=9;S.seedSel=id}}}),
+    {id:'tea',label:'လက်ဖက်ရည် တစ်ခွက်',desc:'အားအင် +40 · ကိရိယာ အကွက်ကနေ သောက်ပါ',price:60,ok:()=>true,buy:()=>S.tea++},
+    {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:50,ok:()=>true,buy:()=>S.feed+=5},
+    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`,price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
+    {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ်',price:1200,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
+  ];
+  const render=()=>`<h2>ဒေါ်ခင်ရဲ့ ဈေးဆိုင်</h2><p class="sub">ငွေ ${fmt(S.money)} ကျပ် ရှိတယ်</p>
+    ${items.map(it=>`<div class="item"><b>${it.label}</b><span class="sub">${it.desc}</span><button class="bt" type="button" data-buy="${it.id}" ${(!it.ok()||S.money<it.price)?'disabled':''}>${fmt(it.price)} ကျပ်</button></div>`).join('')}
+    <div class="btns"><button class="bt pri" type="button" id="mC">ပြန်မယ်</button></div>`;
+  const bind=c=>{
+    c.querySelector('#mC').onclick=close;
+    c.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{
+      const it=items.find(i=>i.id===b.dataset.buy);if(!it.ok()||S.money<it.price)return;
+      S.money-=it.price;it.buy();
+      const hen=items.find(i=>i.id==='hen');hen.desc=`စာကျွေးရင် နေ့တိုင်း ဥတယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`;
+      c.innerHTML=render();bind(c);hud();belt();
+      const again=c.querySelector(`[data-buy="${it.id}"]`);(again&&!again.disabled?again:c.querySelector('#mC')).focus();
+    });
+  };
+  show(render(),bind);
+}
+
+/* ---------- HUD & belt ---------- */
+const $=id=>document.getElementById(id);
+const hudCache={};
+function setT(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v}}
+function hud(){
+  if(!S)return;
+  const h=Math.floor(S.min/60)%24,m=S.min%60;
+  setT('hDay',`နေ့ ${S.day} / ${DAYS}`);
+  setT('hTime',`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+  setT('hWx',S.weather==='rain'?'မိုးရွာ':'နေသာ');
+  setT('hMoney',`${fmt(S.money)} ကျပ်`);
+  setT('gTxt',`${fmt(S.money)} / ${fmt(GOAL)}`);
+  $('eBar').style.width=(S.energy/S.maxE*100)+'%';
+  $('eBar').style.background=S.energy<20?'var(--danger)':'';
+  $('gBar').style.width=Math.min(100,S.money/GOAL*100)+'%';
+}
+const beltEl=$('belt');const slotEls=[];
+TOOLS.forEach((t,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='slot';
+  b.innerHTML=`<canvas width="16" height="16"></canvas><span></span><small></small>`;
+  b.onclick=()=>{if(paused)return;if(S.tool===i&&t.id==='seed')cycleSeed();S.tool=i;belt()};
+  beltEl.appendChild(b);slotEls.push(b);
+});
+function cycleSeed(){const i=CROP_IDS.indexOf(S.seedSel);S.seedSel=CROP_IDS[(i+1)%CROP_IDS.length];toast(`${CROPS[S.seedSel].name} မျိုးစေ့ (${S.seeds[S.seedSel]} စေ့)`)}
+function belt(){
+  if(!S)return;
+  slotEls.forEach((b,i)=>{
+    const t=TOOLS[i];b.classList.toggle('on',S.tool===i);
+    b.querySelector('span').textContent=t.id==='seed'?CROPS[S.seedSel].name:t.name;
+    b.querySelector('small').textContent=t.id==='can'?`${S.water}/${S.canMax}`:t.id==='seed'?`×${S.seeds[S.seedSel]}`:t.id==='tea'?`×${S.tea}`:String(i+1);
+    drawIcon(b.querySelector('canvas').getContext('2d'),t.id);
+  });
+}
+function drawIcon(c,id){
+  c.clearRect(0,0,16,16);const r=(col,x,y,w,h)=>{c.fillStyle=col;c.fillRect(x,y,w,h)};
+  if(id==='hoe'){for(let i=0;i<10;i++)r('#a0703c',3+i,13-i,2,2);r('#b8bcc2',10,1,5,3);r('#8a8e94',13,3,2,3)}
+  else if(id==='can'){r('#6f9fc0',3,6,8,8);r('#9cc6e0',4,7,2,5);r('#6f9fc0',11,8,3,2);r('#6f9fc0',13,6,2,3);r('#4f7d9c',5,3,4,1);r('#4f7d9c',4,4,1,2);r('#4f7d9c',9,4,1,2)}
+  else if(id==='sickle'){r('#7a5230',2,10,2,5);r('#7a5230',3,9,2,2);r('#c8ccd2',5,3,2,7);r('#c8ccd2',6,2,5,2);r('#c8ccd2',10,3,3,2);r('#c8ccd2',12,5,2,2)}
+  else if(id==='hammer'){for(let i=0;i<9;i++)r('#a0703c',3+i,13-i,2,2);r('#7f8389',8,1,7,5);r('#a5a9af',9,2,5,1)}
+  else if(id==='seed'){const d=CROPS[S.seedSel];r('#c9a46a',3,4,10,11);r('#b08850',3,4,10,2);r('#8a6a40',6,2,4,2);r(d.col,6,8,4,4);r(d.col2,7,9,2,2)}
+  else if(id==='tea'){r('#f1e7d6',3,6,9,7);r('#b5763a',4,7,7,3);r('#f1e7d6',12,8,2,3);r('#d9cdb8',3,13,9,1);r('#cfd8e0',5,2,1,3);r('#cfd8e0',8,1,1,3)}
+}
+
+/* ---------- input ---------- */
+const KMAP={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
+addEventListener('keydown',e=>{
+  if(!modal.hidden){if(e.code==='Escape'&&card.dataset.dismiss!=='no'&&!S?.over)close();return}
+  const d=KMAP[e.code];
+  if(d){e.preventDefault();if(!held.includes(d))held.push(d);return}
+  if(e.repeat)return;
+  if(e.code==='KeyZ'||e.code==='Space'||e.code==='KeyJ'){e.preventDefault();useTool()}
+  else if(e.code==='KeyX'||e.code==='Enter'||e.code==='KeyK'){e.preventDefault();act()}
+  else if(/^Digit[1-6]$/.test(e.code)){S.tool=+e.code.slice(5)-1;belt()}
+  else if(e.code==='KeyR'||e.code==='Tab'){e.preventDefault();cycleSeed();S.tool=4;belt()}
+  else if(e.code==='KeyQ'){S.tool=(S.tool+5)%6;belt()}
+  else if(e.code==='KeyE'){S.tool=(S.tool+1)%6;belt()}
+  else if(e.code==='KeyI'||e.code==='KeyB'){bag()}
+});
+addEventListener('keyup',e=>{const d=KMAP[e.code];if(d)held=held.filter(h=>h!==d)});
+addEventListener('blur',()=>held=[]);
+document.querySelectorAll('.dpad button').forEach(b=>{
+  const d=b.dataset.d;
+  const on=e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(_){}if(!held.includes(d))held.push(d);b.classList.add('held')};
+  const off=()=>{held=held.filter(h=>h!==d);b.classList.remove('held')};
+  b.addEventListener('pointerdown',on);['pointerup','pointercancel','lostpointercapture'].forEach(ev=>b.addEventListener(ev,off));
+});
+$('btnA').addEventListener('pointerdown',e=>{e.preventDefault();useTool()});
+$('btnB').addEventListener('pointerdown',e=>{e.preventDefault();act()});
+$('bBag').onclick=()=>{if(S&&modal.hidden)bag()};
+document.addEventListener('visibilitychange',()=>{if(document.hidden){held=[];save()}});
+cv.addEventListener('contextmenu',e=>e.preventDefault());
+
+/* ---------- update ---------- */
+function update(dt){
+  if(toastT>0){toastT-=dt;if(toastT<=0)toastEl.classList.remove('on')}
+  parts=parts.filter(p=>(p.life-=dt)>0);parts.forEach(p=>{p.x+=p.vx*dt/1000;p.y+=p.vy*dt/1000;p.vy+=200*dt/1000});
+  if(anim&&(anim.t-=dt)<=0)anim=null;
+  if(paused||!S)return;
+  acc+=dt;while(acc>=TICK){acc-=TICK;S.min++;if(S.min%60===0)save()}
+  if(S.min>=1440){toast('');endDay(true);return}
+  if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
+  if(!mv&&held.length){
+    const d=held[held.length-1];S.dir=d;const[dx,dy]=DIRS[d];const nx=S.px+dx,ny=S.py+dy;
+    if(walkable(nx,ny)){mv={fx:S.px,fy:S.py,t:0};S.px=nx;S.py=ny}
+  }
+  const night=S.min>=1140;
+  chickRT.forEach(c=>{
+    if(night)return;
+    if(c.wait>0){c.wait-=dt/1000;return}
+    const dx=c.tx-c.x,dy=c.ty-c.y,dist=Math.hypot(dx,dy);
+    if(dist<.05){c.tx=YARD.x0+Math.random()*(YARD.x1-YARD.x0);c.ty=YARD.y0+.3+Math.random()*(YARD.y1-YARD.y0-.3);c.wait=.8+Math.random()*2.5;return}
+    const sp=.9*dt/1000;c.x+=dx/dist*Math.min(sp,dist);c.y+=dy/dist*Math.min(sp,dist);if(Math.abs(dx)>.01)c.face=dx>0?1:-1;
+  });
+  chickRT.forEach((c,i)=>{if(S.chickens[i]){S.chickens[i].x=c.x;S.chickens[i].y=c.y}});
+}
+
+/* ---------- draw ---------- */
+let SCALE=1;
+function fit(){
+  const st=$('stage').getBoundingClientRect();const W=VW*T,H=VH*T;
+  const s=Math.max(.5,Math.min(st.width/(W+6),st.height/(H+6)));
+  cv.style.width=Math.floor(W*s)+'px';cv.style.height=Math.floor(H*s)+'px';
+  SCALE=Math.max(1,Math.round(s*(devicePixelRatio||1)));cv.width=W*SCALE;cv.height=H*SCALE;
+}
+addEventListener('resize',fit);
+function grass(sx,sy,x,y){
+  R('#5c9e3f',sx,sy,T,T);const h=hash(x,y);
+  R('#4f8c35',sx+(h%13),sy+((h>>4)%12)+2,1,2);R('#4f8c35',sx+((h>>8)%13)+1,sy+((h>>12)%12),1,2);
+  if(h%5===0)R('#6fb24c',sx+((h>>16)%12)+2,sy+((h>>20)%12)+2,2,1);
+}
+function drawTile(t,x,y,sx,sy,now){
+  switch(t){
+  case G:grass(sx,sy,x,y);break;
+  case FLOWER:{grass(sx,sy,x,y);const h=hash(x,y),c=['#f4d35e','#f7a1c4','#ffffff','#b9a3ff'][h%4];R('#3f7f2c',sx+7,sy+8,1,4);R(c,sx+6,sy+6,3,3);R('#e48c2a',sx+7,sy+7,1,1);break}
+  case SOIL:{const w=S.wet[y][x];R(w?'#5e3b22':'#9a6a3c',sx,sy,T,T);R(w?'#4b2e19':'#86592f',sx+1,sy+4,14,1);R(w?'#4b2e19':'#86592f',sx+1,sy+10,14,1);break}
+  case WEED:grass(sx,sy,x,y);R('#2f6b26',sx+4,sy+7,8,6);R('#3f8a2c',sx+3,sy+5,2,4);R('#3f8a2c',sx+11,sy+4,2,5);R('#3f8a2c',sx+7,sy+3,2,5);R('#24521e',sx+5,sy+11,6,2);break;
+  case ROCK:grass(sx,sy,x,y);R('#6c6e72',sx+2,sy+6,12,8);R('#8d8f93',sx+3,sy+5,10,7);R('#b4b6ba',sx+5,sy+6,4,2);R('#55575b',sx+3,sy+13,11,1);break;
+  case TREE:grass(sx,sy,x,y);R('#6b4a2b',sx+6,sy+9,4,7);R('#245a2b',sx+1,sy+1,14,10);R('#2e6e34',sx+2,sy,12,9);R('#3f8a43',sx+4,sy+2,5,3);R('#245a2b',sx+3,sy+10,10,1);break;
+  case WATER:{R('#3d7fc4',sx,sy,T,T);const o=((now/90+x*5+y*3)|0)%14;R('#6aa6e0',sx+o,sy+4,3,1);R('#6aa6e0',sx+((o+7)%14),sy+11,3,1);
+    if(tileAt(x,y-1)!==WATER)R('#2f6aa6',sx,sy,T,2);break}
+  case PATH:{R('#c9a874',sx,sy,T,T);const h=hash(x,y);R('#b8955f',sx+(h%13),sy+((h>>5)%13),2,1);R('#d8bc8c',sx+((h>>9)%13),sy+((h>>13)%13),2,1);break}
+  case FENCE:{grass(sx,sy,x,y);const hz=tileAt(x-1,y)===FENCE||tileAt(x+1,y)===FENCE,vt=tileAt(x,y-1)===FENCE||tileAt(x,y+1)===FENCE;
+    if(hz){R('#a8703a',sx,sy+5,T,2);R('#a8703a',sx,sy+10,T,2)}
+    if(vt){R('#a8703a',sx+6,sy,2,T);R('#a8703a',sx+9,sy,2,T)}
+    R('#7a4f2a',sx+6,sy+3,4,11);R('#a8703a',sx+7,sy+3,2,1);break}
+  case HOUSE:R('#7a6a4a',sx,sy,T,T);break;
+  case BIN:R('#c9a874',sx,sy,T,T);R('#6b4426',sx+1,sy+4,14,11);R('#8b5a2b',sx+2,sy+5,12,9);R('#a8703a',sx,sy+2,16,3);R('#5a3820',sx+2,sy+9,12,1);break;
+  case TROUGH:grass(sx,sy,x,y);R('#5a3820',sx+1,sy+6,14,8);R('#7a5230',sx+2,sy+7,12,6);if(S.trough>0){R('#e6c45c',sx+3,sy+7,10,3);R('#c9a240',sx+5,sy+8,2,1);R('#c9a240',sx+9,sy+8,2,1)}break;
+  case STALL:R('#c9a874',sx,sy,T,T);R('#7a5230',sx,sy+4,T,10);R('#a0703c',sx,sy+3,T,3);
+    if(x===24){R('#e2402f',sx+3,sy+1,3,3);R('#f2cf3a',sx+8,sy+1,3,3)}else{R('#f4eef6',sx+2,sy+1,3,3);R('#c49a5a',sx+7,sy+1,4,3)}break;
+  }
+}
+function drawHouse(cx,cy){
+  const x=3*T-cx,y=2*T-cy,w=5*T;
+  R('#5b4a32',x,y+52,w,12);
+  for(let i=0;i<5;i++)R('#5a3b22',x+4+i*18,y+48,4,16);
+  R('#8e5f37',x+2,y+24,w-4,28);
+  for(let i=0;i<6;i++)R('#7a4f2c',x+2,y+28+i*4,w-4,1);
+  R('#3b2717',x+2,y+50,w-4,2);
+  for(let r=0;r<26;r++){const ins=Math.max(0,12-Math.floor(r/2));R(r%4===0?'#a67a33':'#c99c48',x-4+ins,y-4+r,w+8-ins*2,1)}
+  R('#8a6428',x-4,y+21,w+8,2);
+  R('#4a2f1c',x+DOOR[0]*T-3*T+3,y+30,10,18);R('#6b4426',x+DOOR[0]*T-3*T+4,y+31,8,16);R('#e0b860',x+DOOR[0]*T-3*T+10,y+39,1,2);
+  R('#3b2717',x+10,y+31,14,10);R('#f0d48a',x+11,y+32,12,8);R('#3b2717',x+16,y+32,1,8);
+  R('#3b2717',x+w-24,y+31,14,10);R('#f0d48a',x+w-23,y+32,12,8);R('#3b2717',x+w-18,y+32,1,8);
+  for(let i=0;i<4;i++)R('#7d5531',x+DOOR[0]*T-3*T+2,y+50+i*3,12,1);
+}
+function drawPerson(x,y,dir,step,pal){
+  R('rgba(0,0,0,.25)',x+3,y+14,10,2);
+  const lg=step?1:0;
+  R(pal.skin,x+5,y+12+lg,2,3);R(pal.skin,x+9,y+12+(1-lg),2,3);
+  R(pal.low,x+4,y+8,8,6);R(pal.low2,x+4,y+10,8,1);R(pal.low2,x+4,y+12,8,1);
+  R(pal.top,x+4,y+5,8,4);R(pal.skin,x+3,y+6,1,3);R(pal.skin,x+12,y+6,1,3);
+  R(pal.skin,x+5,y+1,6,5);
+  if(dir==='up')R(pal.hair,x+5,y+1,6,4);
+  else{R(pal.hair,x+5,y+1,6,1);
+    if(dir==='down'){R('#2a1a10',x+6,y+3,1,1);R('#2a1a10',x+9,y+3,1,1)}
+    else if(dir==='left')R('#2a1a10',x+6,y+3,1,1);else R('#2a1a10',x+9,y+3,1,1)}
+  if(pal.hat){R(pal.hat2,x+1,y+1,14,2);R(pal.hat,x+2,y,12,1);R(pal.hat,x+4,y-2,8,2);R(pal.hat,x+6,y-3,4,1)}
+  else{R(pal.wrap,x+4,y-1,8,3);R(pal.wrap2,x+11,y-2,2,2)}
+}
+const FARMER={skin:'#d9a06b',hair:'#2a1a10',top:'#f2efe6',low:'#3e6a8a',low2:'#2c4f6a',hat:'#d8b56a',hat2:'#b8943f'};
+const MERCHANT={skin:'#c98e5c',hair:'#1e130b',top:'#e7a3b8',low:'#7a3e6a',low2:'#5e2c51',wrap:'#f2d36b',wrap2:'#e0b840'};
+function drawChicken(px,py,face,now,i){
+  const bob=((now/200+i)|0)%2;
+  R('rgba(0,0,0,.2)',px+4,py+13,8,2);
+  R('#fbf8f0',px+4,py+7-bob,8,6);R('#e8e2d2',px+5,py+11-bob,6,1);
+  const hx=face>0?px+10:px+3;R('#fbf8f0',hx,py+4-bob,4,4);R('#d93a2a',hx+1,py+3-bob,2,1);
+  R('#f0a830',face>0?hx+4:hx-1,py+6-bob,1,1);R('#1a1a1a',face>0?hx+2:hx+1,py+5-bob,1,1);
+  R('#f0a830',px+6,py+13,1,2);R('#f0a830',px+9,py+13,1,2);
+}
+function drawCrop(c,sx,sy,now,x,y){
+  const d=CROPS[c.type],ripe=c.age>=d.grow,st=c.age===0?0:ripe?3:(c.age<d.grow/2?1:2);
+  if(st===0){R('#3b2414',sx+4,sy+6,2,2);R('#3b2414',sx+10,sy+5,2,2);R('#3b2414',sx+7,sy+10,2,2);return}
+  if(st===1){R('#5aa83e',sx+7,sy+8,2,5);R('#7fd65a',sx+4,sy+7,3,2);R('#7fd65a',sx+9,sy+6,3,2);return}
+  if(c.type==='turnip'){R('#4fae3e',sx+5,sy+2,6,6);R('#6cc04a',sx+4,sy+3,2,3);R('#6cc04a',sx+10,sy+3,2,3);if(ripe){R(d.col2,sx+5,sy+8,6,2);R(d.col,sx+5,sy+10,6,3);R(d.col,sx+7,sy+13,2,1)}}
+  else if(c.type==='potato'){R('#3f8a33',sx+3,sy+3,10,9);R('#56a842',sx+5,sy+4,5,3);if(ripe){R('#f6f1d0',sx+5,sy+3,2,2);R('#f6f1d0',sx+10,sy+6,2,2);R(d.col,sx+3,sy+12,4,3);R(d.col,sx+9,sy+12,4,3)}}
+  else if(c.type==='tomato'){R('#8a6a40',sx+7,sy,1,14);R('#3f8f3a',sx+3,sy+3,10,9);R('#56a842',sx+5,sy+4,4,3);
+    if(ripe){[[4,5],[10,4],[6,9],[10,9]].forEach(([a,b])=>{R(d.col,sx+a,sy+b,3,3);R(d.col2,sx+a,sy+b,1,1)})}else[[5,6],[9,8]].forEach(([a,b])=>R('#8fcf5a',sx+a,sy+b,2,2))}
+  else if(c.type==='corn'){R('#4f9a37',sx+7,sy-2,2,15);R('#6cc04a',sx+3,sy+5,4,2);R('#6cc04a',sx+9,sy+2,4,2);R('#6cc04a',sx+9,sy+8,4,2);
+    if(ripe){R('#d8b040',sx+7,sy-4,2,2);R(d.col,sx+3,sy+7,3,5);R(d.col2,sx+4,sy+8,1,3);R('#7fb04a',sx+3,sy+11,3,2)}}
+  if(ripe&&(((now/400)|0)+x+y)%7===0)R('#ffffff',sx+13,sy+1,2,2);
+}
+function render(now){
+  ctx.setTransform(SCALE,0,0,SCALE,0,0);ctx.imageSmoothingEnabled=false;
+  if(!S){R('#3a6b2a',0,0,VW*T,VH*T);return}
+  let rx=S.px,ry=S.py;
+  if(mv){const k=Math.min(1,mv.t);rx=mv.fx+(S.px-mv.fx)*k;ry=mv.fy+(S.py-mv.fy)*k}
+  const cx=Math.round(Math.max(0,Math.min(MW*T-VW*T,rx*T+8-VW*T/2)));
+  const cy=Math.round(Math.max(0,Math.min(MH*T-VH*T,ry*T+8-VH*T/2)));
+  const x0=Math.floor(cx/T),y0=Math.floor(cy/T);
+  for(let y=y0;y<=y0+VH&&y<MH;y++)for(let x=x0;x<=x0+VW&&x<MW;x++){
+    const sx=x*T-cx,sy=y*T-cy;drawTile(S.tiles[y][x],x,y,sx,sy,now);
+  }
+  for(const k in S.crops){const [x,y]=k.split(',').map(Number);if(x>=x0-1&&x<=x0+VW+1&&y>=y0-1&&y<=y0+VH+1)drawCrop(S.crops[k],x*T-cx,y*T-cy,now,x,y)}
+  S.eggs.forEach(e=>{const sx=e.x*T-cx,sy=e.y*T-cy;R('rgba(0,0,0,.2)',sx+5,sy+12,6,2);R('#f7efdc',sx+5,sy+6,6,7);R('#fffaf0',sx+6,sy+7,2,3)});
+  // front-tile marker
+  if(!paused){const [fx,fy]=front();const sx=fx*T-cx,sy=fy*T-cy;ctx.strokeStyle='rgba(255,240,180,.75)';ctx.lineWidth=1;ctx.strokeRect(sx+.5,sy+.5,T-1,T-1)}
+  // sprites sorted by y
+  const sprites=[];
+  sprites.push({y:5.9,d:()=>drawHouse(cx,cy)});
+  if(S.min>=480&&S.min<1080)sprites.push({y:18.4,d:()=>{drawPerson(24.5*T-cx,18*T-cy-2,'down',0,MERCHANT)}});
+  chickRT.forEach((c,i)=>sprites.push({y:c.y,d:()=>drawChicken(c.x*T-cx,c.y*T-cy,c.face,now,i)}));
+  const step=mv?(((mv.t*2)|0)%2):0;
+  sprites.push({y:ry+.01,d:()=>{
+    const px=Math.round(rx*T-cx),py=Math.round(ry*T-cy)-3;drawPerson(px,py,S.dir,step,FARMER);
+    if(anim){const [dx,dy]=DIRS[S.dir];const col={hoe:'#b8bcc2',can:'#6f9fc0',sickle:'#c8ccd2',hammer:'#7f8389'}[anim.tool]||'#fff';
+      const k=anim.t/220;R('#a0703c',px+8+dx*6,py+8+dy*6-3*k,2,4);R(col,px+7+dx*9,py+7+dy*9-4*k,4,3)}
+  }});
+  sprites.sort((a,b)=>a.y-b.y).forEach(s=>s.d());
+  if(S.min>=480&&S.min<1080){const sx=24*T-cx,sy=18*T-cy;for(let i=0;i<8;i++)R(i%2?'#f6efe0':'#c8433a',sx+i*4,sy-9,4,4);R('#7a5230',sx,sy-5,1,21);R('#7a5230',sx+31,sy-5,1,21)}
+  parts.forEach(p=>{ctx.globalAlpha=Math.min(1,p.life/250);R(p.col,p.x-cx,p.y-cy,2,2)});ctx.globalAlpha=1;
+  if(S.weather==='rain'){R('rgba(30,50,90,.18)',0,0,VW*T,VH*T);for(let i=0;i<46;i++){const x=(i*37+now*.12)%(VW*T),y=(i*53+now*.3)%(VH*T);R('rgba(200,225,255,.55)',x|0,y|0,1,4)}}
+  if(S.min>=1020){const a=Math.min(.5,(S.min-1020)/180*.5);ctx.fillStyle=`rgba(12,18,60,${a})`;ctx.fillRect(0,0,VW*T,VH*T);
+    if(S.min>=1140){ctx.fillStyle='rgba(255,210,120,.35)';const wx=3*T-cx,wy=2*T-cy;ctx.fillRect(wx+11,wy+32,12,8);ctx.fillRect(wx+5*T-23,wy+32,12,8)}}
+  else if(S.min<420){ctx.fillStyle=`rgba(255,170,90,${(420-S.min)/60*.18})`;ctx.fillRect(0,0,VW*T,VH*T)}
+}
+function loop(now){
+  const dt=Math.min(100,now-(last||now));last=now;
+  update(dt);render(now);hud();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- boot ---------- */
+function start(data){
+  fit();
+  if(data&&data.s){try{S=JSON.parse(data.s);syncChickens();paused=false;belt();hud()}catch(e){S=null}}
+  if(!S){
+    const sv=loadSave();S=sv&&!sv.over?sv:fresh();syncChickens();belt();hud();intro();
+  }
+  requestAnimationFrame(loop);
+  setTimeout(fit,300);
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+}
+window.claude?.hot?.snapshot?.(()=>({s:S&&modal.hidden?JSON.stringify(S):null}));
+window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
+})();
+</script>
