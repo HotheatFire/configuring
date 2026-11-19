@@ -521,7 +521,8 @@ function act(){
   if(S.scene==='shop')return actShop(sTile(fx,fy));
   if(S.scene==='house')return actHouse(hTile(fx,fy));
   const t=tileAt(fx,fy),k=fx+','+fy,crop=S.map==='farm'?S.crops[k]:null;
-  const ni=npcRT.findIndex(n=>n.active&&n.map===S.map&&!inShop(n)&&n.x===fx&&n.y===fy);
+  const nAt=(x,y)=>npcRT.findIndex(n=>n.active&&n.map===S.map&&!inShop(n)&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
+  let ni=nAt(fx,fy);if(ni<0)ni=nAt(S.px,S.py);
   if(ni>=0)return talk(ni);
   if(t===SIGN)return toast(signText());
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
@@ -2443,7 +2444,7 @@ function render(now){
     if(n.wait&&!n.path.length&&n.t>=1&&(n.act==='pray'||inShop(n))){if(n.act==='pray')PRAY.push(d);return}
     if(nx<x0-2||nx>x0+VW+2||ny<y0-2||ny>y0+VH+3)return;
     sprites.push({y:ny+.005,s:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),im=NS[d.id][n.dir][n.t<1?(n.steps%2?1:2):0];castShadow(im,px,py,im.width,im.height,gy+15)},d:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),fr=n.t<1?(n.steps%2?1:2):0,idle=n.wait&&!n.path.length&&n.t>=1;
-      if(idle&&(n.act==='sit'||n.act==='weave')){const tx=px,ty=gy;if(n.act==='sit')drawTeaTable(tx,ty-2);drawSeated(NS[d.id],tx,ty,n.act==='sit'?'up':'down');SIT.push([tx+8,ty-4]);return}
+      if(idle&&(n.act==='sit'||n.act==='weave')){const tx=px,ty=gy;if(n.act==='sit'){drawTeaTable(tx,ty-2);SIT.push([tx+8,ty-4])}drawSeated(NS[d.id],tx,ty,n.act==='sit'?'up':'down');return}
       R('rgba(0,0,0,.25)',px+4,gy+14,8,2);C.drawImage(NS[d.id][n.dir][fr],px,py);
       if(idle&&n.act==='fish'){const[dx,dy]=DIRS[n.dir];drawRod(px,py,n.dir,(n.x+dx)*T+8-cx,(n.y+dy)*T+8-cy,((now/600+i)|0)%5===0)}
       else if(idle&&n.act==='kite'&&S.weather!=='rain')kites.push([px+12,py+8,i]);
@@ -2511,6 +2512,7 @@ function start(data){
   setTimeout(fit,300);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 }
+if(window.__shweDebug)window.__shweDebug.npc=()=>npcRT.map((n,i)=>({id:NPCS[i].id,active:n.active,map:n.map,x:n.x,y:n.y,t:n.t,act:n.act,shop:inShop(n)}));
 window.claude?.hot?.snapshot?.(()=>({s:S&&modal.hidden?JSON.stringify(S):null}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
 })();
