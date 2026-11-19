@@ -176,7 +176,8 @@ const hash=(x,y)=>{let h=x*374761393+y*668265263;h=(h^(h>>13))*1274126177;return
 const fmt=n=>n.toLocaleString('en-US');
 const inField=(x,y)=>x>=FIELD.x0&&x<=FIELD.x1&&y>=FIELD.y0&&y<=FIELD.y1;
 const tileAt=(x,y)=>(x<0||y<0||x>=MW||y>=MH)?TREE:S.tiles[y][x];
-const npcAt=(x,y)=>npcRT.find(n=>n.active&&n.map===S.map&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
+const inShop=n=>n.act==='work'&&n.wait&&!n.path.length&&n.t>=1&&!!SHOP_THEME[NPCS[npcRT.indexOf(n)].shop];
+const npcAt=(x,y)=>npcRT.find(n=>n.active&&n.map===S.map&&!inShop(n)&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
 const walkable=(x,y)=>!SOLID.has(tileAt(x,y))&&!npcAt(x,y);
 const front=()=>{const d=DIRS[S.dir];return[S.px+d[0],S.py+d[1]]};
 let C=ctx;const R=(c,x,y,w,h)=>{C.fillStyle=c;C.fillRect(x,y,w,h)};
@@ -521,7 +522,7 @@ function act(){
   if(S.scene==='shop')return actShop(sTile(fx,fy));
   if(S.scene==='house')return actHouse(hTile(fx,fy));
   const t=tileAt(fx,fy),k=fx+','+fy,crop=S.map==='farm'?S.crops[k]:null;
-  const ni=npcRT.findIndex(n=>n.active&&n.map===S.map&&n.x===fx&&n.y===fy);
+  const ni=npcRT.findIndex(n=>n.active&&n.map===S.map&&!inShop(n)&&n.x===fx&&n.y===fy);
   if(ni>=0)return talk(ni);
   if(t===SIGN)return toast(signText());
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
@@ -1177,8 +1178,6 @@ const SHOP_THEME={
     shelf:['#e85aa8','#f6c829','#ffffff','#e2402f','#f08a3a','#c87ad0'],disp:'ပန်းပုံးထဲမှာ စံပယ်၊ နှင်းဆီ၊ ချဉ်ပေါင်ပန်းတွေ ရေစိမ်ထားတယ်။',shelfMsg:'ပန်းအိုးလေးတွေ စီထားတယ်။ မျိုးစေ့ထုပ်တွေလည်း ချိတ်ထားတယ်။'},
   store:{wall:'#a8794a',wall2:'#8e6238',floor:'#c8a878',floor2:'#b8986a',counter:'#7a4a28',ctop:'#9a6a3c',
     shelf:['#e2402f','#f2c14e','#3a7ad0','#4fb848','#f6f6f6','#a8643a'],disp:'ဆန်အိတ်တွေ၊ ဆီပုံးတွေ၊ ငါးမျှားတံနဲ့ စွန်တွေ ရှိတယ်။',shelfMsg:'မုန့်ထုပ်၊ ဆပ်ပြာ၊ ငံပြာရည်ပုလင်း အစုံပဲ။'},
-  tea:{wall:'#cfe2d8',wall2:'#b8d0c4',floor:'#d8c8a8',floor2:'#c8b898',counter:'#8a5a30',ctop:'#a8703a',
-    shelf:['#f4efe2','#e8d8b8','#c8a070','#f4efe2','#a8d0e8','#f4efe2'],disp:'ရွာသားတွေ ထိုင်ပြီး စကားပြောနေကြတယ်။',shelfMsg:'လက်ဖက်ရည်ခွက်တွေ၊ မုန့်ပုလင်းတွေ စီထားတယ်။'},
   smith:{wall:'#5a4a40',wall2:'#4a3c34',floor:'#6a5a4a',floor2:'#5a4a3c',counter:'#3a3a3e',ctop:'#5a5a60',
     shelf:['#9aa0a6','#c8ccd2','#7a5230','#9aa0a6','#c8ccd2','#7a5230'],disp:'ထုပြီးသား ပေါက်ပြား၊ တံစဉ်၊ ဓားတွေ စီထားတယ်။',shelfMsg:'ကိရိယာတွေ နံရံမှာ ချိတ်ထားတယ်။'},
 };
@@ -2256,7 +2255,7 @@ function render(now){
     R('rgba(0,0,0,.2)',px+2,py+11,8,2);C.drawImage(c.face>0?HENR:HENL,px,py+bob)}}));
   const kites=[];PRAY=[];const SIT=[];
   npcRT.forEach((n,i)=>{if(!n.active||n.map!==S.map)return;const d=NPCS[i];if(ACT.some(a=>a.id===d.id&&a.map===S.map))return;const k=n.t,nx=n.fx+(n.x-n.fx)*k,ny=n.fy+(n.y-n.fy)*k;
-    if(n.wait&&!n.path.length&&n.t>=1&&(n.act==='pray'||n.act==='work')){if(n.act==='pray')PRAY.push(d);return}
+    if(n.wait&&!n.path.length&&n.t>=1&&(n.act==='pray'||inShop(n))){if(n.act==='pray')PRAY.push(d);return}
     if(nx<x0-2||nx>x0+VW+2||ny<y0-2||ny>y0+VH+3)return;
     sprites.push({y:ny+.005,s:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),im=NS[d.id][n.dir][n.t<1?(n.steps%2?1:2):0];castShadow(im,px,py,im.width,im.height,gy+15)},d:()=>{const gy=Math.round(ny*T-cy),px=Math.round(nx*T-cx),py=gy-7+(d.kid?2:0),fr=n.t<1?(n.steps%2?1:2):0,idle=n.wait&&!n.path.length&&n.t>=1;
       if(idle&&(n.act==='sit'||n.act==='weave')){const tx=px,ty=gy;if(n.act==='sit')drawTeaTable(tx,ty-2);drawSeated(NS[d.id],tx,ty,n.act==='sit'?'up':'down');SIT.push([tx+8,ty-4]);return}
