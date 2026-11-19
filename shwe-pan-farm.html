@@ -632,7 +632,8 @@ function endDay(passedOut){
 const modal=document.getElementById('modal'),card=document.getElementById('mcard');
 function show(html,bind){card.innerHTML=html;modal.hidden=false;paused=true;held=[];bind&&bind(card);const b=card.querySelector('.bt.pri')||card.querySelector('.bt');b&&b.focus()}
 function close(){modal.hidden=true;paused=false;last=performance.now();hud();belt()}
-modal.addEventListener('click',e=>{if(e.target===modal&&!S.over&&card.dataset.dismiss!=='no')close()});
+let downOnBackdrop=false;modal.addEventListener('pointerdown',e=>{downOnBackdrop=e.target===modal});
+modal.addEventListener('click',e=>{const ok=downOnBackdrop;downOnBackdrop=false;if(ok&&e.target===modal&&!S.over&&card.dataset.dismiss!=='no')close()});
 
 function intro(){
   const sv=loadSave();
