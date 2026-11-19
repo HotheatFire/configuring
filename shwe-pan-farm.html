@@ -1417,9 +1417,118 @@ function buildPerson(pal,head,bd=BODY_D,bs=BODY_S,kid){
 }
 const PAL_F={o:'#2a1a12',h:'#e2c27a',H:'#b8913f',j:'#f6e0a4',s:'#e0a676',S:'#b97d52',k:'#2b1a10',e:'#1b120c',w:'#f4f0e6',W:'#c9c2b2',l:'#3f6f95',L:'#2a4d6c',p:'#7fb1d6',f:'#7a4a28'};
 const PAL_M={o:'#2a1a12',h:'#f0c64a',H:'#c99a28',j:'#fff0a8',s:'#cf9566',S:'#a8714a',k:'#1e130b',e:'#1b120c',w:'#eaa0b8',W:'#c27a93',l:'#7a3e6a',L:'#5a2a4e',p:'#d27ab0',f:'#7a4a28'};
-const PS=buildPerson(PAL_F,HAT),MS=buildPerson(PAL_M,WRAP);
-const REP_SPR=buildPerson(mkPal('#d8a070','#1e130b','#f6f6f6','#34343c','#34343c'),SHORT);
-const HEADS={HAT,WRAP,BALD,BUN,SHORT,MONK:BALD},NS={};NPCS.forEach(d=>NS[d.id]=buildPerson(d.pal,HEADS[d.head],d.thanaka?BODY_DT:BODY_D,d.thanaka?BODY_ST:BODY_S,d.kid));
+/* ---------- Stardew-style 16x22 villager sprites (big head, shaded clothes) ---------- */
+const SV_O='#2a1a12';
+function drawSV(c,dir,f){
+  const P=(col,x,y,w=1,h=1)=>R(col,x,y,w,h);
+  const sk=c.skin,skS=sh(sk,.8),skH=sh(sk,1.07),hr=c.hair||'#1e1612',hrS=sh(hr,.66),hrH=sh(hr,1.45);
+  const tp=c.top,tpS=sh(tp,.78),tpH=sh(tp,1.12),lw=c.low,lwS=sh(lw,.72),pat=c.pat||sh(lw,1.3);
+  const side=dir==='right',up=dir==='up',walk=f>0,sw=f===1?1:f===2?-1:0;
+  /* feet */
+  if(!side){const lf=walk?(f===1?1:0):0,rf=walk?(f===2?1:0):0;
+    P(SV_O,4,19,4,3);P(SV_O,8,19,4,3);
+    P(c.robe?'#8a6a4a':sk,5,20-lf,2,1);P('#5a3a20',5,21-lf,2,1);P(c.robe?'#8a6a4a':sk,9,20-rf,2,1);P('#5a3a20',9,21-rf,2,1);
+    if(lf)P('rgba(0,0,0,0)',5,21,2,1);
+  }else{const a=f===1?2:f===2?-2:0;P(SV_O,5+a,19,4,3);P(SV_O,7-a,19,4,3);P(skS,6+a,20,2,1);P('#5a3a20',6+a,21,3,1);P(sk,8-a,20,2,1);P('#5a3a20',8-a,21,3,1)}
+  /* lower garment */
+  const lx=side?5:4,lwW=side?6:8;
+  if(c.lowType==='trousers'){
+    if(!side){P(SV_O,lx,15,lwW,5);P(lw,lx+1,15,3,5);P(lw,lx+4,15,3,5);P(lwS,lx+3,16,2,4);P(lwS,lx+6,15,1,5)}
+    else{P(SV_O,lx,15,lwW,5);P(lw,lx+1,15,lwW-2,4);P(lwS,lx+1,18,lwW-2,1);P(lwS,lx+1+(f===1?1:0),16,1,3)}
+  }else{
+    P(SV_O,lx-(side?0:0),15,lwW,5);P(SV_O,lx-1,19,lwW+2,1);
+    P(lw,lx+1,15,lwW-2,4);P(lw,lx,18,lwW,1);
+    for(let y=15;y<19;y++){if(c.lowPat==='check'&&(y%2===0))P(pat,lx+1,y,lwW-2,1);if(c.lowPat==='check')for(let x=lx+1+(y%2);x<lx+lwW-1;x+=2)P(lwS,x,y,1,1);if(c.lowPat==='stripe')for(let x=lx+2;x<lx+lwW-1;x+=2)P(pat,x,y,1,1);if(c.lowPat==='acheik'&&y===17)for(let x=lx+1;x<lx+lwW-1;x++)P(x%2?pat:'#d8a830',x,y-(x%3===0?1:0),1,1)}
+    P(lwS,lx+lwW-2,15,1,4);P(lwS,lx,18,lwW,1);
+    if(walk&&!side)P(SV_O,f===1?lx-1:lx+lwW,18,1,1);
+    if(c.knot&&!up&&!side){P(lwS,7,15,2,2);P(pat,7,15,1,1)}
+  }
+  /* torso + arms */
+  const tx=side?5:3,tw=side?6:10;
+  P(SV_O,tx+1,10,tw-2,1);P(SV_O,tx,11,tw,5);P(tp,tx+1,11,tw-2,4);P(tpS,tx+tw-3,11,2,4);P(tpH,tx+1,11,2,1);P(tpS,tx+1,14,tw-2,1);
+  if(!up&&!side){
+    if(c.topType==='shirt'){P(tpS,7,12,1,3);P(tpH,7,12,1,1);P(tpH,7,14,1,1)}
+    if(c.topType==='jacket'){P(c.inner||'#f8f6f0',7,11,2,4);P(tpS,6,11,1,4);P(tpS,9,11,1,4);P(tpH,5,12,1,1);P(tpH,10,12,1,1);P(tpH,5,14,1,1);P(tpH,10,14,1,1)}
+    if(c.topType==='blouse'){P(tpS,8,11,1,1);P(tpS,9,12,1,1);P(tpS,10,13,1,1);P('#f2c14e',9,12,1,1)}
+    if(c.topType==='suit'){P('#f8f8f4',7,11,2,3);P(c.tie||'#8a2a3a',7,11,1,4);P(SV_O,6,11,1,1);P(SV_O,9,11,1,1);P(tpS,6,12,1,2);P(tpS,9,12,1,2)}
+    if(c.topType==='overall'){P(c.bib||'#3a5a8a',5,12,6,3);P(sh(c.bib||'#3a5a8a',.75),5,14,6,1);P('#d8c08a',5,12,1,1);P('#d8c08a',10,12,1,1);P(c.sash||'#5a5a6a',4,14,8,1)}
+    if(c.topType==='coat'){P(tpS,7,11,1,4);P('#d8d8d0',8,13,2,1);P('#8a8a90',5,11,1,1)}
+    if(c.topType==='robe'){P(sk,10,11,2,2);P(SV_O,9,11,1,2);P(tpS,5,12,5,1);P(tpS,4,13,3,1)}
+    if(c.topType==='tee'){P(tpH,6,11,4,1)}
+  }
+  if(up&&c.topType==='robe'){P(tpS,4,12,8,1)}
+  if(c.apron&&!up){if(side){P('#f4efe2',10,12,1,6);P('#d8d0c0',10,17,1,1)}else{P('#f4efe2',5,12,6,6);P('#d8d0c0',5,17,6,1);P('#d8d0c0',10,12,1,6);P('#e8e0d0',6,11,1,1);P('#e8e0d0',9,11,1,1);P('#d8d0c0',6,14,4,1)}}
+  if(!side){const ay=walk?(f===1?1:0):0,by=walk?(f===2?1:0):0,arm=c.sleeve==='short'?sk:tp,armS=c.sleeve==='short'?skS:tpS;
+    P(SV_O,2,11+ay,3,5);P(arm,3,12+ay,1,3);P(tp,3,11+ay,1,1);P(sk,3,15+ay,1,1);
+    P(SV_O,11,11+by,3,5);P(armS,12,12+by,1,3);P(tpS,12,11+by,1,1);P(sk,12,15+by,1,1);
+    if(c.topType==='robe'){P(SV_O,2,11,3,7);P(tp,3,12,1,5);P(sk,3,16,1,1)}
+  }else{const a=f===1?-1:f===2?1:0;P(c.sleeve==='short'?skS:tpS,7+a,11,2,4);P(sh(tpS,.85),9+a,12,1,3);P(sk,7+a,15,2,1);P(SV_O,7+a,16,2,0);P(SV_O,9+a,15,1,1)}
+  /* neck */
+  P(skS,7,10,2,1);
+  /* head: rows 1..10 */
+  const rows=[[5,10],[4,11],[3,12],[3,12],[3,12],[3,12],[3,12],[4,11],[5,10]];
+  rows.forEach(([a,b],i)=>{const y=2+i;P(SV_O,a-1,y,b-a+3,1)});P(SV_O,5,1,6,1);P(SV_O,5,11,6,0);
+  rows.forEach(([a,b],i)=>{const y=2+i;P(sk,a,y,b-a+1,1)});
+  P(skS,12,6,1,3);P(skS,11,9,1,1);P(skS,5,10,6,0);P(skH,5,4,2,1);
+  if(!up&&!side){P(SV_O,2,6,1,2);P(skS,2,6,1,1)}
+  /* face */
+  if(!up){
+    if(!side){
+      if(c.closed){P(SV_O,4,7,2,1);P(SV_O,9,7,2,1)}
+      else{P('#1b120c',5,6,1,2);P('#1b120c',10,6,1,2);P('#ffffff',5,6,1,1);P('#ffffff',10,6,1,1);P('#3a2418',4,6,1,1);P('#3a2418',9,6,0,0)}
+      P('rgba(232,120,110,.55)',4,8,1,1);P('rgba(232,120,110,.55)',11,8,1,1);P('#a8524a',7,9,2,1);
+      if(c.thanaka){P('#f2e2a8',3,7,2,2);P('#f2e2a8',11,7,2,2)}
+    }else{
+      if(c.closed)P(SV_O,10,7,2,1);else{P('#1b120c',10,6,1,2);P('#ffffff',10,6,1,1)}
+      P(skS,13,7,1,1);P(SV_O,13,6,1,1);P('#a8524a',11,9,1,1);P('rgba(232,120,110,.55)',10,8,1,1);
+      if(c.thanaka)P('#f2e2a8',9,8,2,1);
+      P(skS,6,6,2,3);P(SV_O,6,6,1,3);
+    }
+    if(c.glasses){const g=c.glasses;if(!side){P(g,4,5,3,1);P(g,4,8,3,1);P(g,4,6,1,2);P(g,6,6,1,2);P(g,9,5,3,1);P(g,9,8,3,1);P(g,9,6,1,2);P(g,11,6,1,2);P(g,7,6,2,1)}else{P(g,9,5,3,1);P(g,9,8,3,1);P(g,9,6,1,2);P(g,11,6,1,2);P(g,6,6,3,1)}}
+  }
+  /* hair / hats */
+  const H=c.hairStyle;
+  if(H!=='bald'&&H!=='none'){
+    if(up){P(hr,3,2,10,7);P(hr,4,9,8,1);P(hrS,3,8,10,1);P(hrS,11,3,2,5);P(hrH,5,3,2,1);P(hrH,4,4,1,1);P(hrS,7,5,1,3)}
+    else if(side){P(hr,3,2,8,3);P(hr,3,5,4,4);P(hr,4,9,2,1);P(hr,11,3,2,1);P(hrS,3,7,4,1);P(hrH,5,3,3,1);if(H!=='slick')P(hr,11,4,1,1)}
+    else{P(hr,4,2,8,2);P(hr,3,4,10,1);
+      if(H==='slick'){P(hr,3,5,5,1);P(hr,3,6,1,2);P(hr,12,5,1,2);P(hrH,5,3,4,1);P(hrH,4,4,2,1)}
+      else if(H==='short'){for(const x of [3,4,6,7,9,11,12])P(hr,x,5,1,1);P(hr,3,6,1,2);P(hr,12,6,1,2);P(hrH,5,3,3,1);P(hrS,4,4,8,0)}
+      else{P(hr,3,5,4,1);P(hr,9,5,4,1);P(hr,3,6,1,4);P(hr,12,6,1,4);P(hrH,5,3,3,1);P(hrH,4,4,1,1)}
+    }
+    P(SV_O,4,1,8,1);
+    if(H==='bunTop'){if(!side){P(SV_O,5,-1,6,4);P(hr,6,0,4,2);P(hrH,6,0,2,1)}else{P(SV_O,3,0,5,4);P(hr,4,1,3,2)}}
+    if(H==='bunLow'){if(up){P(SV_O,5,8,6,4);P(hr,6,9,4,2);P(hrH,6,9,2,1)}else if(side){P(SV_O,1,6,4,5);P(hr,2,7,2,3);P(hrH,2,7,1,1)}else{P(SV_O,12,7,3,4);P(hr,13,8,1,2)}}
+    if(H==='pony'){if(up){P(SV_O,6,8,4,6);P(hr,7,9,2,4)}else if(side){P(SV_O,1,6,3,6);P(hr,2,7,1,4)}}
+  }
+  if(c.flower&&!up){side?P(c.flower,3,3,2,2):P(c.flower,11,2,2,2)}
+  if(c.ribbon){side?P(c.ribbon,4,1,3,1):up?P(c.ribbon,6,2,4,1):P(c.ribbon,6,1,4,1)}
+  if(c.hat==='cone'||c.hat==='straw'){const hs=c.hat==='cone'?'#c89a50':'#e2c27a',hd=sh(hs,.72),hl=sh(hs,1.2);
+    if(c.hat==='cone'){for(let y=0;y<5;y++){const w=2+y*3;P(SV_O,8-(w>>1)-1,y,w+2,1)}for(let y=0;y<5;y++){const w=2+y*3;P(hs,8-(w>>1),y,w,1);P(hd,8,y,(w>>1),1)}P(hl,7,1,1,3);P(SV_O,0,5,16,1);P(hd,1,4,14,1);P('#7a5a2a',7,0,2,1)}
+    else{P(SV_O,4,0,8,4);P(hs,5,0,6,3);P(hl,5,1,2,1);P(SV_O,1,3,14,2);P(hs,2,3,12,1);P(hd,2,4,12,1);P('#c8433a',5,2,6,1)}}
+  if(c.hat==='band'){const b=c.band||'#f2efe6';P(b,3,4,10,1);P(sh(b,.8),3,5,10,0);if(!up&&!side){P(b,12,4,2,1);P(b,13,5,1,2)}else if(side){P(b,2,4,2,2);P(b,1,6,1,2)}else P(b,6,4,4,1)}
+  if(c.hat==='scarf'){const s2=c.scarfCol,sS=sh(s2,.75);P(SV_O,3,0,10,1);P(s2,3,1,10,3);P(s2,2,3,1,2);P(s2,13,3,1,2);P(sS,3,3,10,1);for(let x=4;x<12;x+=3)P(sh(s2,1.25),x,2,1,1);if(!up&&!side){P(s2,10,0,3,1);P(sS,12,0,1,2)}}
+  if(H==='bald'){P(skH,5,2,3,1);P(skH,4,3,2,1);if(up){P(skS,4,7,8,2)}}
+}
+function svChar(c){const out={};['down','up','right'].forEach(d=>{out[d]=[0,1,2].map(f=>{const cv=mk(16,22);withC(cv.getContext('2d'),()=>drawSV(c,d,f));return cv})});out.left=out.right.map(flipC);return out}
+const SV_CFG={
+  hla:{skin:'#e2ae84',hair:'#8a8a88',hairStyle:'slick',top:'#3f6a4a',topType:'jacket',low:'#3a3a5a',lowPat:'stripe',pat:'#6a4a7a',knot:1},
+  aye:{skin:'#deaa80',hair:'#b4b4b0',hairStyle:'bunTop',ribbon:'#a8504a',glasses:'#8a5a2a',top:'#e8c8c8',topType:'blouse',low:'#7a6a3a',lowPat:'stripe',pat:'#a8503a',thanaka:1},
+  mya:{skin:'#f0c098',hair:'#1e1612',hairStyle:'bunLow',top:'#f2c4b0',topType:'blouse',low:'#2f5a4a',lowPat:'acheik',pat:'#8a2a4a',thanaka:1,flower:'#f6c829'},
+  san:{skin:'#eebc94',hair:'#1e1612',hairStyle:'bunLow',top:'#f0b8a0',topType:'blouse',low:'#2f5a4a',lowPat:'acheik',pat:'#8a2a4a',apron:1,thanaka:1},
+  zaw:{skin:'#d8a274',hair:'#1a120c',hairStyle:'short',top:'#f6f4ee',topType:'tee',sleeve:'short',low:'#2f5a3a',lowPat:'acheik',pat:'#8a3a2a',knot:1},
+  tun:{skin:'#c8906a',hair:'#1e1612',hairStyle:'short',hat:'band',band:'#e8e4d8',top:'#f0e6cc',topType:'shirt',low:'#4a4a4a',lowPat:'check',pat:'#6a5a50',knot:1},
+  khine:{skin:'#f0c4a0',hair:'#3a2418',hairStyle:'pony',top:'#fbfbf8',topType:'coat',low:'#d8cbb0',lowType:'trousers'},
+  min:{skin:'#d8a070',hair:'#1e1612',hairStyle:'short',top:'#5a7ab0',topType:'overall',bib:'#4a6aa0',sash:'#5a5a6a',sleeve:'short',low:'#4a6aa0',lowType:'trousers'},
+  kyaw:{skin:'#c99068',hair:'#3a3430',hairStyle:'short',hat:'cone',top:'#f2e8d0',topType:'shirt',low:'#5a7a3a',lowPat:'check',pat:'#8aa060',knot:1},
+  monk:{skin:'#e0aa80',hairStyle:'bald',top:'#8a2e24',topType:'robe',low:'#7a2620',robe:1,closed:1},
+  rep:{skin:'#f0c098',hair:'#14100c',hairStyle:'slick',glasses:'#6a4020',top:'#6e7684',topType:'suit',tie:'#7a2a3a',low:'#5e6672',lowType:'trousers'},
+  khin:{skin:'#deaa80',hair:'#2a1e16',hairStyle:'bunTop',hat:'scarf',scarfCol:'#8a8a7a',top:'#f2e6cc',topType:'blouse',low:'#2f4a3a',lowPat:'acheik',pat:'#c8a030',thanaka:1},
+  me:{skin:'#eab48a',hair:'#1e1612',hairStyle:'short',hat:'straw',top:'#f6f2e8',topType:'shirt',low:'#3f6f95',lowPat:'check',pat:'#7fb1d6',knot:1},
+};
+const PS=svChar(SV_CFG.me),MS=svChar(SV_CFG.khin);
+const REP_SPR=svChar(SV_CFG.rep);
+const HEADS={HAT,WRAP,BALD,BUN,SHORT,MONK:BALD},NS={};NPCS.forEach(d=>{const c=SV_CFG[d.id];if(c){NS[d.id]=svChar(c);d.pal={...d.pal,k:c.hair||c.skin,s:c.skin,w:c.top,W:sh(c.top,.8),l:c.low,L:sh(c.low,.72)}}else NS[d.id]=buildPerson(d.pal,HEADS[d.head],d.thanaka?BODY_DT:BODY_D,d.thanaka?BODY_ST:BODY_S,d.kid)});
 /* ---------- detailed sprites (hens, cows, crops) ---------- */
 function ell(cx,cy,rx,ry,col){const n=Math.ceil(ry);for(let dy=-n;dy<=n;dy++){const k=1-(dy*dy)/(ry*ry);if(k<0)continue;const w=rx*Math.sqrt(k),a=Math.round(cx-w),b=Math.round(cx+w);if(b>a)R(col,a,Math.round(cy+dy),b-a,1)}}
 function blobs(list,O){list.forEach(([x,y,rx,ry])=>ell(x,y,rx+1,ry+1,O));list.forEach(([x,y,rx,ry,c])=>ell(x,y,rx,ry,c))}
@@ -1943,7 +2052,9 @@ function makeMonastery(b){
 /* ----- people extras: tea-shop customers & monastery worshippers ----- */
 const EXP=[mkPal('#d8a070','#1e130b','#f2efe6','#3a5a3a','#7a9a6a'),mkPal('#c98e5c','#6a6a6a','#e8d8b0','#5a3a2a','#8a6a4a'),mkPal('#e0a676','#1e130b','#f6d0dc','#7a2a4a','#c87aa0'),
   mkPal('#b8805a','#1e130b','#c8d8e8','#2a3a5a','#5a6a8a'),mkPal('#dca274','#2a1a12','#fbe7c6','#2f5a7a','#e2b84a'),mkPal('#d09a68','#8a8a8a','#ffffff','#4a3a2a','#8a7a5a','#f2efe6')];
-const EXS=[buildPerson(EXP[0],SHORT),buildPerson(EXP[1],WRAP),buildPerson(EXP[2],BUN,BODY_DT,BODY_ST),buildPerson(EXP[3],HAT),buildPerson(EXP[4],BUN,BODY_DT,BODY_ST),buildPerson(EXP[5],WRAP)];
+const EXS=[{skin:'#d8a070',hair:'#1e130b',hairStyle:'short',top:'#f2efe6',topType:'shirt',low:'#3a5a3a',lowPat:'check',pat:'#6a8a5a',knot:1},{skin:'#c98e5c',hair:'#6a6a6a',hairStyle:'short',hat:'band',band:'#c86a7a',top:'#e8d8b0',topType:'jacket',inner:'#fbf8f0',low:'#5a3a2a',lowPat:'stripe',knot:1},
+  {skin:'#eab48a',hair:'#1e130b',hairStyle:'bunLow',top:'#f6d0dc',topType:'blouse',low:'#7a2a4a',lowPat:'acheik',pat:'#d8a830',thanaka:1,flower:'#e2402f'},{skin:'#d8a070',hair:'#1e130b',hairStyle:'short',hat:'cone',top:'#c8d8e8',topType:'shirt',low:'#4a4a6a',lowPat:'check',knot:1},
+  {skin:'#e8b88c',hair:'#2a1e16',hairStyle:'bunTop',top:'#d8ecd0',topType:'blouse',low:'#5a3a6a',lowPat:'stripe',thanaka:1},{skin:'#c99068',hair:'#1e130b',hairStyle:'slick',top:'#f6f2e8',topType:'shirt',low:'#6a4a3a',lowPat:'check',knot:1}].map(svChar);
 const TEA_TALK=['လက်ဖက်ရည် ပေါ့ဆိမ့် တစ်ခွက်!','ကုမ္ပဏီကိစ္စ ကြားပြီးပြီလား','ဒီနှစ် စပါးဈေး ကောင်းမလား','မုန့်ဟင်းခါး တစ်ပွဲ ထပ်ယူမယ်','သူကြီးက အစည်းအဝေး ခေါ်မယ်တဲ့','ရွာကို ဘယ်သူမှ မရောင်းနဲ့နော်','မိုးတွင်း မြစ်ရေ တက်တော့မယ်','ကြက်ဥဈေး တက်နေတယ်','အဘိုးရဲ့ မြေး ရောက်လာပြီတဲ့','ပလာတာ ပူပူလေး ကောင်းတယ်'];
 const teaHours=()=>(S.min>=400&&S.min<660)||(S.min>=900&&S.min<1110);
 const prayHours=()=>(S.min>=360&&S.min<450)||(S.min>=1020&&S.min<1110);
@@ -2512,7 +2623,7 @@ function start(data){
   setTimeout(fit,300);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 }
-if(window.__shweDebug){window.__shweDebug.portrait=(id,ex)=>{const c=mk(192,240);drawPortrait(c,id,ex);return c.toDataURL()};window.__shweDebug.sprite=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(64,88),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(sp.down[0],0,0,64,88);return c.toDataURL()}}
+if(window.__shweDebug){window.__shweDebug.portrait=(id,ex)=>{const c=mk(192,240);drawPortrait(c,id,ex);return c.toDataURL()};window.__shweDebug.sheet=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(16*12,22),g=c.getContext('2d');['down','up','right','left'].forEach((d,i)=>sp[d].forEach((f,k)=>g.drawImage(f,(i*3+k)*16,0)));return c.toDataURL()};window.__shweDebug.sprite=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(64,88),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(sp.down[0],0,0,64,88);return c.toDataURL()}}
 if(window.__shweDebug)window.__shweDebug.npc=()=>npcRT.map((n,i)=>({id:NPCS[i].id,active:n.active,map:n.map,x:n.x,y:n.y,t:n.t,act:n.act,shop:inShop(n)}));
 window.claude?.hot?.snapshot?.(()=>({s:S&&modal.hidden?JSON.stringify(S):null}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
