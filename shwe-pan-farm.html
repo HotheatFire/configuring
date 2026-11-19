@@ -449,8 +449,10 @@ function drawPlayer(px,py){
   if(cup){const cx=px+(dir==='left'?2:dir==='right'?9:6),cy=py+12-Math.round(cup*6);R('#f1e7d6',cx,cy,5,4);R('#b5763a',cx+1,cy,3,1);R('#e0a676',cx+1,cy+4,3,2);if(cup>.8&&((performance.now()/200)|0)%2){R('rgba(255,255,255,.7)',cx+1,cy-4,1,2);R('rgba(255,255,255,.7)',cx+3,cy-6,1,2)}}
   if(item){const bob=((performance.now()/180)|0)%2;R('#e0a676',px+3,py-3,2,4);R('#e0a676',px+11,py-3,2,4);itemIcon(item,px+4,py-12-bob);if(((performance.now()/120)|0)%3===0){R('#fff6c0',px+1,py-14,1,1);R('#fff6c0',px+14,py-10,1,1)}}
 }
+let queuedAct=null;
 function useTool(){
-  if(paused||mv||CUT||anim)return;
+  if(!paused&&!CUT&&(mv||anim)){queuedAct={fn:useTool,t:performance.now()};return}
+  if(paused||mv||CUT||anim)return;queuedAct=null;
   dirty=true;
   if(fishRT){if(fishRT.phase==='bite'){doAct('reel');const fid=catchFish();anim.item={kind:fid}}else{toast('စောလွန်းတယ်။ ငါးလန့်ပြေးသွားပြီ');fishRT=null}return}
   const tool=TOOLS[S.tool].id;
@@ -515,7 +517,8 @@ function useTool(){
   belt();
 }
 function act(){
-  if(paused||mv||CUT||anim)return;
+  if(!paused&&!CUT&&(mv||anim)){queuedAct={fn:act,t:performance.now()};return}
+  if(paused||mv||CUT||anim)return;queuedAct=null;
   dirty=true;
   const [fx,fy]=front();
   if(S.scene==='shop')return actShop(sTile(fx,fy));
@@ -1342,7 +1345,8 @@ function update(dt){
   if(S.min>=1440){toast('');endDay(true);return}
   if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
   updateFun(dt,ticked);
-  if(!mv&&held.length&&fade<.5&&!fishRT&&!anim)tryMove(held[held.length-1]);
+  if(queuedAct&&!mv&&!anim){const q=queuedAct;queuedAct=null;if(performance.now()-q.t<600)q.fn()}
+  if(!paused&&!CUT&&!mv&&held.length&&fade<.5&&!fishRT&&!anim)tryMove(held[held.length-1]);
   updateNPCs(dt);
   const night=S.min>=1140;
   chickRT.forEach(c=>{
