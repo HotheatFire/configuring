@@ -569,8 +569,13 @@ function act(){
     if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;const gl=S.garland?30:15;if(S.garland){S.garland=0}S.energy=Math.min(S.maxE,S.energy+gl);return toast(`${b.name}မှာ ${gl>15?'စံပယ်ပန်းကုံး ကပ်ပြီး ':''}ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +${gl})`)}
     if(b.style==='zayat'){if(S.daily.zayat)return toast('ဇရပ်မှာ ခဏ နားပြီးပြီ');S.daily.zayat=1;S.energy=Math.min(S.maxE,S.energy+10);return toast('ဇရပ်မှာ လေညင်းခံရင်း ခဏ နားလိုက်တယ် (အားအင် +10)')}
     if(b.style==='potstand'){if(S.daily.potw)return toast('ရေအိုးထဲက ရေ သောက်ပြီးပြီ');S.daily.potw=1;S.energy=Math.min(S.maxE,S.energy+5);return toast('ရေအိုးစင်က ရေအေးအေး သောက်လိုက်တယ် (အားအင် +5)')}
-    if(b.style==='ruin'&&S.flags.stone&&!S.flags.letter2)return cutscene(ruinScene);
-    if(b.style==='banyan'&&S.q.q_map==='active'&&!S.flags.stone){if(S.px>=b.x+b.w)return cutscene(stoneScene);return toast('(မြေပုံထဲမှာ "နေထွက်ရာ" တဲ့… အရှေ့ဘက်ကနေ ကြည့်ရမယ်)')}
+    if(b.style==='ruin'&&S.flags.stone&&!S.flags.letter2){if(S.min>=1140||S.min<300)return cutscene(ruinScene);S.flags.ruinTry=1;return toast(S.clues.includes('c_moon')?'(အုတ်ခုံကို လိုက်စမ်းပေမဲ့ ဘာမှ မထူးဘူး… ဦးကျော်က အဘိုး ညဘက် တောင်ဘက် သွားတယ် ပြောတယ်နော်)':'(အုတ်ခုံကို လိုက်စမ်းပေမဲ့ ဘာမှ မထူးဘူး… ကျောက်တုံးမှာ ကြယ်တွေ ထွင်းထားတာ ဘာကို ဆိုလိုလဲ?)')}
+    if(b.style==='banyan'&&S.q.q_map==='active'&&!S.flags.stone){const east=S.px>=b.x+b.w,dawn=S.min>=330&&S.min<480;
+      if(east&&dawn&&S.flags.legend)return cutscene(stoneScene);
+      S.flags.stoneTry=1;
+      if(!S.flags.legend)return toast('(ညောင်ပင်ကြီးက ကြီးလိုက်တာ… ဘယ်နေရာ ရှာရမှန်း မသိသေးဘူး။ အဘိုးအကြောင်း အရင် မေးကြည့်ရမယ်)');
+      if(!east)return toast('(ညောင်ပင်ရင်းမှာ ဘာမှ မတွေ့ဘူး… "နေထွက်ရာ")');
+      return toast('(အရှေ့ဘက် အမြစ်တွေကြားမှာ မြေကြီးပဲ ရှိတယ်… နေ မြင့်နေပြီ။ "နေထွက်ရာ" ဆိုတာ အချိန်ကိုပါ ဆိုလိုတာလား?)')}
     if(BMSG[b.style])return toast(BMSG[b.style]);
     if(b.style==='well'){S.water=S.canMax;return toast('ရေတွင်းကနေ ရေပုံး ဖြည့်လိုက်တယ်')}
     if(b.style==='station'){const m=S.min,nx=m<390?390:390+Math.ceil((m-390)/90)*90;return toast(nx>1290?'ဒီနေ့ ရထား မရှိတော့ဘူး။ မနက်ဖြန် 6:30 မှာ ပထမ ရထား လာမယ်':`နောက်ရထား ${Math.floor(nx/60)}:${String(nx%60).padStart(2,'0')} မှာ ဖြတ်မယ်။ ရထားလမ်းဘေးကနေ ကြည့်လို့ရတယ်`)}
@@ -963,6 +968,7 @@ const CLUES={
   c_stone:{t:'ညောင်ပင်ရင်းက ကျောက်တုံး',d:'ညောင်ပင်ကြီး အရှေ့ဘက် မြေထဲမှာ တစ်ဝက်မြုပ်နေတဲ့ ကျောက်တုံး။ ကြယ်သုံးပွင့်နဲ့ တောင်ကုန်းပုံ ထွင်းထားတယ်။ တောင်ကုန်းပေါ်က စေတီပျက်ကို ညွှန်နေတယ်။',k:'hunt'},
   c_coin:{t:'ကြက်ယက်ထုတ်တဲ့ ဒင်္ဂါး',d:'ခြံထဲမှာ ကြက်တွေ ယက်ထုတ်တဲ့ ရှေးဒင်္ဂါး။ ကြယ်သုံးပွင့် သင်္ကေတ ပါတယ်။ အဘိုးရဲ့ ခြံမြေအောက်မှာ ဘာတွေ ရှိသေးလဲ?',k:'hunt'},
   c_ruin:{t:'စေတီပျက်ထဲက အဘိုးစာ',d:'အဘိုး စေတီပျက်ကို တူးကြည့်ပြီးပြီ၊ ရတနာ မရှိဘူး။ ဂူထဲက နံရံမှာ နောက်ထပ် အမှတ်အသား ရှိတယ်။ မြေပုံ နောက်တစ်ပိုင်းက ရွာထဲက မိသားစု တစ်စုဆီမှာ။',k:'hunt'},
+  c_fall:{t:'ရေကြီးနှစ်မှ ပေါ်တဲ့ ရေတံခွန်',d:'ဦးကျော်ပြောတာ: ရေကြီးပြီးကတည်းက တောင်ကုန်း အနောက်ဘက် ကမ်းပါးမှာ ရေတံခွန် နောက်တစ်ခု ပေါ်လာတယ်။ ဦးကျော် ငယ်ငယ်က ရေကြီးနှစ်မှာပဲ မြင်ဖူးတယ်တဲ့။ တောထဲက ရေတံခွန်နဲ့ မတူဘူး။',k:'hunt'},
   c_riddle:{t:'နံရံ ပဟေဠိ',d:'"စေတီ၊ ရေတံခွန်၊ ရေတွင်း သုံးခု မျက်နှာချင်းဆိုင်ရာ"။ မြေပုံ နှစ်ပိုင်းလုံး ရှိမှ နေရာအတိအကျ တွက်လို့ရမယ်။',k:'hunt'},
   r_hole:{t:'မကြာသေးတဲ့ မြေကျင်း',d:'ညောင်ပင် အရှေ့ဘက် ကျောက်တုံးဘေးမှာ မကြာသေးခင်က တူးထားတဲ့ မြေကျင်း။ မြေစိုတုန်းပဲ။ ကိုယ့်ထက် အရင် တစ်ယောက်ယောက် ဒီကို ရောက်ခဲ့တယ်။',k:'rival'},
   r_steps:{t:'စေတီပျက်က ဖိနပ်ရာ',d:'စေတီပျက် ကျောက်လှေကားပေါ်မှာ ကိုယ့်ဟာ မဟုတ်တဲ့ ဖိနပ်ရာ။ ရွာသားတွေ စီးတဲ့ ကွင်းထိုးဖိနပ် မဟုတ်ဘူး၊ မြို့ဖိနပ်ရာ။',k:'rival'},
@@ -1008,9 +1014,9 @@ const QUESTS={
   q_harvest:{title:'ပထမဆုံး ရိတ်သိမ်းမှု',desc:'အသီးအနှံ 5 ခု ရိတ်သိမ်းပြီး ပို့ကုန်ပုံးထဲ ထည့်ပါ',prog:()=>[Math.min(5,S.stats.shipped||0),5],reward:()=>{S.money+=200;return '200 ကျပ်'}},
   q_clear:{title:'အဘိုးရဲ့ ခြံကို ပြန်ရှင်း',desc:'ခြံထဲက ပေါင်းပင် ဒါမှမဟုတ် ကျောက်တုံး 15 ခု ရှင်းပါ',prog:()=>[Math.min(15,S.stats.cleared||0),15],reward:()=>{S.seeds.tomato+=9;return 'ခရမ်းချဉ် မျိုးစေ့ 9 စေ့'}},
   q_meet:{title:'ရွာသားတွေနဲ့ မိတ်ဆက်',desc:'ရွာသား 8 ယောက်နဲ့ စကားပြောပါ',prog:()=>[Math.min(8,Object.keys(S.friends).length),8],reward:()=>{S.tea+=3;return 'လက်ဖက်ရည် 3 ခွက်'}},
-  q_grandpa:{title:'အဘိုးအကြောင်း မေးမြန်း',desc:'ဒေါ်အေး၊ ကိုမင်း၊ ဦးကျော် တို့ကို အဘိုးအကြောင်း မေးကြည့်ပါ။ သိုက်အကြောင်းတော့ မပြောမိစေနဲ့',prog:()=>[['c_legend','c_cart','c_moon'].filter(c=>S.clues.includes(c)).length,3],reward:()=>''},
-  q_map:{title:'ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ',desc:'မြေပုံထဲက စာအရ ရွာထဲက ညောင်ပင်ကြီး (နတ်စင်) ရဲ့ အရှေ့ဘက်ကနေ စစ်ကြည့်ပါ။ ရွာသားတွေ မြင်ရင် သံသယ ဖြစ်မယ် — လူရှင်းချိန် သွားပါ',prog:()=>[S.flags.stone?1:0,1],reward:()=>''},
-  q_ruin:{title:'ကြယ်သုံးပွင့် သင်္ကေတ',desc:'ကျောက်တုံးက ညွှန်တဲ့ တောင်ကုန်းပေါ်က စေတီပျက်ကို စစ်ပါ (ခြံတောင်ဘက် တောထဲက ကျောက်လှေကား)',prog:()=>[S.flags.letter2?1:0,1],reward:()=>''},
+  q_grandpa:{title:'အဘိုးအကြောင်း မေးမြန်း',desc:'ဒေါ်အေး၊ ကိုမင်း၊ ဦးကျော် တို့ကို အဘိုးအကြောင်း မေးကြည့်ပါ။ ရင်းနှီးမှ ပြောပြကြမယ် — လက်ဆောင်၊ အချိန်၊ အလုပ်အကြောင်း။ သိုက်အကြောင်းတော့ မပြောမိစေနဲ့',prog:()=>[['c_legend','c_cart','c_moon'].filter(c=>S.clues.includes(c)).length,3],reward:()=>''},
+  q_map:{title:'ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ',desc:()=>S.flags.stoneTry?'"နေထွက်ရာ" — နေရာ တစ်ခုတည်း မဟုတ်ဘဲ အချိန်ပါ ဆိုလိုနိုင်တယ်။ ရွာသားတွေ မြင်ရင် သံသယ ဖြစ်မယ်':'မြေပုံထဲက စာ "ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ" ကို ဖော်ထုတ်ပါ။ ညောင်ပင်ကြီး (နတ်စင်) က ရွာထဲမှာ',prog:()=>[S.flags.stone?1:0,1],reward:()=>''},
+  q_ruin:{title:'ကြယ်သုံးပွင့် သင်္ကေတ',desc:()=>S.flags.ruinTry?'စေတီပျက်မှာ ဘာမှ မထူးခြားဘူး။ ကျောက်တုံးမှာ ကြယ်တွေ ထွင်းထားတယ်… အဘိုး ဘယ်အချိန် သွားလေ့ရှိလဲ?':'ကျောက်တုံးက ညွှန်တဲ့ တောင်ကုန်းပေါ်က စေတီပျက်ကို စစ်ပါ (ခြံတောင်ဘက် တောထဲက ကျောက်လှေကား)',prog:()=>[S.flags.letter2?1:0,1],reward:()=>''},
   q_cave:{title:'ဂူထဲက အမှတ်အသား',desc:()=>!S.has.lantern?'ရွာထဲက ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ပြီး တောထဲက ဂူထဲ ဝင်ပါ (တံတားဖြတ်ပြီး အရှေ့ဘက်)':'ဂူထဲမှာ ရှေးဟောင်းပစ္စည်း 3 ခုနဲ့ ကြေးဆင်းတုတော်ကို ရှာပါ။ ပြိုကျနေတဲ့ ကျောက်ကို တူနဲ့ ခွဲပါ',prog:()=>[discCount(),4],reward:()=>''},
   q_bridge:{title:'ပြိုသွားတဲ့ တံတား',desc:()=>`ပုဆိန်နဲ့ သစ်တုံးခုတ်ပြီး ထင်း 10 စည်း စုပါ (အခု ${Math.min(10,S.produce.wood)}/10)။ ပြီးရင် တောထဲက ပြိုနေတဲ့ တံတားကို မျက်နှာမူပြီး B နှိပ်ပါ။ ပို့ကုန်ပုံးက ထင်း 10 စည်းကို ချန်ထားပေးမယ်`,prog:()=>[S.flags.bridgeFixed?1:0,1],reward:()=>{S.money+=300;return '300 ကျပ် (ရွာ့အသင်းက)'}},
   q_thingyan:{title:'သင်္ကြန် ရေပက်ပွဲ',desc:'သင်္ကြန်နေ့ (နေ့ 8) မှာ ရွာထဲသွားပြီး ရွာသား 5 ယောက်ကို နှုတ်ဆက်ပါ',prog:()=>[Math.min(5,Object.keys(S.flags.tg||{}).length),5],reward:()=>{S.money+=300;S.tea+=2;return '300 ကျပ်နဲ့ လက်ဖက်ရည် 2 ခွက်'}},
@@ -1118,7 +1124,7 @@ async function introScene(){
   await say('hla','ဘာမှ ဖြစ်ရင် ငါ့အိမ် ရွာလယ်မှာ။ လာခဲ့နော်။','h');
   ['q_harvest','q_clear','q_meet'].forEach(q=>qStart(q,true));qStart('q_grandpa',true);qStart('q_map',true);toast('Quest အသစ်တွေ · မှတ်စု ခလုတ်မှာ ကြည့်ပါ');
   await moveActor(a,20,8);await moveActor(a,28,20);
-  await say('me','(မြေပုံထဲက "ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ"… ရွာထဲမှာ ညောင်ပင်ကြီး ရှိတယ်လို့ ကြားဖူးတယ်။ နေထွက်ရာဆိုတော့ အရှေ့ဘက်ပေါ့။)');
+  await say('me','(မြေပုံထဲက "ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ"… ရွာထဲမှာ ညောင်ပင်ကြီး ရှိတယ်လို့ ကြားဖူးတယ်။ ဒါပေမဲ့ အဘိုးက ဒီလောက် လွယ်တဲ့ စာ ရေးမှာ မဟုတ်ဘူး။ အရင်ဆုံး အဘိုးအကြောင်း သိတဲ့လူတွေကို မေးကြည့်မယ်။)');
 }
 async function dealerScene(){
   const a=addActor('rep',REP_SPR,'farm',28,20);const [tx,ty]=nearSpot();
@@ -1155,7 +1161,8 @@ async function gpScene(id){const [cl,ask,line,q,ans,think]=GP_TALK[id];await say
 async function stoneScene(){
   const w=secretAct();
   if(w.length)await say('me',`(${w.map(d=>d.name).join('၊ ')} ဒီဘက်ကို ကြည့်နေတယ်… မြန်မြန် လုပ်ရမယ်။)`);
-  await say('nar','ညောင်ပင်ကြီးရဲ့ အရှေ့ဘက် အမြစ်တွေကြားမှာ မြေထဲ တစ်ဝက်မြုပ်နေတဲ့ ကျောက်တုံးတစ်တုံး…');
+  await say('nar','နေထွက်လာတော့ ညောင်ပင်ကြီးရဲ့ အရိပ်က အနောက်ဘက်ကို ရှည်ရှည်ကြီး ကျသွားတယ်။ အရှေ့ဘက် အမြစ်တွေကြားမှာ ရွှေရောင် နေခြည်ထိုးတဲ့နေရာ တစ်ကွက်…');
+  await say('nar','မြေထဲ တစ်ဝက်မြုပ်နေတဲ့ ကျောက်တုံးတစ်တုံး။ နေမြင့်လာရင် အမြစ်အရိပ်တွေကြားမှာ ပျောက်သွားမယ့်နေရာ။');
   await say('pc','…ဒါပဲ!');
   await say('nar','မြေကြီးကို ပွတ်သပ်ဖယ်ကြည့်တော့ ကြယ်သုံးပွင့်နဲ့ တောင်ကုန်းပုံ ထွင်းထားတယ်။ မြေပုံထဲက သင်္ကေတနဲ့ အတူတူပဲ!');
   await say('me','(ကြယ်တွေရဲ့ အစီအစဉ်က တောင်ကုန်းရဲ့ ထိပ်ကို ညွှန်နေတယ်။ တောင်ကုန်းပေါ်မှာ စေတီပျက် တစ်ဆူ ရှိတယ်လို့ ကြားဖူးတယ်…)');
@@ -1166,7 +1173,9 @@ async function stoneScene(){
 }
 async function ruinScene(){
   const w=secretAct();if(w.length)await say('me','(တစ်ယောက်ယောက် မြင်နေတယ်… ဘုရားဖူးလာသလို ဟန်ဆောင်ရမယ်။)');
-  await say('nar','စေတီပျက်ရဲ့ အုတ်ခုံမှာ ကြယ်သုံးပွင့် ထွင်းထားတဲ့ အုတ်ချပ် တစ်ချပ်။ ဖိကြည့်တော့ လှုပ်သွားတယ်…');
+  await say('nar','လရောင်အောက်မှာ စေတီပျက်ရဲ့ အုတ်ခုံ တစ်ချပ်က ငွေရောင် တောက်နေတယ်။ နေ့ခင်းက မမြင်ရတဲ့ ကြယ်သုံးပွင့် အထွင်း…');
+  await say('me','(ကျောက်ပေါ်က အထွင်းတွေထဲမှာ သတ္တုမှုန့် ဖြည့်ထားတာ။ လရောင်မှာပဲ ပြန်ဟပ်တယ်။ အဘိုး လပြည့်ညတိုင်း ဒီကို လာတာ ဒါကြောင့်ပဲ!)');
+  await say('nar','ဖိကြည့်တော့ အုတ်ချပ် လှုပ်သွားတယ်…');
   await say('nar','အုတ်ချပ်အောက်မှာ သံသေတ္တာလေး တစ်ခု။ အထဲမှာ အဘိုးရဲ့ လက်ရေးနဲ့ စာတစ်စောင်။');
   await say('pc','အဘိုး… ဒီထိ လာခဲ့တာပဲ။');
   await letter('l2');S.flags.letter2=1;addClue('c_ruin');
@@ -1214,6 +1223,15 @@ async function bridgeScene(){
   await say('kyaw','တောင်ကုန်းဘက်… ဂူရှိတဲ့ဘက်ကိုပဲ။ မီးရောင်လေး တစ်ပြက်ပြက်နဲ့။','s');
   await say('me','(ရေကြီးနေတဲ့ ညမှာ ဂူဘက် ကူးသွားတယ်… ဂူကို အရမ်း သွားချင်နေတဲ့သူ။)');
 }
+async function fallScene(){
+  await say('kyaw','ဟေ့ ကလေး၊ ထူးဆန်းတာ တစ်ခု ပြောမယ်။ ရေကြီးပြီးကတည်းက တောင်ကုန်း အနောက်ဘက် ကမ်းပါးမှာ ရေတံခွန်လေး တစ်ခု ပေါ်လာတယ်။','h');
+  await say('pc','တောထဲမှာ ရေတံခွန် ရှိပြီးသားလေ ဦးကျော်။');
+  await say('kyaw','အဲဒါ မဟုတ်ဘူး။ ဒါက နောက်တစ်ခု။ ငါ ငယ်ငယ်က ရေကြီးနှစ်မှာ တစ်ခါပဲ မြင်ဖူးတယ်။ နှစ်ငါးဆယ်လောက် ရှိပြီ… ရေကျသွားရင် ပြန်ပျောက်သွားမှာ။','s');
+  if(S.clues.includes('c_riddle')){await say('me','(ရေတံခွန်… နံရံ ပဟေဠိထဲက ရေတံခွန်! တောထဲက ရေတံခွန်လို့ပဲ ထင်ခဲ့တာ။ အဘိုးလည်း အဲဒီလိုပဲ ထင်ခဲ့မလား?)')}
+  else await say('me','(ရေကြီးနှစ်မှပဲ ပေါ်တဲ့ ရေတံခွန်… မှတ်ထားရမယ်။)');
+  await say('pc','ပြောပြတာ ကျေးဇူးပဲ ဦးကျော်။');
+  addClue('c_fall');
+}
 async function dealer2Scene(){
   const a=addActor('rep',REP_SPR,'farm',28,20);const [tx,ty]=nearSpot();
   await moveActor(a,tx,ty);faceTo(a);
@@ -1229,9 +1247,22 @@ async function dealer2Scene(){
   await moveActor(a,28,20);
 }
 const TG_LINES=['သင်္ကြန်မှာ ပျော်ပါစေ! ရေလေး ပက်ပေးမယ်နော်။','နှစ်သစ်မှာ ကျန်းမာပါစေ။ ရွာလေးလည်း ဆက်ရှိနေပါစေ။','ရေအေးအေးလေး ပက်လိုက်ရင် ပူတာ ပျောက်သွားမယ်!','မုန့်လုံးရေပေါ် စားပြီးပြီလား? ဇရပ်မှာ ကျွေးနေတယ်။'];
+const GP_READY={
+  aye:()=>(S.friends.aye||0)>=3,
+  min:()=>S.chickens.length>0||(S.friends.min||0)>=3,
+  kyaw:()=>S.min<600&&npcRT[NPCS.findIndex(n=>n.id==='kyaw')]?.act==='fish',
+};
+const GP_NOT={
+  aye:[['aye','အဘိုးလား… ငါ ဒီနေ့ ယက်ကန်း အလုပ်တွေ များနေလို့ ကလေးရယ်။ နောက်မှ အေးအေးဆေးဆေး လာထိုင်ပါ။','s'],['me','(ဒေါ်အေးက အဘိုးအကြောင်း ပြောရင် ဝမ်းနည်းနေပုံပဲ။ ပိုရင်းနှီးလာမှ ပြောပြမယ် ထင်တယ်။ ဒေါ်အေး ကြိုက်တာလေး ယူလာရင် ကောင်းမလား…)']],
+  min:[['min','အဘိုးအကြောင်းလား? ငါ အခု မအားဘူးဗျ၊ ကြက်တွေ ကျွေးရဦးမယ်။ မင်းခြံမှာလည်း ကြက်ခြံ အလွတ် ရှိတယ်နော်၊ ကြက်ပေါက်လေးတွေ လိုရင် ငါ့ဆီ လာဝယ်။'],['me','(ကိုမင်းက အလုပ်ကလွဲရင် စကားသိပ် မပြောဘူး။ ကြက်ခြံ ပြန်စမှ ကိုမင်းနဲ့ စကားဝင်မယ် ထင်တယ်။)']],
+  kyaw:[['kyaw','ဟေ… မင်းအဘိုးအကြောင်းလား? ငါ အခု မောနေပြီ ကလေး။ မနက်စောစော ငါးမျှားနေတုန်း လာခဲ့။ ရေပြင်ကို ကြည့်ရင်း ပြောရတာ ပိုကောင်းတယ်။'],['me','(မနက်စောစော… မြောင်းဘေးမှာ ငါးမျှားနေတုန်း။)']],
+};
 function storyTalk(d){
-  if(d.id==='aye'&&S.q.q_grandpa==='active'&&!S.flags.legend){cutscene(ayeScene);return true}
-  if(GP_TALK[d.id]&&S.q.q_grandpa==='active'&&!S.clues.includes(GP_TALK[d.id][0])){cutscene(()=>gpScene(d.id));return true}
+  if((d.id==='aye'&&!S.flags.legend||GP_TALK[d.id]&&!S.clues.includes(GP_TALK[d.id][0]))&&S.q.q_grandpa==='active'){
+    if(GP_READY[d.id]()){cutscene(d.id==='aye'?ayeScene:()=>gpScene(d.id));return true}
+    S.flags.gpNot=S.flags.gpNot||{};if(S.flags.gpNot[d.id]!==S.day){S.flags.gpNot[d.id]=S.day;cutscene(async()=>{await say('pc',d.id==='aye'?'ဒေါ်အေး၊ ကျွန်တော့်အဘိုးအကြောင်း နည်းနည်း မေးချင်လို့ပါ။':d.id==='min'?'ကိုမင်း၊ ကျွန်တော့်အဘိုးအကြောင်း မေးလို့ ရမလား?':'ဦးကျော်၊ ကျွန်တော့်အဘိုးအကြောင်း နည်းနည်း မေးလို့ ရမလား?');for(const [w,t,e] of GP_NOT[d.id])await say(w,t,e)});return true}
+  }
+  if(d.id==='kyaw'&&S.flags.flood&&S.flags.bridgeFixed&&!S.clues.includes('c_fall')){cutscene(fallScene);return true}
   if(S.day===8&&S.q.q_thingyan==='active'){S.flags.tg=S.flags.tg||{};if(!S.flags.tg[d.id]){S.flags.tg[d.id]=1;burst(S.px,S.py,'#9fd0ff',14);cutscene(async()=>{const k=Object.keys(S.flags.tg).length;await say(d.id,TG_LINES[k%TG_LINES.length],'h');await say('pc',['သင်္ကြန်မှာ ပျော်ပါစေဗျာ!','ဟာ… အေးလိုက်တာ! ကျေးဇူးပဲ!','ကျန်းမာပါစေ၊ နှစ်သစ်မှာ ကံကောင်းပါစေ!'][k%3])});return true}}
   return false;
 }
@@ -2716,7 +2747,7 @@ function start(data){
   setTimeout(fit,300);
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
 }
-if(window.__shweDebug){window.__shweDebug.portrait=(id,ex)=>{const c=mk(192,240);drawPortrait(c,id,ex);return c.toDataURL()};window.__shweDebug.sheet=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(16*12,22),g=c.getContext('2d');['down','up','right','left'].forEach((d,i)=>sp[d].forEach((f,k)=>g.drawImage(f,(i*3+k)*16,0)));return c.toDataURL()};window.__shweDebug.sprite=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(64,88),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(sp.down[0],0,0,64,88);return c.toDataURL()}}
+if(window.__shweDebug){window.__shweDebug.ev=code=>eval(code);window.__shweDebug.portrait=(id,ex)=>{const c=mk(192,240);drawPortrait(c,id,ex);return c.toDataURL()};window.__shweDebug.sheet=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(16*12,22),g=c.getContext('2d');['down','up','right','left'].forEach((d,i)=>sp[d].forEach((f,k)=>g.drawImage(f,(i*3+k)*16,0)));return c.toDataURL()};window.__shweDebug.sprite=id=>{const sp=id==='me'?PS:id==='rep'?REP_SPR:id==='khin'?MS:NS[id],c=mk(64,88),g=c.getContext('2d');g.imageSmoothingEnabled=false;g.drawImage(sp.down[0],0,0,64,88);return c.toDataURL()}}
 if(window.__shweDebug)window.__shweDebug.npc=()=>npcRT.map((n,i)=>({id:NPCS[i].id,active:n.active,map:n.map,x:n.x,y:n.y,t:n.t,act:n.act,shop:inShop(n)}));
 window.claude?.hot?.snapshot?.(()=>({s:S&&modal.hidden?JSON.stringify(S):null}));
 window.claude?.hot?.ready?window.claude.hot.ready(start):start(window.claude?.hot?.data??{});
