@@ -553,8 +553,8 @@ function act(){
   const nAt=(x,y)=>npcRT.findIndex(n=>n.active&&n.map===S.map&&!inShop(n)&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
   let ni=nAt(fx,fy);if(ni<0)ni=nAt(S.px,S.py);
   if(ni>=0)return talk(ni);
-  if(S.dog&&dogAt(fx,fy))return petDog();
   {const si=sideItemAt(fx,fy);if(si)return cutscene(()=>sideItemAct(si))}
+  if(S.dog&&dogAt(fx,fy)){if(dogRT){dogRT.path=[];dogRT.wait=3000;dogRT.face=S.px>dogRT.x?1:-1}return petDog()}
   if(t===SIGN)return toast(signText());
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
   if(S.map==='cave'){const rl=RELICS.find(r=>r.x===fx&&r.y===fy&&!S.relics[r.id]);if(rl)return pickRelic(rl);
@@ -1618,18 +1618,25 @@ function makeDog(f){const c=mk(18,14);withC(c.getContext('2d'),()=>{const O='#2a
 let DOG_SP=null,DOG_SPL=null;
 let dogRT=null;
 function dogUpdate(now){
-  if(!S||!S.dog||S.scene!=='farm'){dogRT=null;return}
-  if(!dogRT||dogRT.map!==S.map){dogRT={map:S.map,x:S.px-1,y:S.py,t:now,face:1,mv:0,lx:S.px,ly:S.py,ld:[1,0]}}
-  if(S.px!==dogRT.lx||S.py!==dogRT.ly){const ddx=Math.sign(S.px-dogRT.lx),ddy=Math.sign(S.py-dogRT.ly);if(ddx||ddy)dogRT.ld=[ddx,ddy];dogRT.lx=S.px;dogRT.ly=S.py}
-  const dt=Math.min(80,now-dogRT.t);dogRT.t=now;const [dx,dy]=dogRT.ld,tx=S.px-dx*1.2,ty=S.py-dy*1.2+.2,ex=tx-dogRT.x,ey=ty-dogRT.y,d=Math.hypot(ex,ey);
-  if(d>6){dogRT.x=tx;dogRT.y=ty}else if(d>.15){const k=Math.min(1,dt*.007);dogRT.x+=ex*k;dogRT.y+=ey*k;dogRT.mv=1;if(Math.abs(ex)>.05)dogRT.face=ex>0?1:-1}else dogRT.mv=0;
+  // the dog lives on the farm and wanders around it on its own
+  if(!S||!S.dog||S.scene!=='farm'||S.map!=='farm'){dogRT=null;return}
+  if(!dogRT){const [x,y]=nearFree('farm',9,8);dogRT={map:'farm',x,y,t:now,face:1,mv:0,path:[],wait:1500}}
+  const dt=Math.min(80,now-dogRT.t);dogRT.t=now;
+  if(dogRT.path.length){const [nx,ny]=dogRT.path[0],ex=nx-dogRT.x,ey=ny-dogRT.y,d=Math.hypot(ex,ey),st=dt*.0024;
+    if(d<=st){dogRT.x=nx;dogRT.y=ny;dogRT.path.shift()}else{dogRT.x+=ex/d*st;dogRT.y+=ey/d*st}
+    dogRT.mv=1;if(Math.abs(ex)>.05)dogRT.face=ex>0?1:-1;return}
+  dogRT.mv=0;dogRT.wait-=dt;
+  if(dogRT.wait<=0){dogRT.wait=2500+Math.random()*5000;
+    for(let k=0;k<12;k++){const tx=2+((Math.random()*26)|0),ty=6+((Math.random()*15)|0),t=tileAtM('farm',tx,ty);
+      if(t!==G&&t!==PATH&&t!==FLOWER)continue;if(Math.hypot(tx-dogRT.x,ty-dogRT.y)>9)continue;
+      const p=bfs('farm',Math.round(dogRT.x),Math.round(dogRT.y),tx,ty);if(p.length){dogRT.path=p;break}}}
 }
 function dogSprite(sprites,cx,cy,now){
   if(!dogRT)return;if(!DOG_SP){DOG_SP=[0,1,2].map(makeDog);DOG_SPL=DOG_SP.map(flipC)}const x=Math.round(dogRT.x*T-cx),y=Math.round(dogRT.y*T-cy);
   const f=dogRT.mv?(((now/140)|0)%2):(((now/300)|0)%4===0?2:0),im=(dogRT.face>0?DOG_SP:DOG_SPL)[f];
   sprites.push({y:dogRT.y-.01,s:()=>{},d:()=>{R('rgba(0,0,0,.22)',x+3,y+12,12,2);C.drawImage(im,x,y);if(S.daily.pet&&((now/500)|0)%6===0){R('#e8405a',x+8,y-5,2,2);R('#e8405a',x+11,y-5,2,2);R('#e8405a',x+9,y-4,3,2)}}})
 }
-function dogAt(fx,fy){if(!dogRT)return false;if(Math.hypot(dogRT.x-fx,dogRT.y-fy)<.85)return true;const t=tileAt(fx,fy),open=[G,PATH,FLOWER,SAND,ROAD].includes(t)&&!(S.map==='farm'&&S.crops[fx+','+fy]);return open&&Math.hypot(dogRT.x-S.px,dogRT.y-S.py)<1.6}
+function dogAt(fx,fy){return !!dogRT&&Math.hypot(dogRT.x-fx,dogRT.y-fy)<.75}
 function petDog(){
   if(S.daily.pet)return toast(`${S.dog.name} က ခြေထောက်နား ကပ်ပြီး အိပ်ငိုက်နေတယ်`);
   S.daily.pet=1;S.dog.love=Math.min(10,(S.dog.love||0)+1);S.energy=Math.min(S.maxE,S.energy+5);burst(dogRT.x,dogRT.y,'#f6a0b0',8);
@@ -1644,7 +1651,7 @@ async function dogScene(){
   const names=['ရွှေဝါ','ဘိုဘို','မဲမဲ'],c=await choose('me','(နာမည် ဘာပေးမလဲ…)',names.map(n=>`"${n}" လို့ ခေါ်မယ်`));
   S.dog={name:names[c],love:1};
   await say('me',`(${names[c]}… ညဘက် ခြံစောင့်ပေးမယ်ဆိုရင် ကောင်းမှာပဲ။ ဘယ်သူမှ မသိအောင် ညဘက် လာတူးတဲ့သူ ရှိရင်တော့…)`);
-  toast(`${names[c]} က နောက်က လိုက်လာမယ် · B နဲ့ ပွတ်သပ်ပေးလို့ရတယ်`);
+  toast(`${names[c]} က ခြံထဲမှာ နေမယ် · မျက်နှာမူပြီး B နဲ့ ပွတ်သပ်ပေးလို့ရတယ်`);
 }
 /* ---------- cooking ---------- */
 const DISHES=[
@@ -1912,7 +1919,7 @@ function checkStory(){
   if(CUT||DLG||!S||S.over)return;
   const out=S.scene==='farm';
   if(S.flags.intro){sideMorning();festAct()}
-  if(S.dog&&S.flags.ch3&&!S.flags.zawCaught&&S.map==='forest'&&S.min>=1260&&!S.daily.bark){S.daily.bark=1;toast(`${S.dog.name} က တောင်ကုန်းဘက်ကို လှည့်ပြီး ဟောင်နေတယ်… ဂူဘက်မှာ တစ်ယောက်ယောက် ရှိလား?`)}
+  if(S.dog&&S.flags.ch3&&!S.flags.zawCaught&&S.map==='farm'&&S.scene==='farm'&&S.min>=1260&&!S.daily.bark){S.daily.bark=1;toast(`${S.dog.name} က တောဘက်ကို လှည့်ပြီး ဟောင်နေတယ်… ညကြီးမင်းကြီး တောင်ကုန်းဘက်မှာ တစ်ယောက်ယောက် ရှိလား?`)}
   if(!S.flags.intro){S.flags.intro=1;if(S.day===1&&out&&S.map==='farm')return cutscene(introScene);['q_harvest','q_clear','q_meet','q_grandpa','q_map'].forEach(q=>qStart(q,true));S.has.map1=1;if(!S.clues.includes('c_map'))S.clues.push('c_map');return}
   if(!S.flags.dogMet&&S.flags.intro&&S.day>=2&&out&&S.map==='farm'&&S.min<900&&modal.hidden)return cutscene(dogScene);
   if(!S.flags.dealer&&S.day>=5&&out&&S.map==='farm'&&S.min>=480&&S.min<1020){S.flags.dealer=1;return cutscene(dealerScene)}
