@@ -678,6 +678,37 @@ function close(){modal.hidden=true;paused=false;last=performance.now();hud();bel
 let downOnBackdrop=false;modal.addEventListener('pointerdown',e=>{downOnBackdrop=e.target===modal});
 modal.addEventListener('click',e=>{const ok=downOnBackdrop;downOnBackdrop=false;if(ok&&e.target===modal&&!S.over&&card.dataset.dismiss!=='no')close()});
 
+/* ---------- start from a chosen day (for replaying a festival or chapter) ---------- */
+const DAY_PRESETS=[
+  {day:4,t:'နေ့ ၄ · ကဆုန် ညောင်ရေသွန်းပွဲ',ch:0},{day:8,t:'နေ့ ၈ · သင်္ကြန်',ch:0},{day:11,t:'နေ့ ၁၁ · အခန်း ၂ (မိုး) အစ',ch:1},
+  {day:12,t:'နေ့ ၁၂ · ဝါဆို',ch:1},{day:20,t:'နေ့ ၂၀ · သီတင်းကျွတ်',ch:2},{day:21,t:'နေ့ ၂၁ · အခန်း ၃ (ဆောင်း) အစ',ch:2},
+  {day:24,t:'နေ့ ၂၄ · ထမနဲ',ch:2},{day:28,t:'နေ့ ၂၈ · တန်ဆောင်တိုင်',ch:2}];
+function startAtDay(p){
+  S=fresh();const d=p.day,F=S.flags;S.day=d;S.min=360;S.money=400+d*150;S.weather='sun';
+  Object.assign(F,{intro:1,dogMet:1});S.dog={name:'ဘိုဘို',love:2};S.has.map1=1;S.letters=['l1'];S.clues=['c_map'];
+  ['q_harvest','q_clear','q_meet','q_grandpa','q_map'].forEach(q=>S.q[q]='active');
+  if(d>=5)F.dealer=1;
+  if(d>4)F.kason=1;
+  if(d>=6)NPCS.forEach(n=>{S.met[n.id]=1;S.friends[n.id]=Math.max(S.friends[n.id]||0,2)});
+  if(d>8)S.q.q_thingyan='done';
+  if(p.ch>=1){Object.assign(F,{legend:1,stone:1,letter2:1,ch1:1});S.letters.push('l2');S.clues.push('c_legend','c_cart','c_moon','c_stone','r_hole','c_ruin','r_steps','r_dealer');['q_grandpa','q_map','q_ruin'].forEach(q=>S.q[q]='done')}
+  if(p.ch>=2){Object.assign(F,{ch2:1,ch2done:1,flood:15,bridgeFixed:1,dealer2:'kept',zawAsk:2,waso:d>12?1:0});S.has.lantern=1;S.relics={coin:1,urn:1,gold:1,buddha:1};S.letters.push('l3');
+    S.clues.push('r_zawask','r_soot','c_riddle','c_fall');S.q.q_cave='done';S.q.q_bridge='done';setFlood(false);setBridge(true)}
+  if(d>=20)F.kadaw={};
+  if(d>21){F.ch3=1;S.q.q_half='active'}if(d>23)F.dealer3=1;
+  S.seedSel=seasonCrops(seasonOf(d))[0];S.seeds[S.seedSel]=9;
+  initS();if(p.ch>=2&&d<26){F.fall2=1;setFall2(true)}save();card.dataset.dismiss='';close();
+  toast(`${p.t} ကနေ စပြီ`);
+}
+function dayMenu(){
+  card.dataset.dismiss='no';const sv=loadSave();
+  show(`<h2>📅 နေ့ ရွေးပြီး စမယ်</h2><p class="sub">ပွဲတော် ဒါမှမဟုတ် အခန်း တစ်ခုကို ပြန်ဆော့ချင်ရင် ဒီနေ့ရဲ့ မနက်ကနေ စမယ်။ အရင်နေ့တွေက ဇာတ်လမ်းကို ပြီးပြီလို့ သတ်မှတ်ပေးမယ်။</p>
+  ${sv&&!sv.over?'<p class="sub">⚠ လက်ရှိ ဆော့နေတဲ့ ဂိမ်း (autosave) ကို အစားထိုးမယ်။ မပျောက်စေချင်ရင် အရင် ⚙ → Save နဲ့ slot ထဲ သိမ်းထားပါ။</p>':''}
+  <div class="btns" style="flex-direction:column;align-items:stretch">${DAY_PRESETS.map((p,i)=>`<button class="bt" type="button" data-day="${i}" style="text-align:left">${p.t}</button>`).join('')}</div>
+  <div class="btns"><button class="bt pri" type="button" id="dmBack">နောက်သို့</button></div>`,c=>{
+    c.querySelector('#dmBack').onclick=intro;
+    c.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>startAtDay(DAY_PRESETS[+b.dataset.day]))});
+}
 function intro(){
   const sv=loadSave();
   card.dataset.dismiss='no';
@@ -687,7 +718,8 @@ function intro(){
   <ul class="sub"><li>နွေ၊ မိုး၊ ဆောင်း ရာသီ 3 ခု၊ တစ်ရာသီ 10 ရက်။ ရာသီနဲ့ မကိုက်တဲ့ အပင်တွေ ညှိုးသွားမယ်</li><li>ပေါက်ပြားနဲ့ မြေထွန်၊ မျိုးစေ့ချ၊ နေ့တိုင်း ရေလောင်း</li><li>ရင့်ရင် B နဲ့ ရိတ်ပြီး အိမ်နားက ပို့ကုန်ပုံးထဲ ထည့်</li><li>ဆိုင်တံခါးဆီ လျှောက်ရင် ဆိုင်ထဲ ဝင်လို့ရတယ်။ ကောင်တာမှာ B နှိပ်ရင် ဆိုင်ရှင်နဲ့ စကားပြောပြီး ဈေးဝယ်လို့ရတယ်</li>
   <li>ရွာသား 10 ယောက်ရဲ့ အလုပ်နဲ့ ဆိုင်တွေကို သွားလည်ပါ (ပန်းဆိုင်၊ ကြက်နွားခြံ၊ ဆေးဆိုင်၊ လက်ဖက်ရည်ဆိုင်၊ ပန်းပဲဖို၊ ကုန်စုံဆိုင်)</li>
   <li>နယ်မြေ 3 ခု: ကိုယ့်ခြံ၊ အရှေ့ဘက်က ရွှေပန်းရွာ၊ တောင်ဘက်က တောနဲ့ တောင်ကုန်း (မြစ်၊ ကွင်းပြင်၊ ဂူ)။ မြေပုံအစွန်းက လမ်းအတိုင်း လျှောက်ရင် ကူးမယ်။ ရွာသား 20 ယောက်နဲ့ B နဲ့ စကားပြောရင် ခင်လာမယ်</li><li>အိမ်ထဲ ဝင်ပြီး အိပ်ရာမှာ B နှိပ်ရင် အိပ်မယ်</li></ul>
-  <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button>${[1,2,3].some(n=>slotInfo(n))?'<button class="bt" id="mLoad" type="button">📂 Load</button>':''}</div>`,c=>{
+  <div class="btns">${sv&&!sv.over?`<button class="bt pri" id="mCont" type="button">ဆက်ဆော့မယ် (နေ့ ${sv.day})</button>`:''}<button class="bt ${sv&&!sv.over?'':'pri'}" id="mNew" type="button">ဂိမ်းအသစ်</button>${[1,2,3].some(n=>slotInfo(n))?'<button class="bt" id="mLoad" type="button">📂 Load</button>':''}<button class="bt" id="mDay" type="button">📅 နေ့ ရွေးမယ်</button></div>`,c=>{
+    c.querySelector('#mDay').onclick=dayMenu;
     const ld=c.querySelector('#mLoad');if(ld)ld.onclick=()=>slotMenu('load',true);
     const cont=c.querySelector('#mCont');
     if(cont)cont.onclick=()=>{S=sv;initS();card.dataset.dismiss='';close()};
