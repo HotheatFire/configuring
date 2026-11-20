@@ -155,6 +155,11 @@
 - Mini game ထပ်: နေရိပ် ပဟေဠိ၊ ချင်းလုံး၊ ငါးမျှား ကြိုးဆွဲ
 - **ပုံတူ**: MC ပုံ (user ပို့ပေးရန်၊ အခု `PT.pc` ယာယီ)
 
+### Setting (⚙) · Android app အတွက်
+- HUD ညာဘက် ⚙ ခလုတ် (`settingsMenu`): ▶ Resume · 💾 Save · 📂 Load · ⏏ Quit
+- Save/Load: slot ၃ ခု (`${KEY}-slot1..3`, `writeSlot`/`readSlot`)၊ ရှိပြီးသား slot ကို ထပ်နှိပ်မှ အစားထိုး။ နေ့တိုင်း autosave (`KEY`) လည်း ဆက်ရှိ။ ခေါင်းစဉ် စာမျက်နှာမှာ slot ရှိရင် "📂 Load"
+- Quit: autosave ပြီး ခေါင်းစဉ် စာမျက်နှာ ပြန်ပြ။ Android wrapper မှာ `window.AndroidApp.quit()` ရှိရင် အဲဒါ ခေါ်မယ် (JavascriptInterface နာမည် `AndroidApp`)
+- Android back ခလုတ်: WebView ကနေ `window.onAndroidBack()` ခေါ် → ပိတ်လို့ရတဲ့ dialog ကို ပိတ် ဒါမှမဟုတ် Setting ဖွင့် (true ပြန်ရင် ကိုင်ပြီးပြီ)။ ကီးဘုတ်မှာ Esc
 ## ၇။ Graphic
 - **2.5D (3/4 စောင်းကြည့်) မြင်ကွင်း:** isometric မဟုတ်ဘူး။ မြေပုံ/collision ပြန်ရေးရတာ၊ ဖုန်း ◀▲▼▶ ခလုတ်နဲ့ မကိုက်တာကြောင့် ရှောင်ထားတယ်။
 - **နေရောင်အရိပ်:** မနက်/နေ့လယ်/ညနေ အလိုက် အရိပ် ဦးတည်ရာနဲ့ အရှည် ပြောင်းတယ်။ လေတိုက်ရင် သစ်ပင်/မြက်/ပန်း လှုပ်တယ်။ ထောင့်တွေ အနည်းငယ် မှိန်ထားတယ် (vignette)။
