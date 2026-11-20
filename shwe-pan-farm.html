@@ -279,14 +279,14 @@ function fresh(){
     maps:newMaps(),map:'farm',crops:{},
     seeds,seedSel:'kangkong',produce,shippedValue:0,shippedCount:0,
     feed:0,trough:0,chickens:[],eggs:[],tea:1,px:5,py:6,dir:'down',tool:0,scene:'farm',
-    friends:{},has:{},up:{},q:{},flags:{},letters:[],talked:{},gifts:{},daily:{},relics:{},clues:[],gifted:{},sus:0,rival:0,
+    friends:{},has:{},up:{},q:{},flags:{},letters:[],talked:{},met:{},gifts:{},daily:{},relics:{},clues:[],gifted:{},sus:0,rival:0,
     stats:{earned:0,harvested:0,eggs:0},over:false};
 }
 function migrate(s){
   CROP_IDS.forEach(id=>{s.seeds[id]??=0;s.produce[id]??=0});
   for(const id in EXTRA)s.produce[id]??=0;s.has??={};s.up??={};s.q??={};s.flags??={};s.letters??=[];s.scene??='farm';s.friends??={};s.talked??={};s.gifts??={};s.daily??={};
   if(!s.maps)return null;
-  s.relics??={};s.clues??=[];s.gifted??={};s.sus??=0;s.rival??=0;if(!s.maps.cave)s.maps.cave=newCave();
+  s.relics??={};s.clues??=[];s.met??=Object.fromEntries(Object.keys(s.friends).map(k=>[k,1]));s.gifted??={};s.sus??=0;s.rival??=0;if(!s.maps.cave)s.maps.cave=newCave();
   if(!CROPS[s.seedSel]||CROPS[s.seedSel].s!==seasonOf(s.day))s.seedSel=seasonCrops(seasonOf(s.day))[0];
   return s;
 }
@@ -368,7 +368,8 @@ function updateNPCs(dt){
 function talk(i){
   const d=NPCS[i],n=npcRT[i];n.dir=OPP[S.dir];
   let gift='';
-  if(!S.talked[d.id]){S.talked[d.id]=1;S.friends[d.id]=Math.min(10,(S.friends[d.id]||0)+1);if(GREET[d.id]){cutscene(()=>greetScene(d.id));return belt()}}
+  if(!S.talked[d.id]){S.talked[d.id]=1;S.friends[d.id]=Math.min(10,(S.friends[d.id]||0)+1)}
+  if(!S.met[d.id]){S.met[d.id]=1;if(GREET[d.id]){cutscene(()=>greetScene(d.id));return belt()}}
   if(storyTalk(d))return belt();
   const f=S.friends[d.id]||0;
   if(f>=3&&d.gift&&!S.gifts[d.id]){S.gifts[d.id]=1;gift=d.gift()}
@@ -858,7 +859,7 @@ function openShopHook(id){
   if(id==='store'&&S.map==='village'&&zawShopNight())return true;
   if(!open)return false;
   const n=NPCS.find(d=>d.shop===id);
-  if(n&&!S.talked[n.id]&&GREET[n.id]){S.talked[n.id]=1;bump(n.id);cutscene(()=>greetScene(n.id));return true}
+  if(n&&!S.met[n.id]&&GREET[n.id]){S.met[n.id]=1;if(!S.talked[n.id]){S.talked[n.id]=1;bump(n.id)}cutscene(()=>greetScene(n.id));return true}
   if(id==='store'&&S.flags.ch3&&S.flags.monkLetter&&!S.flags.map2&&!S.flags.treasure){cutscene(()=>zawLetterScene());return true}
   if(id==='smith'){if(sideAvail('smith_fire')){S.flags.sideDay=S.day;cutscene(SIDE_SCENES.smith_fire.start);return true}if(sideState('smith_fire')==='go'&&SIDE.smith_fire.done()){cutscene(SIDE_SCENES.smith_fire.end);return true}}
   return false;
@@ -1172,7 +1173,7 @@ const bump=(id,n=1)=>{S.friends[id]=Math.min(10,(S.friends[id]||0)+n)};
 async function introScene(){
   const a=addActor('hla',NS.hla,'farm',20,9);const [tx,ty]=nearSpot();
   await wait(400);await moveActor(a,tx,ty);faceTo(a);
-  S.talked.hla=1;S.friends.hla=Math.max(1,S.friends.hla||0);
+  S.talked.hla=1;S.met.hla=1;S.friends.hla=Math.max(1,S.friends.hla||0);
   await say('hla','မင်္ဂလာပါ ကလေးရေ။ ငါက ရွှေပန်းရွာရဲ့ သူကြီး ဦးလှမောင်ပါ။ မင်းက ဒီခြံက အဘိုးကြီးရဲ့ မြေးလေး မဟုတ်လား?','h');
   await say('pc','မင်္ဂလာပါ ဦး။ ဟုတ်ကဲ့၊ ကျွန်တော် အဘိုးရဲ့ မြေးပါ။ ရန်ကုန် တက္ကသိုလ်ကနေ ဒီမနက်မှ ရောက်တာပါ။');
   await say('hla','မင်းအဘိုး ဆုံးသွားတာ ရွာတစ်ရွာလုံး ဝမ်းနည်းကြတယ်။ ခြံနဲ့ အိမ်ကို မင်းဆီ အမွေထားခဲ့တယ်။','s');
