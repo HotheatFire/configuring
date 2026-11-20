@@ -2,7 +2,7 @@ import re,html
 s=open('/home/claude/configuring/shwe-pan-farm.html').read()
 a=s.index('/* scenes */');b=s.index('function drawThingyan')
 blk=s[a:b]
-NAMES={'hla':'ဦးလှမောင်','aye':'ဒေါ်အေး','min':'ကိုမင်း','kyaw':'ဦးကျော်','zaw':'ကိုဇော်','tun':'ကိုထွန်း','rep':'ကိုဝင်းနိုင်','pc':'ကျွန်တော် (MC)','me':'ကိုယ့်အတွေး','nar':'ဇာတ်ကြောင်း'}
+NAMES={'mya':'မမြ','san':'ဒေါ်စန်းစန်း','monk':'ဦးဇင်း ဦးပညာ','khine':'မခိုင်','hla':'ဦးလှမောင်','aye':'ဒေါ်အေး','min':'ကိုမင်း','kyaw':'ဦးကျော်','zaw':'ကိုဇော်','tun':'ကိုထွန်း','rep':'ကိုဝင်းနိုင်','pc':'ကျွန်တော် (MC)','me':'ကိုယ့်အတွေး','nar':'ဇာတ်ကြောင်း'}
 SC=[('introScene','၁။ ဦးလှမောင် စာအိတ်ပေး','နေ့ ၁ · ခြံ · ဂိမ်းစစချင်း'),
 ('dealerScene','၂။ ကိုဝင်းနိုင် ပထမဆုံး လာ','နေ့ ၅+ · ခြံ · မနက် ၈ – ညနေ ၅'),
 ('ayeScene','၃။ ဒေါ်အေးရဲ့ ပုံပြင်','ဒေါ်အေး ♥3 ပြည့်မှ (မပြည့်ရင် "နောက်မှ လာထိုင်ပါ")'),
@@ -53,6 +53,12 @@ def row(who,t,br):
   tag=f'<span class="br">{br}</span>' if br else ''
   return f'<div class="l {who}">{tag}<b>{NAMES.get(who,who)}</b><p>{html.escape(t)}</p></div>'
 body=''
+g=s[s.index('const GREET={'):s.index('async function greetScene')]
+rows=''
+for who in ['aye','mya','kyaw','san','zaw','tun','monk','khine','min','hla']:
+  m=re.search(r"\n  "+who+r":\[(.*?)\],\n",g,re.S)
+  rows+=f'<h4>{NAMES[who]}</h4>'+''.join(row(w,t,'') for w,t in re.findall(r"\['(\w+)','((?:[^'\\]|\\.)*)'",m.group(1)))
+body+=f'<section><h3>၀။ ပထမဆုံး တွေ့ချင်း နှုတ်ဆက်</h3><div class="when">ရွာသား တစ်ယောက်ချင်းနဲ့ ပထမဆုံး စကားပြောချိန် (အဘိုးအကြောင်း မေးတာက ဒုတိယအကြိမ်ကစ)</div>{rows}</section>'
 for f,title,when in SC:
   if f=='GP':
     g=blk[blk.index('const GP_TALK'):blk.index('async function gpScene')]
