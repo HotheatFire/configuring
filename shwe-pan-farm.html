@@ -578,7 +578,6 @@ function act(){
     if(b.style==='potstand'){if(S.daily.potw)return toast('ရေအိုးထဲက ရေ သောက်ပြီးပြီ');S.daily.potw=1;S.energy=Math.min(S.maxE,S.energy+5);return toast('ရေအိုးစင်က ရေအေးအေး သောက်လိုက်တယ် (အားအင် +5)')}
     if(b.style==='oldwell')return oldWell();
     if(b.style==='ruin'&&S.flags.stone&&!S.flags.letter2){if(S.min>=1140||S.min<300)return cutscene(ruinScene);S.flags.ruinTry=1;return toast(S.clues.includes('c_moon')?'(အုတ်ခုံကို လိုက်စမ်းပေမဲ့ ဘာမှ မထူးဘူး… ဦးကျော်က အဘိုး ညဘက် တောင်ဘက် သွားတယ် ပြောတယ်နော်)':'(အုတ်ခုံကို လိုက်စမ်းပေမဲ့ ဘာမှ မထူးဘူး… ကျောက်တုံးမှာ ကြယ်တွေ ထွင်းထားတာ ဘာကို ဆိုလိုလဲ?)')}
-    if(b.style==='banyan'&&S.day===4&&!S.flags.kason)return cutscene(kasonScene);
     if(b.style==='banyan'&&S.q.q_map==='active'&&!S.flags.stone){const east=S.px>=b.x+b.w,dawn=S.min>=330&&S.min<480;
       if(east&&dawn&&S.flags.legend)return cutscene(stoneScene);
       S.flags.stoneTry=1;
@@ -1520,12 +1519,12 @@ async function balloonScene(){
 const FEST={4:{id:'kason',name:'ကဆုန်လပြည့် ညောင်ရေသွန်းပွဲ'},7:{id:'thingyan',name:'သင်္ကြန် အကြိုနေ့'},8:{id:'thingyan',name:'သင်္ကြန် အကြတ်နေ့'},9:{id:'thingyan',name:'သင်္ကြန် အတက်နေ့'},
   12:{id:'waso',name:'ဝါဆိုသင်္ကန်း ကပ်လှူပွဲ'},20:{id:'thadingyut',name:'သီတင်းကျွတ် မီးထွန်းပွဲ'},24:{id:'htamane',name:'တပို့တွဲ ထမနဲထိုးပွဲ'},28:{id:'tazaung',name:'တန်ဆောင်တိုင် အကြိုနေ့'},29:{id:'tazaung',name:'တန်ဆောင်တိုင် လပြည့်နေ့'}};
 const festNow=()=>S&&FEST[S.day]?FEST[S.day].id:null;
-const FEST_HINT={kason:'ရေပုံးထဲ ရေဖြည့်ပြီး ရွာထဲက ညောင်ပင်ကြီးကို ရေသွန်းကြမယ်။',thingyan:'ရွာထဲမှာ ရေပက်မဏ္ဍပ်၊ ဇရပ်မှာ စတုဒိသာ ကျွေးနေတယ်။ ပိတောက်တွေ ပွင့်နေပြီ။',
+const FEST_HINT={kason:'ရွာသားတွေ ညောင်ပင်ကြီးမှာ ညောင်ရေသွန်းကြမယ်။ ရွာထဲ သွားကြည့်ပါ။',thingyan:'ရွာထဲမှာ ရေပက်မဏ္ဍပ်၊ ဇရပ်မှာ စတုဒိသာ ကျွေးနေတယ်။ ပိတောက်တွေ ပွင့်နေပြီ။',
   waso:'ဘုန်းကြီးကျောင်းမှာ ဝါဆိုသင်္ကန်း ကပ်လှူကြမယ်။',thadingyut:'ညဘက် ရွာတစ်ရွာလုံး ဆီမီးထွန်းမယ်။ လူကြီးတွေကို ကန်တော့ပါ။ (ညမှာ လင်းလို့ လူမြင်လွယ်တယ်)',
   htamane:'ဇရပ်မှာ ထမနဲ ထိုးကြမယ်။',tazaung:'ညဘက် မီးပုံးပျံ လွှတ်ကြမယ်။ ဒေါ်အေးတို့ ယက်ကန်းပြိုင်ပွဲလည်း ရှိတယ်။'};
 const festLine=()=>FEST[S.day]?`<p><b>🎉 ဒီနေ့ ${FEST[S.day].name}</b><br><span class="sub">${FEST_HINT[FEST[S.day].id]}</span></p>`:'';
 const FEST_TALK={
-  kason:['ညောင်ရေသွန်းပြီးပြီလား? ရေအိုးလေး ယူလာခဲ့။','ကဆုန်လပြည့်နေ့ဆိုတော့ ဘုရားဖူးသွားမယ်။','နွေကြီး ပူလိုက်တာ… ညောင်ပင်လည်း ရေငတ်နေမှာ။'],
+  kason:['ညောင်ရေသွန်းပွဲ ကြည့်ပြီးပြီလား? ရွာသားတွေ အကုန် စုလာကြတယ်။','ကဆုန်လပြည့်နေ့ဆိုတော့ ဘုရားဖူးသွားမယ်။','နွေကြီး ပူလိုက်တာ… ညောင်ပင်လည်း ရေငတ်နေမှာ။'],
   thingyan:['သင်္ကြန်မှာ ပျော်ပါစေ! ရေလေး ပက်ပေးမယ်နော်။','ဇရပ်မှာ မုန့်လုံးရေပေါ် ကျွေးနေတယ်၊ သွားစား။','ပိတောက်ပန်း ပန်ထားတာ လှလား?','မဏ္ဍပ်အောက် ဖြတ်လျှောက်ရင် စိုသွားမယ်နော်! ဟား ဟား။'],
   waso:['ဝါဆိုလပြည့်ပြီ၊ သင်္ကန်းကပ်ဖို့ ကျောင်းကို သွားမယ်။','ဝါတွင်းဆိုတော့ မင်္ဂလာဆောင်တွေ ရပ်ကြပြီ။','ဦးဇင်းတို့ ဝါကပ်ကြပြီ။'],
   thadingyut:['ဒီည ဆီမီးတွေ ထွန်းကြမယ်။ အိမ်ရှေ့မှာ မီးခွက်လေး ထားခဲ့နော်။','ကန်တော့ပွဲ ပြီးပြီလား? လူကြီးတွေကို ကန်တော့ရမယ်။','ဝါကျွတ်ပြီဆိုတော့ မင်္ဂလာဆောင် ပြန်စလို့ရပြီ။'],
@@ -1559,15 +1558,26 @@ function festAct(fx,fy){
   return false;
 }
 async function kasonScene(){
-  if(S.water<5)return toast('ညောင်ရေသွန်းဖို့ ရေပုံးထဲ ရေဖြည့်ခဲ့ပါ');
-  S.flags.kason=1;S.water-=5;
-  await say('nar','ရွာသားတွေ ရေအိုးကိုယ်စီ ရွက်ပြီး ညောင်ပင်ကြီးဆီ စီတန်းလာကြတယ်။ ဗုံသံ၊ ဝါးလက်ခုပ်သံတွေ ညံနေတယ်။');
-  await say('aye','ကလေးလည်း လာသွန်းတာလား။ မင်းအဘိုးလည်း နှစ်တိုင်း ပထမဆုံး လာသွန်းတယ်။','h');
-  await say('pc','ညောင်ပင်ကြီး အမြဲ စိမ်းလန်းပါစေ။');
-  await say('nar','ရေအေးအေးကို ညောင်ပင်ရင်းမှာ ဖြည်းဖြည်း သွန်းလိုက်တယ်။ ရေတွေ အမြစ်ကြားထဲ စီးဆင်းသွားတယ်။');
-  bump('aye');bump('hla');S.energy=Math.min(S.maxE,S.energy+20);S.sus=Math.max(0,S.sus-5);
-  if(!S.flags.stone)await say('me','(ရေတွေ အရှေ့ဘက် အမြစ်ကြားကို စီးသွားတယ်… မြေသားတွေ ပြိုကျပြီး ကျောက်တုံးလို တစ်ခုခုရဲ့ ထောင့်လေး ပေါ်လာသလိုပဲ။ လူရှင်းတဲ့ မနက်စောစော ပြန်လာကြည့်မယ်။)');
-  await say('nar','(ဒေါ်အေး ♥+1 · ဦးလှမောင် ♥+1 · အားအင် +20)');
+  S.flags.kason=1;
+  fade=1;goMap('village',55,33,'up');await wait(500);
+  const crowd=[['hla',52,36,56,31],['aye',50,35,55,31],['mya',53,37,58,32],['san',51,37,60,31],['kyaw',54,38,61,30],['khine',49,36,57,32]].map(([id,x,y,tx,ty])=>({a:addActor(id,NS[id],'village',x,y),tx,ty}));
+  await say('nar','ကဆုန်လပြည့်နေ့။ ဗုံသံ၊ ဝါးလက်ခုပ်သံတွေနဲ့အတူ ရွာသားတွေ ရေအိုးကိုယ်စီ ရွက်ပြီး ညောင်ပင်ကြီးဆီ စီတန်းလာကြတယ်။');
+  await Promise.all(crowd.map(c=>moveActor(c.a,c.tx,c.ty)));crowd.forEach(c=>c.a.dir='up');
+  await say('hla','နွေကြီး ပူလှပြီ။ ညောင်ပင်ကြီး အမြဲ စိမ်းလန်းပါစေ၊ ရွာလေးလည်း အေးချမ်းပါစေ။ ကဲ… သွန်းကြစို့!','h');
+  for(let k=0;k<5;k++){crowd.forEach((c,n)=>{if((n+k)%2===0)burst(c.a.x,c.a.y-1,'#9fd0ff',8)});burst(58,30,'#9fd0ff',10);await wait(420)}
+  await say('aye','ကလေးလည်း ရောက်လာပြီကိုး။ မင်းအဘိုးက နှစ်တိုင်း ပထမဆုံး လာသွန်းတဲ့ လူ။ ဒီနှစ်တော့ မင်းက ကိုယ်စားပေါ့။','h');
+  await say('pc','ဟုတ်ကဲ့ ဒေါ်အေး။ ကျွန်တော်လည်း သွန်းပါရစေ။');
+  burst(58,30,'#9fd0ff',16);await wait(500);
+  await say('nar','ရေအေးအေးတွေ ညောင်ပင်ရင်းကနေ စီးဆင်းသွားကြတယ်။ ရွာသားတွေက ဆုတောင်းရင်း ရယ်မောနေကြတယ်။');
+  await say('nar','…ဒါပေမဲ့ ရေစီးကြောင်းတစ်ခုက ညောင်ပင်ရဲ့ အရှေ့ဘက် အမြစ်တွေကြားကို စီးဝင်သွားတယ်။ မြေသားတွေ ပြိုကျသွားပြီး ကျောက်တုံးလိုလို တစ်ခုခုရဲ့ ထောင့်လေး ခဏ ပေါ်လာတယ်။');
+  await say('me','(…ဟိုမှာ! ထွင်းထားတဲ့ အမှတ်အသားလိုလို။ ဘယ်သူမှ သတိမထားမိကြဘူး။)');
+  await say('khine','ဟယ်… ရှင် ဘာကြည့်နေတာလဲ?');
+  await say('pc','အော်… ဘာမှ မဟုတ်ပါဘူး။ ညောင်ပင်ကြီးက လှလိုက်တာလို့။');
+  await say('nar','ရွာသားတွေ တစ်ယောက်ပြီး တစ်ယောက် ပြန်သွားကြတယ်။');
+  await Promise.all(crowd.map(c=>moveActor(c.a,c.a.x-6+(c.tx%3),39)));
+  bump('aye');bump('hla');S.sus=Math.max(0,S.sus-5);
+  await say('me',S.flags.stone?'(အဘိုးရဲ့ ကျောက်တုံးပဲ။ ကိုယ် တွေ့ထားပြီးသားဆိုတော့ စိတ်အေးရတယ်။)':'(လူတွေရှေ့မှာ မတူးရဲဘူး။ လူရှင်းတဲ့ မနက်စောစော ပြန်လာကြည့်ရမယ်… "နေထွက်ရာ"။)');
+  await say('nar','(ဒေါ်အေး ♥+1 · ဦးလှမောင် ♥+1)');
 }
 async function wasoScene(){
   S.flags.waso=1;
@@ -1921,6 +1931,7 @@ function checkStory(){
   if(S.flags.intro){sideMorning();festAct()}
   if(S.dog&&S.flags.ch3&&!S.flags.zawCaught&&S.map==='farm'&&S.scene==='farm'&&S.min>=1260&&!S.daily.bark){S.daily.bark=1;toast(`${S.dog.name} က တောဘက်ကို လှည့်ပြီး ဟောင်နေတယ်… ညကြီးမင်းကြီး တောင်ကုန်းဘက်မှာ တစ်ယောက်ယောက် ရှိလား?`)}
   if(!S.flags.intro){S.flags.intro=1;if(S.day===1&&out&&S.map==='farm')return cutscene(introScene);['q_harvest','q_clear','q_meet','q_grandpa','q_map'].forEach(q=>qStart(q,true));S.has.map1=1;if(!S.clues.includes('c_map'))S.clues.push('c_map');return}
+  if(S.day===4&&!S.flags.kason&&S.map==='village'&&out&&S.min>=420&&S.min<1020&&modal.hidden)return cutscene(kasonScene);
   if(!S.flags.dogMet&&S.flags.intro&&S.day>=2&&out&&S.map==='farm'&&S.min<900&&modal.hidden)return cutscene(dogScene);
   if(!S.flags.dealer&&S.day>=5&&out&&S.map==='farm'&&S.min>=480&&S.min<1020){S.flags.dealer=1;return cutscene(dealerScene)}
   if(S.flags.zawAsk===1&&modal.hidden){S.flags.zawAsk=2;return cutscene(zawLanternScene)}
