@@ -860,7 +860,7 @@ function openShopHook(id){
   const n=NPCS.find(d=>d.shop===id);
   if(n&&!S.talked[n.id]&&GREET[n.id]){S.talked[n.id]=1;bump(n.id);cutscene(()=>greetScene(n.id));return true}
   if(id==='store'&&S.flags.ch3&&S.flags.monkLetter&&!S.flags.map2&&!S.flags.treasure){cutscene(()=>zawLetterScene());return true}
-  if(id==='smith'){if(sideAvail('smith_fire')){cutscene(SIDE_SCENES.smith_fire.start);return true}if(sideState('smith_fire')==='go'&&SIDE.smith_fire.done()){cutscene(SIDE_SCENES.smith_fire.end);return true}}
+  if(id==='smith'){if(sideAvail('smith_fire')){S.flags.sideDay=S.day;cutscene(SIDE_SCENES.smith_fire.start);return true}if(sideState('smith_fire')==='go'&&SIDE.smith_fire.done()){cutscene(SIDE_SCENES.smith_fire.end);return true}}
   return false;
 }
 function openShop(id){
@@ -1335,17 +1335,17 @@ const npcById=id=>{const i=NPCS.findIndex(d=>d.id===id);return npcRT[i]};
 const rainy=()=>S.weather==='rain';
 const SIDE={
   aye_wind:{npc:'aye',title:'လေထဲ လွင့်သွားတဲ့ အဆင်',desc:'ဒေါ်အေးရဲ့ ယက်ကန်းအဆင် စာရွက် လေထဲ လွင့်သွားတယ်။ ညောင်ပင်ကြီးဘက် ရှာကြည့်ပါ',
-    when:()=>S.day<=10&&S.min>=600&&S.min<800&&!rainy()&&npcById('aye')?.act==='weave',item:{map:'village',at:[52,26],kind:'cloth'}},
+    when:()=>S.day>=3&&S.day<=10&&S.min>=600&&S.min<800&&!rainy()&&npcById('aye')?.act==='weave',item:{map:'village',at:[52,26],kind:'cloth'}},
   min_calf:{npc:'min',title:'ပျောက်သွားတဲ့ နွားကလေး',desc:'ကိုမင်းရဲ့ နွားကလေး မိုးထဲမှာ ပျောက်သွားတယ်။ တောထဲမှာ ခြေရာတွေ ရှိတယ်',
     when:()=>S.day>=11&&S.day<=20&&(rainy()||S.flags.wasRain)&&S.min<720,item:{map:'forest',at:[8,10],kind:'calf'}},
   kyaw_fish:{npc:'kyaw',title:'ဦးကျော်ရဲ့ ငါးကြီး',desc:'ဦးကျော်က ငါးကြီး တစ်ကောင် လိုချင်တယ်။ ငါး တစ်ကောင် (ဘယ်အမျိုးမဆို) မျှားပြီး ပေးပါ',
-    when:()=>S.min>=400&&S.min<480&&npcById('kyaw')?.act==='fish',done:()=>FISHES.some(f=>(S.produce[f]||0)>0)},
+    when:()=>S.day>=5&&S.has.rod&&S.min>=400&&S.min<480&&npcById('kyaw')?.act==='fish',done:()=>FISHES.some(f=>(S.produce[f]||0)>0)},
   well_mud:{npc:'hla',title:'ရေနောက်နေတဲ့ ရေတွင်း',desc:'ရေကြီးပြီးကတည်းက ရပ်ကွက်ရေတွင်း ရေနောက်နေတယ်။ မြောင်းတံခါးတွေ ပြန်ညှိပေးပါ',
     when:()=>S.flags.flood&&S.day>=15&&S.day<=22},
   monk_alms:{npc:'monk',title:'ဆောင်းမနက် ဆွမ်းလောင်း',desc:'ဦးဇင်း ဆွမ်းခံ ကြွနေတယ်',
     when:()=>S.day>=21&&S.min>=380&&S.min<450},
   smith_fire:{npc:'tun',title:'ငြိမ်းသွားတဲ့ ဖိုမီး',desc:'မိုးရွာလို့ ပန်းပဲဖို မီးငြိမ်းသွားတယ်။ ကိုထွန်းဆီ ထင်း 3 စည်း ယူသွားပေးပါ',
-    when:()=>rainy(),done:()=>(S.produce.wood||0)>=3},
+    when:()=>S.day>=6&&rainy(),done:()=>(S.produce.wood||0)>=3},
   khine_lost:{npc:'san',title:'ပြန်မလာသေးတဲ့ မခိုင်',desc:'မခိုင် ဆေးဖက်ဝင် အရွက် ခူးဖို့ တောထဲ သွားပြီး မပြန်လာသေးဘူး။ နေ မဝင်ခင် ရှာပါ',
     when:()=>S.day>=5&&S.day<=25&&S.min>=960&&S.min<1100&&!rainy(),item:{map:'forest',at:[22,6],kind:'khine'}},
   tea_dealer:{npc:'san',title:'မြို့သားရဲ့ မေးခွန်းတွေ',desc:'',when:()=>S.day>=6&&S.day<=14&&S.min>=600&&S.min<900&&S.flags.dealer},
@@ -1354,15 +1354,16 @@ const SIDE={
 };
 const FISHES=['fish','catfish','carp','snakehead','prawn'];
 for(const id in SIDE)QUESTS['s_'+id]={title:'(ဘေး) '+SIDE[id].title,desc:SIDE[id].desc||'',prog:()=>[sideState(id)==='done'?1:0,1],reward:()=>''};
-function sideAvail(id){const q=SIDE[id];return !sideState(id)&&q.when()}
-function sideMark(npc){return Object.keys(SIDE).some(id=>{const q=SIDE[id];if(q.npc!==npc)return false;const st=sideState(id);return (!st&&q.when())||(st==='go'&&(q.done?q.done():st==='got'))})||Object.keys(SIDE).some(id=>SIDE[id].npc===npc&&sideState(id)==='got')}
+const sideToday=()=>S.flags.sideDay===S.day;
+function sideAvail(id){const q=SIDE[id];return !sideState(id)&&!sideToday()&&q.when()}
+function sideMark(npc){return Object.keys(SIDE).some(id=>{const q=SIDE[id];if(q.npc!==npc)return false;const st=sideState(id);return (!st&&!sideToday()&&q.when())||(st==='go'&&(q.done?q.done():st==='got'))})||Object.keys(SIDE).some(id=>SIDE[id].npc===npc&&sideState(id)==='got')}
 function sideStart(id){sideSet(id,'go');qStart('s_'+id);const it=SIDE[id].item;if(it){const [x,y]=nearFree(it.map,it.at[0],it.at[1]);S.sideItems=S.sideItems||{};S.sideItems[id]={map:it.map,x,y,kind:it.kind}}}
 function sideFinish(id){sideSet(id,'done');if(S.sideItems)delete S.sideItems[id];qUpdate()}
 function sideItemAt(x,y){if(!S.sideItems)return null;for(const id in S.sideItems){const o=S.sideItems[id];if(o.map===S.map&&o.x===x&&o.y===y)return id}return null}
 /* talking: returns true when a side quest scene took over */
 function sideTalk(d){
   for(const id in SIDE){const q=SIDE[id];if(q.npc!==d.id)continue;const st=sideState(id);
-    if(!st&&q.when()){cutscene(SIDE_SCENES[id].start);return true}
+    if(!st&&!sideToday()&&q.when()){S.flags.sideDay=S.day;cutscene(SIDE_SCENES[id].start);return true}
     if(st==='got'||(st==='go'&&q.done&&q.done())){cutscene(SIDE_SCENES[id].end);return true}}
   return false}
 async function sideItemAct(id){
