@@ -555,7 +555,7 @@ function act(){
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
   if(S.map==='cave'){const rl=RELICS.find(r=>r.x===fx&&r.y===fy&&!S.relics[r.id]);if(rl)return pickRelic(rl);
     if(t===ALTAR)return S.relics.buddha?(S.daily.altar?toast('ကြေးဆင်းတုတော်ကို ဦးချပြီးပြီ'):(S.daily.altar=1,S.energy=Math.min(S.maxE,S.energy+10),toast('ကြေးဆင်းတုတော်ကို ဦးသုံးကြိမ် ချလိုက်တယ် (အားအင် +10)'))):cutscene(altarScene);
-    if(t===MURAL)return mural();
+    if(t===MURAL)return cutscene(muralScene);
     if(t===RUBBLE)return toast('ကျောက်တုံးတွေ ပြိုကျပြီး လမ်းပိတ်နေတယ်။ တူကိုင်ပြီး A နဲ့ ခွဲကြည့်ပါ');
     if(t===CRYST)return toast('ကျောက်သလင်းတွေ မီးအိမ်အလင်းမှာ ပြာလဲ့လဲ့ တောက်နေတယ်');
     if(t===CBOULD)return toast('ကျောက်တုံးကြီး။ ရွှေ့လို့ မရဘူး');
@@ -1179,7 +1179,10 @@ async function ruinScene(){
   const w=secretAct();if(w.length)await say('me','(တစ်ယောက်ယောက် မြင်နေတယ်… ဘုရားဖူးလာသလို ဟန်ဆောင်ရမယ်။)');
   await say('nar','လရောင်အောက်မှာ စေတီပျက်ရဲ့ အုတ်ခုံ တစ်ချပ်က ငွေရောင် တောက်နေတယ်။ နေ့ခင်းက မမြင်ရတဲ့ ကြယ်သုံးပွင့် အထွင်း…');
   await say('me','(ကျောက်ပေါ်က အထွင်းတွေထဲမှာ သတ္တုမှုန့် ဖြည့်ထားတာ။ လရောင်မှာပဲ ပြန်ဟပ်တယ်။ အဘိုး လပြည့်ညတိုင်း ဒီကို လာတာ ဒါကြောင့်ပဲ!)');
-  await say('nar','ဖိကြည့်တော့ အုတ်ချပ် လှုပ်သွားတယ်…');
+  await say('nar','အထွင်းအောက်မှာ လှည့်လို့ရတဲ့ ကျောက်ဝိုင်း သုံးခု ညှပ်ထားတယ်။ သော့တစ်မျိုးပဲ…');
+  if(!await dialLock()){S.flags.ruinTry=1;return say('me','(နောက်မှ ပြန်လာ ကြိုးစားမယ်။ ကျောက်တုံးက ဘာကို ညွှန်တာလဲ ပြန်စဉ်းစားကြည့်…)')}
+  await say('nar','ကလစ်… ဆိုတဲ့ အသံနဲ့ အုတ်ချပ် လှုပ်သွားတယ်။');
+  await say('me','(ကြယ် — ကောင်းကင်ရဲ့ လမ်းပြ။ လပြည့်ည။ မြေမြင့် — တောင်ကုန်း။ အဘိုးလည်း ဒီလိုပဲ ဖွင့်ခဲ့မှာ။)');
   await say('nar','အုတ်ချပ်အောက်မှာ သံသေတ္တာလေး တစ်ခု။ အထဲမှာ အဘိုးရဲ့ လက်ရေးနဲ့ စာတစ်စောင်။');
   await say('pc','အဘိုး… ဒီထိ လာခဲ့တာပဲ။');
   await letter('l2');S.flags.letter2=1;addClue('c_ruin');
@@ -1261,6 +1264,67 @@ const GP_NOT={
   min:[['min','အဘိုးအကြောင်းလား? ငါ အခု မအားဘူးဗျ၊ ကြက်တွေ ကျွေးရဦးမယ်။ မင်းခြံမှာလည်း ကြက်ခြံ အလွတ် ရှိတယ်နော်၊ ကြက်ပေါက်လေးတွေ လိုရင် ငါ့ဆီ လာဝယ်။'],['me','(ကိုမင်းက အလုပ်ကလွဲရင် စကားသိပ် မပြောဘူး။ ကြက်ခြံ ပြန်စမှ ကိုမင်းနဲ့ စကားဝင်မယ် ထင်တယ်။)']],
   kyaw:[['kyaw','ဟေ… မင်းအဘိုးအကြောင်းလား? ငါ အခု မောနေပြီ ကလေး။ မနက်စောစော ငါးမျှားနေတုန်း လာခဲ့။ ရေပြင်ကို ကြည့်ရင်း ပြောရတာ ပိုကောင်းတယ်။'],['me','(မနက်စောစော… မြောင်းဘေးမှာ ငါးမျှားနေတုန်း။)']],
 };
+/* ---------- mini games ---------- */
+/* 1 · ancient script: read the mural with the radicals you learned at university */
+const RADS={tw:{n:'ဘုရား / အမြင့်',d:'<path d="M0 10h12M2 10l4-9 4 9M6 1v-3" />'},wa:{n:'ရေ',d:'<path d="M0 3q2-3 4 0t4 0 4 0M0 8q2-3 4 0t4 0 4 0" />'},dn:{n:'ကျဆင်း',d:'<path d="M6 0v10M2 6l4 4 4-4" />'},ho:{n:'တွင်း / အနက်',d:'<circle cx="6" cy="6" r="5" /><circle cx="6" cy="6" r="1.5" />'},mt:{n:'တောင်',d:'<path d="M0 11l4-8 3 5 2-3 3 6z" />'}};
+const GLYPHS=[{r:['tw'],a:'စေတီ'},{r:['wa','dn'],a:'ရေတံခွန်'},{r:['wa','ho'],a:'ရေတွင်း'}];
+const WORDS=['စေတီ','ရေတံခွန်','ရေတွင်း','မြစ်','တောင်'];
+function radSVG(ids,sz=40){return `<svg viewBox="-2 -4 ${ids.length*16+2} 18" width="${sz*ids.length*.8+sz*.4}" height="${sz}" fill="none" stroke="#3a2a14" stroke-width="1.6" stroke-linecap="round">${ids.map((id,i)=>`<g transform="translate(${i*16} 0)">${RADS[id].d}</g>`).join('')}</svg>`}
+function decodePuzzle(){
+  const pick=GLYPHS.map(()=>-1);let msg='';
+  return new Promise(res=>{const draw=()=>show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p class="sub">မြို့ရိုးအောက်မှာ ရှေးအက္ခရာ သုံးလုံး။ တက္ကသိုလ်မှာ သင်ခဲ့တဲ့ "အမြစ်စာလုံး" ဇယားနဲ့ ဖော်ဖတ်ကြည့်ပါ။</p>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:#efe2c4;border-radius:8px;padding:6px">${Object.entries(RADS).map(([k,v])=>`<div style="text-align:center;font-size:12px">${radSVG([k],26)}<br>${v.n}</div>`).join('')}</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin:10px 0">${GLYPHS.map((g,i)=>`<div style="text-align:center">${radSVG(g.r,40)}<br><button class="bt" type="button" data-g="${i}" style="min-width:86px">${pick[i]<0?'?':WORDS[pick[i]]}</button></div>`).join('')}</div>
+    <p id="dMsg">${msg||'စာလုံးအောက်က ခလုတ်ကို နှိပ်ပြီး အဓိပ္ပာယ် ရွေးပါ။'}</p>
+    <div class="btns"><button class="bt pri" type="button" id="dGo">ဖတ်ကြည့်မယ်</button><button class="bt" type="button" id="mC">နောက်မှ</button></div>`,c=>{
+      c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const i=+b.dataset.g;pick[i]=(pick[i]+1)%WORDS.length;msg='';draw()});
+      c.querySelector('#dGo').onclick=()=>{const ok=GLYPHS.every((g,i)=>WORDS[pick[i]]===g.a);if(ok){card.dataset.dismiss='';close();res(true)}else{msg=pick.some(p=>p<0)?'စာလုံး သုံးလုံးလုံး ရွေးပါ။':`(${GLYPHS.filter((g,i)=>WORDS[pick[i]]===g.a).length}/3 လုံး မှန်တယ်… အမြစ်စာလုံးတွေကို ပေါင်းကြည့်)`;draw()}};
+      c.querySelector('#mC').onclick=()=>{card.dataset.dismiss='';close();res(false)}});card.dataset.dismiss='no';draw()});
+}
+async function muralScene(){
+  if(S.clues.includes('c_riddle'))return show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p><b>"စေတီ၊ ရေတံခွန်၊ ရေတွင်း — သုံးခု မျက်နှာချင်းဆိုင်ရာ"</b></p><div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
+  await say('nar','နံရံမှာ ဆင်တွေ၊ ကြာပန်းတွေ၊ မြို့ရိုး ဝိုင်းဝိုင်းကြီးနဲ့ မြစ်တစ်စင်း ထုထားတယ်။ မြို့ရိုးအောက်မှာ ရှေးအက္ခရာ တစ်တန်း။');
+  await say('me','(ပုဂံခေတ်မတိုင်ခင်က အမြစ်စာလုံးတွေပဲ။ ဆရာက "စာလုံးတစ်လုံးကို အမြစ်တွေ ပေါင်းပြီး ဖတ်" လို့ သင်ခဲ့တယ်…)');
+  const ok=await decodePuzzle();
+  if(!ok)return say('me','(နောက်မှ အေးအေးဆေးဆေး ပြန်ဖတ်မယ်။)');
+  addClue('c_riddle');
+  await say('pc','"စေတီ… ရေတံခွန်… ရေတွင်း" — "သုံးခု မျက်နှာချင်းဆိုင်ရာ"။');
+  await say('me','(ပဟေဠိပဲ။ ဒီသုံးခု ဘယ်မှာလဲ သိရင် နေရာ တွက်လို့ရမယ်။)');
+}
+/* 2 · stone dial lock on the ruin brick */
+const DIAL=['☀','☾','★','⛰','🌳','💧'];
+function dialLock(){
+  const st=[0,0,0],goal=[2,1,3];let msg='';
+  return new Promise(res=>{const draw=()=>show(`<h2>ကျောက်ဝိုင်း သော့</h2><p class="sub">အုတ်ချပ်ပေါ်မှာ လှည့်လို့ရတဲ့ ကျောက်ဝိုင်း သုံးခု။ ဘေးမှာ ရှေးစာ တစ်ကြောင်း:</p>
+    <p style="text-align:center"><b>"ကောင်းကင်ရဲ့ လမ်းပြကို လိုက်၊ လပြည့်ညမှာ မြေမြင့်ပေါ် တက်"</b></p>
+    <div style="display:flex;gap:12px;justify-content:center;margin:10px 0">${st.map((v,i)=>`<button type="button" class="bt" data-d="${i}" style="width:64px;height:64px;border-radius:50%;font-size:30px;line-height:1">${DIAL[v]}</button>`).join('')}</div>
+    <p id="dlMsg">${msg||'ကျောက်ဝိုင်းကို နှိပ်ရင် လှည့်မယ်။'}</p>
+    <div class="btns"><button class="bt pri" type="button" id="dlGo">ဖိကြည့်မယ်</button><button class="bt" type="button" id="mC">နောက်မှ</button></div>`,c=>{
+      c.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const i=+b.dataset.d;st[i]=(st[i]+1)%DIAL.length;msg='';draw()});
+      c.querySelector('#dlGo').onclick=()=>{if(st.every((v,i)=>v===goal[i])){card.dataset.dismiss='';close();res(true)}else{msg='(ကျောက်တွေ မလှုပ်ဘူး… စာကြောင်းကို ပြန်ဖတ်ကြည့်)';shake=3;draw()}};
+      c.querySelector('#mC').onclick=()=>{card.dataset.dismiss='';close();res(false)}});card.dataset.dismiss='no';draw()});
+}
+/* 3 · Tazaungdaing sky lantern: let go when the wind is right */
+function balloonGame(){
+  return new Promise(res=>{let round=0,hits=0,t0=performance.now(),raf=0,done=false;card.dataset.dismiss='no';
+    show(`<h2>မီးပုံးပျံ လွှတ်ပွဲ</h2><p class="sub">လေ ညင်သာတဲ့အချိန် (အစိမ်းရောင်ထဲ) "လွှတ်မယ်" နှိပ်ပါ။ မီးပုံး ၃ လုံး။</p>
+      <div style="position:relative;height:26px;background:#e8d8b8;border-radius:13px;margin:12px 4px;overflow:hidden"><div style="position:absolute;left:42%;width:16%;top:0;bottom:0;background:#8ac46a"></div><div id="bNeedle" style="position:absolute;top:0;bottom:0;width:4px;background:#a8302a;left:0"></div></div>
+      <p id="bMsg" style="text-align:center;font-size:22px">🏮 🏮 🏮</p>
+      <div class="btns"><button class="bt pri" type="button" id="bGo">လွှတ်မယ်</button></div>`,c=>{
+      const nd=c.querySelector('#bNeedle'),msg=c.querySelector('#bMsg');let pos=0;
+      const loop=now=>{if(done)return;const sp=1.1+round*.45;pos=(Math.sin((now-t0)/1000*sp*2.2)+1)/2;nd.style.left=(pos*96)+'%';raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
+      c.querySelector('#bGo').onclick=()=>{if(done)return;const ok=pos>=.42&&pos<=.58;if(ok)hits++;round++;
+        msg.textContent=Array.from({length:3},(_,i)=>i<round?(i<hits?'🎈':'💨'):'🏮').join(' ')+(ok?'  လေထဲ တက်သွားပြီ!':'  လေကြမ်းလို့ မီးငြိမ်းသွားတယ်…');
+        if(round>=3){done=true;cancelAnimationFrame(raf);setTimeout(()=>{card.dataset.dismiss='';close();res(hits)},900)}}})});
+}
+async function balloonScene(){
+  S.daily.balloon=1;
+  await say('hla','ကလေး! တန်ဆောင်တိုင်ပွဲမှာ မီးပုံးပျံ လွှတ်ကြမယ်။ ရွာသားတွေ စုနေကြပြီ၊ မင်းလည်း လာလွှတ်ပါဦး။','h');
+  await say('pc','ဟုတ်ကဲ့ ဦး၊ ကျွန်တော် တစ်ခါမှ မလွှတ်ဖူးဘူး!');
+  const h=await balloonGame();
+  if(h>=2){NPCS.forEach(d=>bump(d.id));S.sus=Math.max(0,S.sus-20);await say('hla','ကောင်းလိုက်တာ! မင်းအဘိုးလည်း မီးပုံးလွှတ်တာ ရွာထဲမှာ အတော်ဆုံးပဲ။','h');await say('nar','ရွာသားတွေ လက်ခုပ်တီးကြတယ်။ (ရွာသားအားလုံး ♥+1 · သံသယ −20)')}
+  else{bump('hla');await say('hla','ဟား ဟား၊ ပထမဆုံးဆိုတော့ ဒီလောက်ဆို ရပြီ။ နောက်နှစ် ပိုကောင်းမှာပါ။','h')}
+}
 /* ---------- chapter 3 · winter · the other half ---------- */
 const FALL2=[[36,18],[36,19],[36,20]];
 function setFall2(on){const t=S.maps.forest.tiles;FALL2.forEach(([x,y])=>t[y][x]=on?FALL:CLIFF);if(S.map==='forest')dirty=true}
@@ -1341,6 +1405,10 @@ async function hlaWellScene(){
 async function monkScene(){
   await say('pc','တင်ပါ့ဘုရား။ တပည့်တော့်အဘိုးအကြောင်း မေးလျှောက်ချင်လို့ပါ ဘုရား။');
   await say('monk','ဒကာလေး… ဘုန်းဘုန်း စောင့်နေတာ ကြာပြီ။ မင်းအဘိုးက ဘုန်းဘုန်းဆီ တစ်ခုခု အပ်ထားခဲ့တယ်။ "မြေးလေး ကိုယ်တိုင် လာမေးမှ ပေးပါ" တဲ့။');
+  await say('monk','ဒါပေမဲ့ အရင် စကားထာ တစ်ခု ဖြေကြည့်။ မင်းအဘိုးလည်း ဒီစကားထာကို အရမ်း ကြိုက်တယ်။','h');
+  for(let k=0;;k++){const c=await choose('monk','"ခြေမရှိဘဲ ခရီးဝေး သွားတယ်။ ပါးစပ်မရှိဘဲ စကားပြောတယ်။ အသက်မရှိဘဲ နှစ်ပေါင်းများစွာ စောင့်နေတယ်" — ဘာလဲ?',['လေ','စာ','ရေ','အရိပ်']);
+    if(c===1)break;await say('monk',k>=1?'အရိပ်အမြွက် ပေးမယ် — မင်းအဘိုး မင်းဆီ ချန်ထားခဲ့တာတွေထဲမှာ ပါတယ်။':'မဟုတ်သေးဘူး ဒကာလေး။ ပြန်စဉ်းစားကြည့်။')}
+  await say('monk','ဟုတ်တယ်၊ စာ။ မင်းအဘိုးရဲ့ စာတစ်စောင်ကလည်း နှစ်ပေါင်းများစွာ စောင့်နေခဲ့တယ်။','h');
   await say('monk','လွန်ခဲ့တဲ့ နှစ်လေးဆယ်က မင်းအဘိုးနဲ့ ဦးဘိုးသိန်းဟာ ညီအစ်ကိုလို ခင်ကြတဲ့ သူငယ်ချင်းတွေ။ တစ်ညမှာ ဘာကြောင့်မှန်း မသိ စကားများပြီး တစ်သက်လုံး မခေါ်ကြတော့ဘူး။');
   await say('monk','ဦးဘိုးသိန်းက မနှစ်က ဆုံးသွားတယ်။ သူ့သားက ကုန်စုံဆိုင်က ကိုဇော်ပဲ။ ကိုဇော့်အမေလည်း နေမကောင်းလို့ မြို့ဆေးရုံ ခဏခဏ သွားနေရတယ်။');
   await say('monk','ဒါက မင်းအဘိုး ရေးပြီး မပို့ဖြစ်ခဲ့တဲ့ စာ။ ဘယ်သူ့ဆီ ပို့ရမလဲ မင်း သိမှာပါ။');
@@ -1479,6 +1547,7 @@ function storyTalk(d){
   if(d.id==='kyaw'&&S.flags.flood&&S.flags.bridgeFixed&&!S.clues.includes('c_fall')){cutscene(fallScene);return true}
   const ch3=S.flags.ch3&&!S.flags.treasure;
   if(ch3&&d.id==='hla'&&!S.clues.includes('c_well')){cutscene(hlaWellScene);return true}
+  if(d.id==='hla'&&(S.day===28||S.day===29)&&S.min>=900&&!S.daily.balloon){cutscene(balloonScene);return true}
   if(ch3&&d.id==='monk'&&!S.flags.monkLetter){cutscene(monkScene);return true}
   if(ch3&&d.id==='khine'&&!S.clues.includes('r_night')){cutscene(khineScene);return true}
   if(ch3&&d.id==='zaw'&&S.flags.monkLetter&&!S.flags.map2){cutscene(()=>zawLetterScene());return true}
