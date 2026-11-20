@@ -1273,8 +1273,8 @@ function radSVG(ids,sz=40){return `<svg viewBox="-2 -4 ${ids.length*16+2} 18" wi
 function decodePuzzle(){
   const pick=GLYPHS.map(()=>-1);let msg='';
   return new Promise(res=>{const draw=()=>show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p class="sub">မြို့ရိုးအောက်မှာ ရှေးအက္ခရာ သုံးလုံး။ တက္ကသိုလ်မှာ သင်ခဲ့တဲ့ "အမြစ်စာလုံး" ဇယားနဲ့ ဖော်ဖတ်ကြည့်ပါ။</p>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:#efe2c4;border-radius:8px;padding:6px">${Object.entries(RADS).map(([k,v])=>`<div style="text-align:center;font-size:12px">${radSVG([k],26)}<br>${v.n}</div>`).join('')}</div>
-    <div style="display:flex;gap:10px;justify-content:center;margin:10px 0">${GLYPHS.map((g,i)=>`<div style="text-align:center">${radSVG(g.r,40)}<br><button class="bt" type="button" data-g="${i}" style="min-width:86px">${pick[i]<0?'?':WORDS[pick[i]]}</button></div>`).join('')}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:#efe2c4;border-radius:8px;padding:6px">${Object.entries(RADS).map(([k,v])=>`<div style="text-align:center;font-size:12px;color:#3a2a14">${radSVG([k],26)}<br>${v.n}</div>`).join('')}</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin:10px 0">${GLYPHS.map((g,i)=>`<div style="text-align:center"><div style="background:#c8b088;border-radius:6px;padding:4px 6px;margin-bottom:4px">${radSVG(g.r,40)}</div><br><button class="bt" type="button" data-g="${i}" style="min-width:86px">${pick[i]<0?'?':WORDS[pick[i]]}</button></div>`).join('')}</div>
     <p id="dMsg">${msg||'စာလုံးအောက်က ခလုတ်ကို နှိပ်ပြီး အဓိပ္ပာယ် ရွေးပါ။'}</p>
     <div class="btns"><button class="bt pri" type="button" id="dGo">ဖတ်ကြည့်မယ်</button><button class="bt" type="button" id="mC">နောက်မှ</button></div>`,c=>{
       c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const i=+b.dataset.g;pick[i]=(pick[i]+1)%WORDS.length;msg='';draw()});
