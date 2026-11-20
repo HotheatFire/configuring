@@ -551,6 +551,7 @@ function act(){
   const nAt=(x,y)=>npcRT.findIndex(n=>n.active&&n.map===S.map&&!inShop(n)&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
   let ni=nAt(fx,fy);if(ni<0)ni=nAt(S.px,S.py);
   if(ni>=0)return talk(ni);
+  {const si=sideItemAt(fx,fy);if(si)return cutscene(()=>sideItemAct(si))}
   if(t===SIGN)return toast(signText());
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
   if(S.map==='cave'){const rl=RELICS.find(r=>r.x===fx&&r.y===fy&&!S.relics[r.id]);if(rl)return pickRelic(rl);
@@ -645,6 +646,7 @@ function endDay(passedOut){
   }
   for(let i=0;i<5;i++){const x=FIELD.x0+Math.floor(Math.random()*15),y=FIELD.y0+Math.floor(Math.random()*11);if(S.tiles[y][x]===G)S.tiles[y][x]=WEED}
   if(fed&&!S.eggs.some(e=>e.k==='coin')&&Math.random()<Math.min(.5,.12*fed)){for(let tries=0;tries<20;tries++){const x=YARD.x0+Math.floor(Math.random()*3),y=YARD.y1-Math.floor(Math.random()*2);if(S.tiles[y][x]===G&&!S.eggs.some(e=>e.x===x&&e.y===y)){S.eggs.push({x,y,k:'coin'});break}}}
+  S.flags.wasRain=S.weather==='rain'?1:0;if(S.weather==='rain'&&S.day>=11&&S.day<=20&&S.chickens.length&&!sideState('coop_storm')&&Math.random()<.5)S.flags.stormHen=1;
   S.sus=Math.max(0,S.sus-8);S.rival=Math.min(100,S.rival+2+(S.sus>=50?3:0));
   if(S.day>=DAYS)return finalEnding(S.rival>=100&&!S.flags.map2?'lost':'none');
   S.day++;
@@ -801,7 +803,18 @@ const SHOPS={
     {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ်',price:1200,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
   ]},
 };
+function openShopHook(id){
+  const sp=SHOPS[id],open=S.min>=sp.open&&S.min<sp.close;
+  if(id==='store'&&S.map==='village'&&zawShopNight())return true;
+  if(!open)return false;
+  const n=NPCS.find(d=>d.shop===id);
+  if(n&&!S.talked[n.id]&&GREET[n.id]){S.talked[n.id]=1;bump(n.id);cutscene(()=>greetScene(n.id));return true}
+  if(id==='store'&&S.flags.ch3&&S.flags.monkLetter&&!S.flags.map2&&!S.flags.treasure){cutscene(()=>zawLetterScene());return true}
+  if(id==='smith'){if(sideAvail('smith_fire')){cutscene(SIDE_SCENES.smith_fire.start);return true}if(sideState('smith_fire')==='go'&&SIDE.smith_fire.done()){cutscene(SIDE_SCENES.smith_fire.end);return true}}
+  return false;
+}
 function openShop(id){
+  if(!openShopHook.busy){openShopHook.busy=1;const h=openShopHook(id);openShopHook.busy=0;if(h)return}
   const sp=SHOPS[id];
   if(S.min<sp.open||S.min>=sp.close){const f=m=>`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')}`;return toast(`${sp.name} ပိတ်ထားတယ်။ ဖွင့်ချိန် ${f(sp.open)} – ${f(sp.close)}`)}
   let items=sp.items();
@@ -1264,6 +1277,132 @@ const GP_NOT={
   min:[['min','အဘိုးအကြောင်းလား? ငါ အခု မအားဘူးဗျ၊ ကြက်တွေ ကျွေးရဦးမယ်။ မင်းခြံမှာလည်း ကြက်ခြံ အလွတ် ရှိတယ်နော်၊ ကြက်ပေါက်လေးတွေ လိုရင် ငါ့ဆီ လာဝယ်။'],['me','(ကိုမင်းက အလုပ်ကလွဲရင် စကားသိပ် မပြောဘူး။ ကြက်ခြံ ပြန်စမှ ကိုမင်းနဲ့ စကားဝင်မယ် ထင်တယ်။)']],
   kyaw:[['kyaw','ဟေ… မင်းအဘိုးအကြောင်းလား? ငါ အခု မောနေပြီ ကလေး။ မနက်စောစော ငါးမျှားနေတုန်း လာခဲ့။ ရေပြင်ကို ကြည့်ရင်း ပြောရတာ ပိုကောင်းတယ်။'],['me','(မနက်စောစော… မြောင်းဘေးမှာ ငါးမျှားနေတုန်း။)']],
 };
+/* ---------- side quests: they appear at a time and place, no notice board ---------- */
+function nearFree(map,x,y){const M=S.maps[map];for(let r=0;r<6;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){const X=x+dx,Y=y+dy;if(X<1||Y<1||X>=M.w-1||Y>=M.h-1)continue;const t=M.tiles[Y][X];if((t===G||t===FLOWER||t===PATH)&&!(map==='farm'&&S.crops[X+','+Y]))return[X,Y]}return[x,y]}
+const sideState=id=>(S.side||{})[id];
+function sideSet(id,v){S.side=S.side||{};S.side[id]=v}
+const npcById=id=>{const i=NPCS.findIndex(d=>d.id===id);return npcRT[i]};
+const rainy=()=>S.weather==='rain';
+const SIDE={
+  aye_wind:{npc:'aye',title:'လေထဲ လွင့်သွားတဲ့ အဆင်',desc:'ဒေါ်အေးရဲ့ ယက်ကန်းအဆင် စာရွက် လေထဲ လွင့်သွားတယ်။ ညောင်ပင်ကြီးဘက် ရှာကြည့်ပါ',
+    when:()=>S.day<=10&&S.min>=600&&S.min<800&&!rainy()&&npcById('aye')?.act==='weave',item:{map:'village',at:[52,26],kind:'cloth'}},
+  min_calf:{npc:'min',title:'ပျောက်သွားတဲ့ နွားကလေး',desc:'ကိုမင်းရဲ့ နွားကလေး မိုးထဲမှာ ပျောက်သွားတယ်။ တောထဲမှာ ခြေရာတွေ ရှိတယ်',
+    when:()=>S.day>=11&&S.day<=20&&(rainy()||S.flags.wasRain)&&S.min<720,item:{map:'forest',at:[8,10],kind:'calf'}},
+  kyaw_fish:{npc:'kyaw',title:'ဦးကျော်ရဲ့ ငါးကြီး',desc:'ဦးကျော်က ငါးကြီး တစ်ကောင် လိုချင်တယ်။ ငါး တစ်ကောင် (ဘယ်အမျိုးမဆို) မျှားပြီး ပေးပါ',
+    when:()=>S.min>=400&&S.min<480&&npcById('kyaw')?.act==='fish',done:()=>FISHES.some(f=>(S.produce[f]||0)>0)},
+  well_mud:{npc:'hla',title:'ရေနောက်နေတဲ့ ရေတွင်း',desc:'ရေကြီးပြီးကတည်းက ရပ်ကွက်ရေတွင်း ရေနောက်နေတယ်။ မြောင်းတံခါးတွေ ပြန်ညှိပေးပါ',
+    when:()=>S.flags.flood&&S.day>=15&&S.day<=22},
+  monk_alms:{npc:'monk',title:'ဆောင်းမနက် ဆွမ်းလောင်း',desc:'ဦးဇင်း ဆွမ်းခံ ကြွနေတယ်',
+    when:()=>S.day>=21&&S.min>=380&&S.min<450},
+  smith_fire:{npc:'tun',title:'ငြိမ်းသွားတဲ့ ဖိုမီး',desc:'မိုးရွာလို့ ပန်းပဲဖို မီးငြိမ်းသွားတယ်။ ကိုထွန်းဆီ ထင်း 3 စည်း ယူသွားပေးပါ',
+    when:()=>rainy(),done:()=>(S.produce.wood||0)>=3},
+  khine_lost:{npc:'san',title:'ပြန်မလာသေးတဲ့ မခိုင်',desc:'မခိုင် ဆေးဖက်ဝင် အရွက် ခူးဖို့ တောထဲ သွားပြီး မပြန်လာသေးဘူး။ နေ မဝင်ခင် ရှာပါ',
+    when:()=>S.day>=5&&S.day<=25&&S.min>=960&&S.min<1100&&!rainy(),item:{map:'forest',at:[22,6],kind:'khine'}},
+  tea_dealer:{npc:'san',title:'မြို့သားရဲ့ မေးခွန်းတွေ',desc:'',when:()=>S.day>=6&&S.day<=14&&S.min>=600&&S.min<900&&S.flags.dealer},
+  coop_storm:{title:'မုန်တိုင်းနောက် ကြက်ခြံ',desc:'မုန်တိုင်းကြောင့် ကြက်ခြံ ပြိုပြီး ကြက်တစ်ကောင် လွတ်သွားတယ်။ ခြံထဲမှာ ရှာပါ',when:()=>false,item:{map:'farm',at:[2,16],kind:'hen'}},
+  zaw_night:{title:'ညဘက် ကုန်စုံဆိုင်',desc:'',when:()=>false},
+};
+const FISHES=['fish','catfish','carp','snakehead','prawn'];
+for(const id in SIDE)QUESTS['s_'+id]={title:'(ဘေး) '+SIDE[id].title,desc:SIDE[id].desc||'',prog:()=>[sideState(id)==='done'?1:0,1],reward:()=>''};
+function sideAvail(id){const q=SIDE[id];return !sideState(id)&&q.when()}
+function sideMark(npc){return Object.keys(SIDE).some(id=>{const q=SIDE[id];if(q.npc!==npc)return false;const st=sideState(id);return (!st&&q.when())||(st==='go'&&(q.done?q.done():st==='got'))})||Object.keys(SIDE).some(id=>SIDE[id].npc===npc&&sideState(id)==='got')}
+function sideStart(id){sideSet(id,'go');qStart('s_'+id);const it=SIDE[id].item;if(it){const [x,y]=nearFree(it.map,it.at[0],it.at[1]);S.sideItems=S.sideItems||{};S.sideItems[id]={map:it.map,x,y,kind:it.kind}}}
+function sideFinish(id){sideSet(id,'done');if(S.sideItems)delete S.sideItems[id];qUpdate()}
+function sideItemAt(x,y){if(!S.sideItems)return null;for(const id in S.sideItems){const o=S.sideItems[id];if(o.map===S.map&&o.x===x&&o.y===y)return id}return null}
+/* talking: returns true when a side quest scene took over */
+function sideTalk(d){
+  for(const id in SIDE){const q=SIDE[id];if(q.npc!==d.id)continue;const st=sideState(id);
+    if(!st&&q.when()){cutscene(SIDE_SCENES[id].start);return true}
+    if(st==='got'||(st==='go'&&q.done&&q.done())){cutscene(SIDE_SCENES[id].end);return true}}
+  return false}
+async function sideItemAct(id){
+  const o=S.sideItems[id];
+  if(o.kind==='cloth'){await say('nar','ချုံပုတ်ကြားမှာ ညပ်နေတဲ့ စက္ကူရွက်ကြီး တစ်ရွက်… ပန်းဆင်တွေ၊ ကြာပွင့်တွေ ရေးဆွဲထားတယ်။');await say('me','(ဒေါ်အေးရဲ့ အဆင်ပဲ။ ပြန်ပို့ပေးရမယ်။)')}
+  if(o.kind==='calf'){await say('nar','မြက်ပင်ကြားမှာ နွားကလေး တစ်ကောင် ခြေထောက် ညပ်ပြီး အော်နေတယ်။');await say('pc','ငြိမ်ငြိမ်နေ… ငါ ကူမယ်။');await say('nar','ခြေထောက်ကို ဖြည်းဖြည်း ဆွဲထုတ်ပေးလိုက်တယ်။ နွားကလေးက နောက်က လိုက်လာတယ်။')}
+  if(o.kind==='khine'){await say('khine','အို… ရှင်လား! လမ်းပျောက်နေတာ။ မှောင်လာတော့ ကြောက်နေတာ။','s');await say('pc','မခိုင်၊ စိတ်မပူနဲ့။ ကျွန်တော် လမ်းသိတယ်။ အတူ ပြန်ကြမယ်။');await say('khine','ကျေးဇူးပါရှင်… ဆေးဖက်ဝင် အရွက် ရှာရင်း လမ်းလွဲသွားတာ။','h')}
+  if(o.kind==='hen'){await say('nar','ချုံပုတ်ထဲမှာ ကြက်မလေး ပုန်းနေတယ်။ ဖမ်းလိုက်တော့ သူ ယက်နေတဲ့ နေရာမှာ တစ်ခုခု တောက်နေတယ်…');S.produce.ancoin=(S.produce.ancoin||0)+1;addClue('c_coin');await say('nar','ကြယ်သုံးပွင့် ရှေးဒင်္ဂါး တစ်ပြား! (ရှေးဒင်္ဂါး +1)');await say('me','(ကြက်တွေက ဒီခြံမြေထဲက ဒင်္ဂါးတွေကို အမြဲ ရှာတွေ့နေတာ… ဘာလို့ ဒီခြံမှာ ဒီလောက် များနေတာလဲ?)')}
+  delete S.sideItems[id];
+  if(id==='coop_storm'){bump('min');toast('ကြက်မလေးကို ကြက်ခြံထဲ ပြန်ထည့်လိုက်ပြီ');return sideFinish(id)}
+  if(id==='khine_lost'){goMap('village',...VILLAGE_ENTRY);return SIDE_SCENES.khine_lost.end()}
+  sideSet(id,'got');toast(`${NPCS.find(d=>d.id===SIDE[id].npc).name}ဆီ ပြန်သွားပါ`);
+}
+const VILLAGE_ENTRY=[47,44,'up'];
+/* canal sluice puzzle for the muddy well */
+function sluicePuzzle(){
+  const g=[1,1,0];let msg='';
+  return new Promise(res=>{const col=o=>o?'#4a8ac8':'#8a6a4a',draw=()=>show(`<h2>မြောင်းတံခါး သုံးခု</h2><p class="sub">ရေကြည်က တောင်ကုန်း စမ်းချောင်းက လာတယ်။ ရေနောက်က ရေကြီးတဲ့ မြစ်ထဲက ဝင်လာတယ်။ ရေတွင်းကို ရေကြည်ပဲ ရောက်အောင် တံခါးတွေ ညှိပါ။</p>
+    <svg viewBox="0 0 240 150" width="100%" style="max-width:340px;display:block;margin:auto">
+      <rect x="0" y="0" width="240" height="150" rx="8" fill="#e8d8b8"/>
+      <text x="8" y="22" font-size="10" fill="#2a5a8a">စမ်းချောင်း (ကြည်)</text><path d="M20 30 H110" stroke="#7ab8e8" stroke-width="8"/>
+      <text x="8" y="112" font-size="10" fill="#6a4a2a">မြစ် (နောက်)</text><path d="M20 120 H110" stroke="#a88a5a" stroke-width="8"/>
+      <path d="M110 30 V75 H150 M110 120 V75" stroke="#b8a888" stroke-width="8" fill="none"/>
+      <path d="M150 75 H220" stroke="#b8a888" stroke-width="8"/><circle cx="224" cy="75" r="10" fill="#4a5a6a"/><text x="196" y="100" font-size="10" fill="#3a2a14">ရေတွင်း</text>
+      <path d="M150 75 V140" stroke="#b8a888" stroke-width="6"/><text x="156" y="140" font-size="9" fill="#3a2a14">လယ်ကွင်း</text>
+      ${[[100,30,0,'A'],[100,120,1,'B'],[190,75,2,'C']].map(([x,y,i,L])=>`<g data-s="${i}" style="cursor:pointer"><rect x="${x-9}" y="${y-13}" width="18" height="26" rx="3" fill="${col(g[i])}" stroke="#3a2a14" stroke-width="2"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" fill="#fff">${L}</text></g>`).join('')}
+    </svg>
+    <p class="sub" style="text-align:center">အပြာ = ဖွင့် · အညို = ပိတ်  (တံခါးကို နှိပ်ရင် ပြောင်းမယ်)</p>
+    <p>${msg||'&nbsp;'}</p>
+    <div class="btns"><button class="bt pri" type="button" id="slGo">ရေ ဖွင့်လွှတ်မယ်</button><button class="bt" type="button" id="mC">နောက်မှ</button></div>`,c=>{
+      c.querySelectorAll('[data-s]').forEach(e=>e.onclick=()=>{g[+e.dataset.s]^=1;msg='';draw()});
+      c.querySelector('#slGo').onclick=()=>{const [A,B,C2]=g;if(A&&!B&&C2){card.dataset.dismiss='';close();res(true);return}
+        msg=!C2?'(ရေတွင်းဆီ ရေ လုံးဝ မရောက်ဘူး… C က ပိတ်နေတယ်)':B?'(ရေနောက်တွေ ရေတွင်းထဲ ဝင်သွားတယ်!)':'(ရေ မလာဘူး… စမ်းချောင်းဘက်က ပိတ်နေတယ်)';draw()};
+      c.querySelector('#mC').onclick=()=>{card.dataset.dismiss='';close();res(false)}});card.dataset.dismiss='no';draw()});
+}
+const SIDE_SCENES={
+  aye_wind:{
+    start:async()=>{await say('aye','အို… အို! ငါ့အဆင်!','s');await say('pc','ဒေါ်အေး၊ ဘာဖြစ်လို့လဲ?');await say('aye','ယက်ကန်းအဆင် စာရွက် လေတိုက်ပြီး လွင့်သွားတယ်ကလေး။ ညောင်ပင်ကြီးဘက် သွားတာ မြင်လိုက်တယ်။ အဲဒါ ငါ့အမေ ဆွဲခဲ့တဲ့ အဆင်…','s');await say('pc','ကျွန်တော် ရှာပေးမယ် ဒေါ်အေး!');sideStart('aye_wind')},
+    end:async()=>{await say('pc','ဒေါ်အေး၊ ဒီမှာ အဆင်။ ညောင်ပင်နား ချုံထဲမှာ ညပ်နေတာ။');await say('aye','ဟယ်… ဒါပဲ! ကျေးဇူးပဲ ကလေးရယ်။ မင်းအဘိုးလိုပဲ စိတ်ကောင်းတယ်။','h');await say('nar','(ဒေါ်အေး ♥+2)');bump('aye',2);sideFinish('aye_wind')}},
+  min_calf:{
+    start:async()=>{await say('min','…ညကမိုးထဲမှာ နွားကလေး တစ်ကောင် ခြံကနေ လွတ်ထွက်သွားတယ်။ ရွာထဲ အကုန် ရှာပြီးပြီ။','s');await say('pc','တောဘက် ကြည့်ပြီးပြီလား ကိုမင်း? မိုးရွာပြီးတော့ ခြေရာ ကျန်နေမှာ။');await say('min','…မင်း ရှာပေးမလား? ငါ ခြံကို ထားခဲ့လို့ မရဘူး။');sideStart('min_calf')},
+    end:async()=>{await say('pc','ကိုမင်း! နွားကလေး တွေ့ပြီ။ တောထဲက ချုံမှာ ခြေထောက် ညပ်နေတာ။');await say('min','…','h');await say('min','ကျေးဇူး။ မင်းကို ငါ မှားထင်ခဲ့တယ်။ မြို့ကလေးဆိုတော့ ခြံအလုပ် မနိုင်ဘူးထင်တာ။ နွား လိုရင် ငါ့ကို ပြော။','h');await say('nar','(ကိုမင်း ♥+2)');bump('min',2);sideFinish('min_calf')}},
+  kyaw_fish:{
+    start:async()=>{await say('kyaw','ဟေ့ ကလေး… မနက်ကတည်းက တစ်ကောင်မှ မမိသေးဘူး။ ငါ့မိန်းမက ဒီည ငါးဟင်းချက်မယ်လို့ ပြောထားတာ။','s');await say('pc','ကျွန်တော် မျှားပေးမယ် ဦးကျော်။');await say('kyaw','ဟား! မြို့ကလေးက? ကောင်းပြီ၊ ငါး တစ်ကောင် ရရင် ယူလာခဲ့။ ငါ စောင့်နေမယ်။','h');sideStart('kyaw_fish')},
+    end:async()=>{const f=FISHES.find(f=>(S.produce[f]||0)>0);S.produce[f]--;await say('pc',`ဦးကျော်၊ ${EXTRA[f].name} တစ်ကောင် ရလာတယ်!`);await say('kyaw','ဟား ဟား! မြို့ကလေးက ငါ့ထက် တော်နေပြီ။ ရော့၊ ငါ့ ငါးမျှားတံ ချိတ်ကောင်းကောင်း ယူသွား။','h');S.money+=200;bump('kyaw',2);await say('nar','(ဦးကျော် ♥+2 · ကျပ် 200)');sideFinish('kyaw_fish')}},
+  well_mud:{
+    start:async()=>{await say('hla','ကလေး… ဒုက္ခပဲ။ ရေကြီးပြီးကတည်းက ရပ်ကွက်ရေတွင်း ရေတွေ နောက်နေတယ်။ မြောင်းတံခါးတွေ ဘယ်လို ညှိရမလဲ မသိဘူး။','s');await say('pc','ကျွန်တော် ကြည့်ပေးမယ် ဦး။');sideStart('well_mud');
+      if(await sluicePuzzle()){await say('nar','တံခါးတွေ ညှိပြီး ခဏနေတော့ ရေတွင်းထဲကို ရေကြည်တွေ စီးဝင်လာတယ်။');await say('hla','ကြည်သွားပြီ! မင်းက ဉာဏ်ကောင်းတယ်ကလေး။ မင်းအဘိုး ကြွားတာ မှန်တယ်။','h');await say('nar','(ဦးလှမောင် ♥+2 · ရွာထဲ သံသယ −10)');bump('hla',2);S.sus=Math.max(0,S.sus-10);sideFinish('well_mud')}
+      else await say('me','(နောက်မှ ပြန်လာ ကြည့်မယ်။ ဦးလှမောင်ဆီ ပြန်ပြောရင် ရမယ်။)')},
+    end:async()=>{if(await sluicePuzzle()){await say('hla','ကြည်သွားပြီ! ကျေးဇူးပဲကလေး။','h');bump('hla',2);S.sus=Math.max(0,S.sus-10);sideFinish('well_mud')}}},
+  monk_alms:{
+    start:async()=>{await say('nar','ဆောင်းမနက် မြူထဲမှာ ဦးဇင်း ဆွမ်းခံ ကြွလာတယ်။');const items=[...CROP_IDS.filter(c=>(S.produce[c]||0)>0).slice(0,2),...((S.produce.egg||0)>0?['egg']:[])];
+      const opts=[...items.map(i=>`${itemName(i)} လောင်းမယ်`),'ဒီနေ့ ဘာမှ မပါလာဘူး'];const c=await choose('me','(ဆွမ်း ဘာလောင်းရမလဲ…)',opts);
+      if(c<items.length){S.produce[items[c]]--;await say('monk','ကောင်းမှုကုသိုလ် ရပါစေ ဒကာလေး။ မင်းအဘိုးလည်း ဆောင်းမနက်တိုင်း ဒီလို လောင်းတယ်။');S.energy=Math.min(S.maxE,S.energy+20);bump('monk',2);await say('nar','(စိတ်ကြည်လင်သွားတယ် · အားအင် +20 · ဦးဇင်း ♥+2)');sideSet('monk_alms','go');qStart('s_monk_alms',true);sideFinish('monk_alms')}
+      else await say('monk','ကိစ္စမရှိဘူး ဒကာလေး။ စိတ်စေတနာက အဓိကပဲ။')},
+    end:async()=>{}},
+  smith_fire:{
+    start:async()=>{await say('tun','ဒုက္ခပဲ… မိုးယိုလို့ ဖိုမီး ငြိမ်းသွားပြီ။ ထင်းခြောက် မရှိရင် ပြန်မွှေးလို့ မရဘူး။','s');
+      if((S.produce.wood||0)>=3){sideSet('smith_fire','go');qStart('s_smith_fire',true);await say('pc','ကိုထွန်း၊ ကျွန်တော့်မှာ ထင်း ပါတယ်။ ယူပါ။');return SIDE_SCENES.smith_fire.end()}
+      await say('pc','ကျွန်တော် ထင်း ရှာပေးမယ် ကိုထွန်း။');await say('tun','ထင်း 3 စည်း ရရင် ရပြီ။ တောထဲက လဲနေတဲ့ သစ်တုံးတွေ ခုတ်လို့ရတယ်။');sideStart('smith_fire')},
+    end:async()=>{S.produce.wood-=3;await say('tun','ဟား! မီးပြန်တောက်ပြီ။ ရော့၊ ငါ့ လက်ခ အနည်းငယ်။ နောက်တစ်ခါ ကိရိယာ လာမြှင့်ရင်လည်း သက်သာအောင် လုပ်ပေးမယ်။','h');S.money+=300;bump('tun',2);await say('nar','(ကိုထွန်း ♥+2 · ကျပ် 300)');sideFinish('smith_fire')}},
+  khine_lost:{
+    start:async()=>{await say('san','ကလေး၊ မခိုင် မြင်မိလား? နေ့လယ်က ဆေးဖက်ဝင် အရွက် ခူးမယ်ဆိုပြီး တောထဲ သွားတာ အခုထိ မပြန်လာသေးဘူး။','s');await say('pc','ကျွန်တော် သွားရှာမယ် ဒေါ်ဒေါ်။ မှောင်မသွားခင်။');sideStart('khine_lost')},
+    end:async()=>{await say('nar','မခိုင်နဲ့အတူ ရွာထဲ ပြန်ရောက်လာတယ်။');await say('khine','ဒီနေ့ ရှင့်ကြောင့် အသက်ရှင်တာ။ ရော့… ကျွန်မ ကိုယ်တိုင် ဖော်တဲ့ အားဆေး။','h');S.energy=S.maxE;bump('khine',3);await say('nar','(မခိုင် ♥+3 · အားအင် ပြည့်)');sideFinish('khine_lost')}},
+  tea_dealer:{
+    start:async()=>{await say('san','ကလေး… ဟိုမြို့သား ကိုဝင်းနိုင် ဒီမနက် ဆိုင်မှာ လာထိုင်သွားတယ်။ မင်းအဘိုးအကြောင်း လိုက်မေးနေတယ်။','s');
+      const c=await choose('me','(ဘယ်လို ပြန်ပြောရမလဲ…)',['ဘာတွေ မေးသွားလဲ ဒေါ်ဒေါ်?','ကျွန်တော့်ခြံမှာ ဘာမှ မရှိပါဘူး။ ရယ်စရာပဲ။']);
+      if(c===0){await say('san','"အဘိုးကြီးဆီ ညဘက် ဧည့်သည် လာလေ့ရှိလား" တဲ့။ ပြီးတော့ ကြယ်ပုံ ပါတဲ့ ဒင်္ဂါး တွေ့ဖူးလား တဲ့။ ငါတော့ မသိဘူးလို့ ပြောလိုက်တယ်။');await say('me','(ညဘက် ဧည့်သည်… အဘိုးဆီ ညဘက် လာခဲ့တဲ့သူ ရှိလို့လား? ဒါမှမဟုတ် ကိုဝင်းနိုင်က ပြိုင်ဘက် တစ်ယောက်ကို ရှာနေတာလား?)')}
+      else{await say('san','ဟုတ်ပါ့။ ဒေါ်ဒေါ်လည်း ပြောလိုက်ပြီ၊ မြို့ကလေးက ခြံလာလုပ်တာပဲ ဆိုပြီး။','h');S.sus=Math.max(0,S.sus-5)}
+      bump('san');sideSet('tea_dealer','go');qStart('s_tea_dealer',true);sideFinish('tea_dealer')},
+    end:async()=>{}},
+};
+/* place-based: Zaw's shop dark late at night */
+function zawShopNight(){
+  if(S.min<1320||sideState('zaw_night'))return false;
+  sideSet('zaw_night','done');
+  cutscene(async()=>{await say('nar','ည ၁၀ နာရီကျော်… ကုန်စုံဆိုင် တံခါး ပိတ်ထားပြီး အထဲမှာ မီး မရှိဘူး။ ကိုဇော့်ဖိနပ်လည်း တံခါးရှေ့မှာ မရှိဘူး။');await say('me','(ညကြီးမင်းကြီး ကိုဇော် ဘယ်သွားတာလဲ? ဆိုင်ရှင် တစ်ယောက်က ဒီအချိန် အိပ်နေရမှာ…)');addClue('r_night')});
+  return true;
+}
+function sideMorning(){
+  if(S.flags.stormHen&&!sideState('coop_storm')&&S.map==='farm'&&S.chickens.length){S.flags.stormHen=0;sideStart('coop_storm');toast('မုန်တိုင်းကြောင့် ကြက်ခြံ တစ်ဘက် ပြိုနေတယ်! ကြက်တစ်ကောင် ပျောက်နေတယ်')}
+}
+function drawQMark(px,py,now){const b=Math.round(Math.sin(now/300)*1.5);R('#2a1a12',px+4,py-15+b,9,10);R('#f6d24a',px+5,py-14+b,7,8);R('#2a1a12',px+7,py-13+b,3,1);R('#2a1a12',px+9,py-12+b,1,2);R('#2a1a12',px+8,py-10+b,1,1);R('#2a1a12',px+8,py-8+b,1,1)}
+function drawSideItem(o,px,py,now){const sp=((now/220)|0)%4===0;
+  if(o.kind==='cloth'){R('rgba(0,0,0,.2)',px+3,py+13,10,2);R('#f0e6d0',px+3,py+5,10,8);R('#c84a3a',px+4,py+6,8,1);R('#3a6aa8',px+4,py+9,8,1);R('#e0a030',px+6,py+11,4,1)}
+  if(o.kind==='calf')drawCow(1,px-6,py-6,1,((now/600)|0)%2?2:0,now);
+  if(o.kind==='hen'){const s=HEN_SP[0][((now/450)|0)%3===0?2:0];C.drawImage(s.r,px,py)}
+  if(o.kind==='khine'){R('rgba(0,0,0,.25)',px+4,py+14,8,2);C.drawImage(NS.khine.down[0],px,py-7)}
+  if(sp)R('#fff6c0',px+12,py+1,2,2);
+}
 /* ---------- mini games ---------- */
 /* 1 · ancient script: read the mural with the radicals you learned at university */
 const RADS={tw:{n:'ဘုရား / အမြင့်',d:'<path d="M0 10h12M2 10l4-9 4 9M6 1v-3" />'},wa:{n:'ရေ',d:'<path d="M0 3q2-3 4 0t4 0 4 0M0 8q2-3 4 0t4 0 4 0" />'},dn:{n:'ကျဆင်း',d:'<path d="M6 0v10M2 6l4 4 4-4" />'},ho:{n:'တွင်း / အနက်',d:'<circle cx="6" cy="6" r="5" /><circle cx="6" cy="6" r="1.5" />'},mt:{n:'တောင်',d:'<path d="M0 11l4-8 3 5 2-3 3 6z" />'}};
@@ -1548,6 +1687,7 @@ function storyTalk(d){
   const ch3=S.flags.ch3&&!S.flags.treasure;
   if(ch3&&d.id==='hla'&&!S.clues.includes('c_well')){cutscene(hlaWellScene);return true}
   if(d.id==='hla'&&(S.day===28||S.day===29)&&S.min>=900&&!S.daily.balloon){cutscene(balloonScene);return true}
+  if(sideTalk(d))return true;
   if(ch3&&d.id==='monk'&&!S.flags.monkLetter){cutscene(monkScene);return true}
   if(ch3&&d.id==='khine'&&!S.clues.includes('r_night')){cutscene(khineScene);return true}
   if(ch3&&d.id==='zaw'&&S.flags.monkLetter&&!S.flags.map2){cutscene(()=>zawLetterScene());return true}
@@ -1558,6 +1698,7 @@ function storyTalk(d){
 function checkStory(){
   if(CUT||DLG||!S||S.over)return;
   const out=S.scene==='farm';
+  if(S.flags.intro)sideMorning();
   if(!S.flags.intro){S.flags.intro=1;if(S.day===1&&out&&S.map==='farm')return cutscene(introScene);['q_harvest','q_clear','q_meet','q_grandpa','q_map'].forEach(q=>qStart(q,true));S.has.map1=1;if(!S.clues.includes('c_map'))S.clues.push('c_map');return}
   if(!S.flags.dealer&&S.day>=5&&out&&S.map==='farm'&&S.min>=480&&S.min<1020){S.flags.dealer=1;return cutscene(dealerScene)}
   if(S.flags.zawAsk===1&&modal.hidden){S.flags.zawAsk=2;return cutscene(zawLanternScene)}
@@ -2982,6 +3123,8 @@ function render(now){
       if(idle&&n.act==='fish'){const[dx,dy]=DIRS[n.dir];drawRod(px,py,n.dir,(n.x+dx)*T+8-cx,(n.y+dy)*T+8-cy,((now/600+i)|0)%5===0)}
       else if(idle&&n.act==='kite'&&S.weather!=='rain')kites.push([px+12,py+8,i]);
       else if(idle&&((now/1600+i)|0)%6===0)bubble(px,py)}})});
+  if(S.sideItems)for(const id in S.sideItems){const o=S.sideItems[id];if(o.map!==S.map)continue;sprites.push({y:o.y+.004,s:()=>{},d:()=>drawSideItem(o,Math.round(o.x*T-cx),Math.round(o.y*T-cy),now)})}
+  if(!CUT)npcRT.forEach((n,i)=>{if(!n.active||n.map!==S.map||inShop(n))return;const d=NPCS[i];if(!sideMark(d.id))return;const nx=n.fx+(n.x-n.fx)*n.t,ny=n.fy+(n.y-n.fy)*n.t;sprites.push({y:ny+.006,s:()=>{},d:()=>drawQMark(Math.round(nx*T-cx),Math.round(ny*T-cy)-7,now)})});
   ACT.forEach(a=>{if(a.map!==S.map)return;const nx=a.fx+(a.x-a.fx)*a.t,ny=a.fy+(a.y-a.fy)*a.t;sprites.push({y:ny+.005,s:()=>{const px=Math.round(nx*T-cx),py=Math.round(ny*T-cy)-7;castShadow(a.spr[a.dir][0],px,py,16,22,py+22)},d:()=>{const px=Math.round(nx*T-cx),py=Math.round(ny*T-cy)-7,fr=a.t<1?(a.steps%2?1:2):0;R('rgba(0,0,0,.25)',px+4,py+21,8,2);C.drawImage(a.spr[a.dir][fr],px,py)}})});
   if(S.map==='village'){const occ=new Set(npcRT.filter(n=>n.active&&n.map==='village'&&n.act==='sit'&&n.t>=1&&!n.path.length).map(n=>n.x+','+n.y));
     PLACES.teaseat.forEach(([m,x,y],i)=>{const tx=x*T-cx,ty=y*T-cy;if(tx<-20||ty<-30||tx>VW*T+20||ty>VH*T+30||occ.has(x+','+y))return;

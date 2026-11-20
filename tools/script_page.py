@@ -14,7 +14,20 @@ SC=[('introScene','၁။ ဦးလှမောင် စာအိတ်ပေ�
 ('altarScene','၉။ ဂူထဲ ဆင်းတုတော်','ဂူအတွင်းဆုံး'),
 ('bridgeScene','၁၀။ တံတား ပြင်','ထင်း ၁၀ ချောင်းနဲ့ တံတားနားမှာ'),
 ('dealer2Scene','၁၁။ ကိုဝင်းနိုင် ပြန်လာ','နေ့ ၁၇+ · ခြံ · ညနေ'),
-('fallScene','၁၂။ ရေကြီးနှစ်ရဲ့ ရေတံခွန် (အသစ်)','ရေကြီးပြီး တံတားပြင်ပြီးမှ ဦးကျော်နဲ့ စကားပြော')]
+('fallScene','၁၂။ ရေကြီးနှစ်ရဲ့ ရေတံခွန်','ရေကြီးပြီး တံတားပြင်ပြီးမှ ဦးကျော်နဲ့ စကားပြော (ဒါမှမဟုတ် ကမ်းပါးက ရေတံခွန်ကို ကိုယ်တိုင် တွေ့)'),
+('muralScene','၁၃။ ဂူနံရံ ရှေးစာ (mini game)','ဂူထဲ နံရံရုပ်ကြွကို ကြည့်ရင် · အမြစ်စာလုံး ဖော်ဖတ်'),
+('ch3Scene','၁၄။ အခန်း ၃ စ','နေ့ ၂၁+'),
+('hlaWellScene','၁၅။ ရေတွင်းဟောင်း','အခန်း ၃ · ဦးလှမောင်နဲ့ စကားပြော'),
+('khineScene','၁၆။ ညဘက် တောဘက် သွားတဲ့သူ','အခန်း ၃ · မခိုင်နဲ့ စကားပြော'),
+('monkScene','၁၇။ ဦးဇင်းနဲ့ စကားထာ','အခန်း ၃ · ဦးဇင်းနဲ့ စကားပြော'),
+('dealer3Scene','၁၈။ ကိုဝင်းနိုင် နှုတ်ဆက်','နေ့ ၂၃+ · ခြံ'),
+('zawCaveScene','၁၉။ ဂူထဲက ကိုဇော်','အခန်း ၃ · နေ့ ၂၂+ · ည ၉ နာရီကျော် ဂူထဲ'),
+('zawLetterScene','၂၀။ အဘိုးရဲ့ စာနဲ့ ကိုဇော်','ဦးဇင်းဆီက စာ ရပြီးမှ ကိုဇော်ဆီ (ဂူထဲ ဒါမှမဟုတ် ဆိုင်မှာ)'),
+('solvedScene','၂၁။ ပဟေဠိ ဖြေပြီး','မှတ်စု → ပဟေဠိ ဖြေမယ် (စေတီပျက် + ရေကြီးနှစ် ရေတံခွန်)'),
+('slabScene','၂၂။ ရေတွင်းအောက်က ကျောက်ပြား','ပဟေဠိ ဖြေပြီး ခြံထဲ ရေတွင်းဟောင်း'),
+('cowLoanScene','၂၃။ ကိုမင်းဆီ နွားငှား','ကျောက်ပြား တွေ့ပြီး ကိုမင်းနဲ့ စကားပြော (♥4 လို)'),
+('balloonScene','၂၄။ မီးပုံးပျံ လွှတ်ပွဲ (mini game)','နေ့ ၂၈–၂၉ · ညနေ ၃ နာရီကျော် ဦးလှမောင်'),
+('finaleScene','၂၅။ တန်ဆောင်မုန်း လပြည့်ည (ဇာတ်သိမ်း)','နေ့ ၂၉ · ည ၇ နာရီကျော် · ကြိုး + နွား · ရေတွင်းဟောင်း')]
 def fn(name):
   i=blk.index('function '+name+'(');j=blk.find('\nasync function',i+5);k=blk.find('\nconst ',i+5)
   ends=[x for x in (j,k) if x>0];return blk[i:min(ends) if ends else len(blk)]
@@ -49,7 +62,7 @@ def lines(code):
   return out
 def row(who,t,br):
   if who=='CH':
-    return '<div class="ch"><b>ရွေးချယ်ရန်</b>'+''.join(f'<div>{"AB"[i]}. {html.escape(o)}</div>' for i,o in enumerate(t))+'<small>(ရွေးတဲ့စာကြောင်းကို MC က ပြောတဲ့အနေနဲ့ ပြမယ်)</small></div>'
+    return '<div class="ch"><b>ရွေးချယ်ရန်</b>'+''.join(f'<div>{"ABCD"[i]}. {html.escape(o)}</div>' for i,o in enumerate(t))+'<small>(ရွေးတဲ့စာကြောင်းကို MC က ပြောတဲ့အနေနဲ့ ပြမယ်)</small></div>'
   tag=f'<span class="br">{br}</span>' if br else ''
   return f'<div class="l {who}">{tag}<b>{NAMES.get(who,who)}</b><p>{html.escape(t)}</p></div>'
 body=''
@@ -71,6 +84,16 @@ for f,title,when in SC:
     rows=''.join(row(*x) for x in lines(fn(f)))
     if f=='introScene':rows=rows.replace('<div class="l nar"><b>ဇာတ်ကြောင်း</b><p>စာအိတ်ထဲမှာ','<div class="letter">📜 အဘိုးရဲ့ စာ (၁) ပေါ်လာ</div><div class="l nar"><b>ဇာတ်ကြောင်း</b><p>စာအိတ်ထဲမှာ',1)
   body+=f'<section><h3>{title}</h3><div class="when">{when}</div>{rows}</section>'
+ss=blk[blk.index('const SIDE_SCENES={'):blk.index('/* place-based')]
+import re as _re
+parts=_re.split(r"\n  (\w+):\{\n",ss)
+SN={'aye_wind':'လေထဲ လွင့်သွားတဲ့ အဆင် (ဒေါ်အေး · နွေ · နေ့လယ်)','min_calf':'ပျောက်သွားတဲ့ နွားကလေး (ကိုမင်း · မိုး · မိုးရွာပြီး မနက်)','kyaw_fish':'ဦးကျော်ရဲ့ ငါးကြီး (မနက် ၆:၄၀–၈:၀၀)','well_mud':'ရေနောက်နေတဲ့ ရေတွင်း (ဦးလှမောင် · ရေကြီးပြီး · mini game)','monk_alms':'ဆောင်းမနက် ဆွမ်းလောင်း (ဦးဇင်း · ဆောင်း · မနက် ၆:၂၀–၇:၃၀)','smith_fire':'ငြိမ်းသွားတဲ့ ဖိုမီး (ကိုထွန်း · မိုးရွာနေ့)','khine_lost':'ပြန်မလာသေးတဲ့ မခိုင် (ဒေါ်စန်းစန်း · နေဝင်ချိန်)','tea_dealer':'မြို့သားရဲ့ မေးခွန်းတွေ (ဒေါ်စန်းစန်း · နေ့ ၆–၁၄)'}
+srows=''
+for i in range(1,len(parts),2):
+  k=parts[i];code=parts[i+1]
+  rows=''.join(row(*x) for x in lines(code))
+  if rows:srows+=f'<h4>{SN.get(k,k)}</h4>'+rows
+body+=f'<section><h3>ဘေး Quest များ</h3><div class="when">အချိန်နဲ့ နေရာ ကိုက်ရင် ရွာသားခေါင်းပေါ်မှာ "?" ပေါ်လာမယ်</div>{srows}</section>'
 page=f'''<!DOCTYPE html><html lang="my"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ရွှေပန်းရွာ · ဇာတ်ညွှန်း</title>
 <style>body{{margin:0;background:#f6efe2;color:#2b2118;font:16px/1.75 "Padauk","Noto Sans Myanmar",system-ui,sans-serif}}main{{max-width:720px;margin:auto;padding:20px 14px 60px}}
 h1{{font-size:22px;margin:0 0 4px}}.lead{{color:#6a5a48;font-size:14px}}.key{{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 18px;font-size:13px}}.key span{{padding:2px 8px;border-radius:6px}}
