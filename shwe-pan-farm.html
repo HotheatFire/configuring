@@ -188,8 +188,8 @@ const YARD={x0:22,x1:27,y0:11,y1:15};
 const FIELD={x0:4,x1:18,y0:9,y1:19};
 const DOOR=[5,5],GATE=[29,20];
 const KEY='shwepan-farm-v6';
-const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt.....#","#.tt...C.#","#........#","####D#####"];
-const HSOLID=new Set(['#','S','w','K','B','t','C']);
+const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt....F#","#.tt...C.#","#........#","####D#####"];
+const HSOLID=new Set(['#','S','w','K','B','t','C','F']);
 const hTile=(x,y)=>(y<0||y>=HMAP.length||x<0||x>=10)?'#':HMAP[y][x];
 
 let S=null;
@@ -374,6 +374,7 @@ function talk(i){
   if(f>=3&&d.gift&&!S.gifts[d.id]){S.gifts[d.id]=1;gift=d.gift()}
   const h=hash(S.day*7+i,S.min>>6),seasonLines=d.season?[d.season[curS()]]:SEASON_TALK[curS()];
   let line=h%3===0?seasonLines[h%seasonLines.length]:d.lines[h%d.lines.length];
+  if(festNow()&&h%2===0){const L=FEST_TALK[festNow()];line=L[h%L.length]}
   if(S.sus>=50&&h%3===0)line='ကလေး… ရွာထဲမှာ မင်းအကြောင်း တစ်ခုခု ပြောနေကြတယ်။ ညဘက် တောင်ကုန်းဘက် ဘာလုပ်နေလဲ တဲ့။';
   if(S.flags.bridgeOut&&h%3===1)line='မြစ်ရေကြီးလို့ တောထဲက တံတား ပြိုသွားတယ်။ ထင်းရရင် ပြန်ပြင်ကြရအောင်။';
   show(`<div class="tk"><canvas class="pt" width="192" height="240"></canvas><div style="flex:1;min-width:0"><div class="who"><h2>${d.name}</h2><span class="hearts" aria-label="ခင်မင်မှု ${f}/10">${'♥'.repeat(f)}${'♡'.repeat(10-f)}</span></div>
@@ -551,6 +552,7 @@ function act(){
   const nAt=(x,y)=>npcRT.findIndex(n=>n.active&&n.map===S.map&&!inShop(n)&&((n.x===x&&n.y===y)||(n.t<1&&n.fx===x&&n.fy===y)));
   let ni=nAt(fx,fy);if(ni<0)ni=nAt(S.px,S.py);
   if(ni>=0)return talk(ni);
+  if(S.dog&&dogAt(fx,fy))return petDog();
   {const si=sideItemAt(fx,fy);if(si)return cutscene(()=>sideItemAct(si))}
   if(t===SIGN)return toast(signText());
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
@@ -567,11 +569,15 @@ function act(){
   if(S.map==='forest'){const fi=S.maps.forest.forage.findIndex(o=>o.x===fx&&o.y===fy);if(fi>=0){const o=S.maps.forest.forage.splice(fi,1)[0];return doAct('pick',()=>{S.produce[o.k]++;burst(fx,fy,'#f6e08a');toast(`${EXTRA[o.k].name} ရှာတွေ့ပြီ! ပို့ကုန်ပုံးမှာ ရောင်းလို့ရတယ်`)},{item:{kind:o.k}})}}
   if(t===BLD){const b=bAt(fx,fy);if(!b)return;
     if(b.shop)return openShop(b.shop);
+    if(b.style==='monastery'&&S.day===12&&!S.flags.waso)return cutscene(wasoScene);
+    if(b.style==='zayat'&&S.day===24&&!S.daily.htamane)return cutscene(htamaneScene);
+    if(b.style==='zayat'&&festNow()==='thingyan'&&!S.daily.satu){S.daily.satu=1;S.energy=Math.min(S.maxE,S.energy+40);bump('san');return toast('ဇရပ်မှာ စတုဒိသာ မုန့်လုံးရေပေါ် ကျွေးနေတယ်။ စားလိုက်တယ် (အားအင် +40)')}
     if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;const gl=S.garland?30:15;if(S.garland){S.garland=0}S.energy=Math.min(S.maxE,S.energy+gl);return toast(`${b.name}မှာ ${gl>15?'စံပယ်ပန်းကုံး ကပ်ပြီး ':''}ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +${gl})`)}
     if(b.style==='zayat'){if(S.daily.zayat)return toast('ဇရပ်မှာ ခဏ နားပြီးပြီ');S.daily.zayat=1;S.energy=Math.min(S.maxE,S.energy+10);return toast('ဇရပ်မှာ လေညင်းခံရင်း ခဏ နားလိုက်တယ် (အားအင် +10)')}
     if(b.style==='potstand'){if(S.daily.potw)return toast('ရေအိုးထဲက ရေ သောက်ပြီးပြီ');S.daily.potw=1;S.energy=Math.min(S.maxE,S.energy+5);return toast('ရေအိုးစင်က ရေအေးအေး သောက်လိုက်တယ် (အားအင် +5)')}
     if(b.style==='oldwell')return oldWell();
     if(b.style==='ruin'&&S.flags.stone&&!S.flags.letter2){if(S.min>=1140||S.min<300)return cutscene(ruinScene);S.flags.ruinTry=1;return toast(S.clues.includes('c_moon')?'(အုတ်ခုံကို လိုက်စမ်းပေမဲ့ ဘာမှ မထူးဘူး… ဦးကျော်က အဘိုး ညဘက် တောင်ဘက် သွားတယ် ပြောတယ်နော်)':'(အုတ်ခုံကို လိုက်စမ်းပေမဲ့ ဘာမှ မထူးဘူး… ကျောက်တုံးမှာ ကြယ်တွေ ထွင်းထားတာ ဘာကို ဆိုလိုလဲ?)')}
+    if(b.style==='banyan'&&S.day===4&&!S.flags.kason)return cutscene(kasonScene);
     if(b.style==='banyan'&&S.q.q_map==='active'&&!S.flags.stone){const east=S.px>=b.x+b.w,dawn=S.min>=330&&S.min<480;
       if(east&&dawn&&S.flags.legend)return cutscene(stoneScene);
       S.flags.stoneTry=1;
@@ -608,6 +614,7 @@ function actHouse(c){
   if(c==='B')return askSleep();
   if(c==='C')return bag();
   if(c==='K')return calendar();
+  if(c==='F')return kitchen();
   if(c==='S'){if(S.daily.shrine)return toast('ဒီနေ့ ဘုရားရှိခိုးပြီးပြီ');S.daily.shrine=1;S.energy=Math.min(S.maxE,S.energy+10);return toast('ဘုရားရှိခိုးလိုက်တယ်။ စိတ်ငြိမ်သွားတယ် (အားအင် +10)')}
   if(c==='t'){if(S.daily.pot)return toast('ကရားထဲ လက်ဖက်ရည် ကုန်သွားပြီ။ မနက်ဖြန် ပြန်ဖျော်မယ်');S.daily.pot=1;S.energy=Math.min(S.maxE,S.energy+25);return toast('အိမ်က လက်ဖက်ရည်ကြမ်း သောက်လိုက်တယ် (အားအင် +25)')}
   if(c==='w')return toast(['အပြင်မှာ နေပူပူ နွေရာသီ။ ပိတောက်ပန်းတွေ ဝါဝါဖြာဖြာ။','အပြင်မှာ စိမ်းစိုနေတဲ့ မိုးရာသီ။','အပြင်မှာ အေးမြတဲ့ ဆောင်းရာသီ။'][curS()]);
@@ -615,7 +622,7 @@ function actHouse(c){
 function ship(){
   let n=0,v=0;const keep=S.q.q_bridge==='active'?Math.min(10,S.produce.wood):0;S.produce.wood-=keep;
   CROP_IDS.forEach(id=>{n+=S.produce[id];v+=S.produce[id]*CROPS[id].sell;S.produce[id]=0});
-  for(const id in EXTRA){if(id==='ancoin')continue;n+=S.produce[id];v+=S.produce[id]*EXTRA[id].sell;S.produce[id]=0}
+  for(const id in EXTRA){if(id==='ancoin'||EXTRA[id].dish)continue;n+=S.produce[id];v+=S.produce[id]*EXTRA[id].sell;S.produce[id]=0}
   S.produce.wood+=keep;
   if(!n)return toast(keep?`ပို့စရာ မရှိသေးဘူး (တံတားအတွက် ထင်း ${keep} စည်း ချန်ထားတယ်)`:'ပို့စရာ မရှိသေးဘူး။ ရိတ်သိမ်းထားတာကို ဒီပုံးထဲ ထည့်ပါ');
   S.shippedValue+=v;S.shippedCount+=n;S.stats.shipped=(S.stats.shipped||0)+n;
@@ -648,6 +655,7 @@ function endDay(passedOut){
   if(fed&&!S.eggs.some(e=>e.k==='coin')&&Math.random()<Math.min(.5,.12*fed)){for(let tries=0;tries<20;tries++){const x=YARD.x0+Math.floor(Math.random()*3),y=YARD.y1-Math.floor(Math.random()*2);if(S.tiles[y][x]===G&&!S.eggs.some(e=>e.x===x&&e.y===y)){S.eggs.push({x,y,k:'coin'});break}}}
   S.flags.wasRain=S.weather==='rain'?1:0;if(S.weather==='rain'&&S.day>=11&&S.day<=20&&S.chickens.length&&!sideState('coop_storm')&&Math.random()<.5)S.flags.stormHen=1;
   S.sus=Math.max(0,S.sus-8);S.rival=Math.min(100,S.rival+2+(S.sus>=50?3:0));
+  if(S.dog){S.rival=Math.max(0,S.rival-1);if(Math.random()<.3){const pool=['mushroom','berry','shoot','mushroom','ancoin'],k=pool[(Math.random()*pool.length)|0];S.produce[k]=(S.produce[k]||0)+1;if(k==='ancoin'&&!S.clues.includes('c_coin'))S.clues.push('c_coin');S.flags.dogDig=k}}
   if(S.day>=DAYS)return finalEnding(S.rival>=100&&!S.flags.map2?'lost':'none');
   S.day++;
   const ns=curS();let withered=0;
@@ -687,8 +695,8 @@ function intro(){
   });
 }
 function morning(income,count,laid,passedOut,newSeason,withered){
-  const left=DAYS-S.day+1,s=curS();
-  show(`<h2>${SEASONS[s].name}ရာသီ · နေ့ ${S.day} · ${S.weather==='rain'?'မိုးရွာနေတယ်':'နေသာတယ်'}</h2>
+  const left=DAYS-S.day+1,s=curS(),dig=S.flags.dogDig;S.flags.dogDig=0;
+  show(`<h2>${SEASONS[s].name}ရာသီ · နေ့ ${S.day} · ${S.weather==='rain'?'မိုးရွာနေတယ်':'နေသာတယ်'}</h2>${festLine()}${dig&&S.dog?`<p>🐕 ${S.dog.name} က ညက ခြံထဲ တူးပြီး <b>${itemName(dig)}</b> ရှာလာတယ်!</p>`:''}
   ${newSeason?`<p><b>${SEASONS[s].name}ရာသီ ရောက်ပြီ!</b> ဈေးဆိုင်မှာ ${seasonCrops(s).map(id=>CROPS[id].name).join('၊ ')} မျိုးစေ့ အသစ်တွေ ရနိုင်ပြီ။${withered?` ရာသီမကိုက်တဲ့ အပင် ${withered} ပင် ညှိုးသွားတယ်။ တံစဉ် ဒါမှမဟုတ် B နဲ့ ရှင်းပါ။`:''}</p>`:''}
   ${passedOut?'<p>ညသန်းခေါင်ကျော်ထိ အလုပ်လုပ်လို့ မောပြီး အိပ်ပျော်သွားတယ်။ ဒီနေ့ အားအင် 60 ပဲ ရှိမယ်။</p>':''}
   <div class="kv"><span>မနေ့က ရောင်းရငွေ</span><span>+${fmt(income)} ကျပ် (${count} ခု)</span>
@@ -781,9 +789,10 @@ function bag(){
   CROP_IDS.forEach(id=>S.seeds[id]&&rows.push(`<span>${CROPS[id].name} မျိုးစေ့${CROPS[id].s!==curS()?' (ရာသီမဟုတ်)':''}</span><span>${S.seeds[id]}</span>`));
   const ic=id=>`<img src="${iconURL(id)}" alt="" width="21" height="21" style="image-rendering:pixelated;vertical-align:middle;margin-right:6px">`;
   CROP_IDS.forEach(id=>S.produce[id]&&rows.push(`<span>${ic(id)}${CROPS[id].name} (မပို့ရသေး)</span><span>${S.produce[id]}</span>`));
-  for(const id in EXTRA)if(S.produce[id])rows.push(`<span>${ic(id==='ancoin'?'coin':id)}${EXTRA[id].name}${id==='ancoin'?'':' (မပို့ရသေး)'}</span><span>${S.produce[id]}</span>`);
+  for(const id in EXTRA)if(S.produce[id])rows.push(`<span>${ic(id==='ancoin'?'coin':id)}${EXTRA[id].name}${id==='ancoin'||EXTRA[id].dish?'':' (မပို့ရသေး)'}</span><span>${S.produce[id]}</span>`);
   rows.push(`<span>ရေပုံးထဲက ရေ</span><span>${S.water}/${S.canMax}</span>`,`<span>ကြက်</span><span>${S.chickens.length}</span>`,`<span>ကြက်စာ</span><span>${S.feed}</span>`,`<span>လက်ဖက်ရည်</span><span>${S.tea}</span>`);
   if(S.has.lantern)rows.push(`<span>မီးအိမ်</span><span>✓</span>`);
+  if(S.dog)rows.push(`<span>🐕 ${S.dog.name}</span><span>${'♥'.repeat(Math.max(1,Math.ceil((S.dog.love||1)/2)))}</span>`);
   RELICS.forEach(r=>{if(S.relics[r.id])rows.push(`<span>${r.name}${S.relics[r.id]===2?' (ကိုဝင်းနိုင်ဆီ ပေးလိုက်ပြီ)':''}</span><span>${S.relics[r.id]===2?'—':'✓'}</span>`)});
   if(S.shippedValue)rows.push(`<span>ဒီနေ့ ပို့ထားတာ</span><span>+${fmt(S.shippedValue)}</span>`);
   show(`<h2>အိတ်</h2><div class="kv">${rows.join('')}</div>
@@ -1035,7 +1044,7 @@ const CLUES={
 };
 function addClue(id){if(!S.clues.includes(id)){S.clues.push(id);setTimeout(()=>toast(`${CLUES[id].k==='rival'?'⚠ ':''}မှတ်စုထဲ ရေးမှတ်လိုက်တယ်: ${CLUES[id].t}`),400)}}
 /* suspicion: doing secret things where villagers can see you */
-function watchers(){const night=S.min>=1200||S.min<330;return npcRT.filter((n,i)=>n.active&&n.map===S.map&&!inShop(n)&&Math.max(Math.abs(n.x-S.px),Math.abs(n.y-S.py))<=(night?2:7)).map(n=>NPCS[npcRT.indexOf(n)])}
+function watchers(){const night=(S.min>=1200||S.min<330)&&festNow()!=='thadingyut';return npcRT.filter((n,i)=>n.active&&n.map===S.map&&!inShop(n)&&Math.max(Math.abs(n.x-S.px),Math.abs(n.y-S.py))<=(night?2:7)).map(n=>NPCS[npcRT.indexOf(n)])}
 function secretAct(){if(S.scene!=='farm')return[];const w=watchers();if(w.length){S.sus=Math.min(100,S.sus+12*Math.min(2,w.length));hud()}return w}
 const GIFT={hla:{love:['rice','tea'],like:['cabbage','egg']},aye:{love:['melon'],like:['berry','cabbage','kangkong']},mya:{love:['tomato'],like:['kangkong','berry']},
   san:{love:['egg'],like:['kangkong','tomato','okra']},zaw:{love:['prawn'],like:['egg','snakehead']},tun:{love:['wood'],like:['corn','potato']},khine:{love:['mushroom'],like:['shoot','berry']},
@@ -1049,7 +1058,7 @@ function giftMenu(i){const d=NPCS[i];
     ${items.map(id=>`<div class="item"><b><img src="${iconURL(id)}" alt="" width="21" height="21" style="image-rendering:pixelated;vertical-align:middle;margin-right:6px">${itemName(id)}</b><span class="sub">${S.produce[id]} ခု ရှိတယ်</span><button class="bt" type="button" data-g="${id}">ပေးမယ်</button></div>`).join('')}
     <div class="btns"><button class="bt pri" type="button" id="mC">မပေးတော့ဘူး</button></div>`,c=>{c.querySelector('#mC').onclick=close;c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>giveGift(i,b.dataset.g))});
 }
-function giveGift(i,id){const d=NPCS[i],p=GIFT[d.id]||{love:[],like:[]},lv=p.love.includes(id)?2:p.like.includes(id)?1:0;
+function giveGift(i,id){const d=NPCS[i],p=GIFT[d.id]||{love:[],like:[]},lv=p.love.includes(id)?2:(p.like.includes(id)||EXTRA[id]?.dish)?1:0;
   S.produce[id]--;S.gifted[d.id]=S.day;S.friends[d.id]=Math.min(10,(S.friends[d.id]||0)+lv);S.stats.gifts=(S.stats.gifts||0)+1;
   const line=lv===2?`ဟယ်… ${itemName(id)}! ငါ အကြိုက်ဆုံးပဲ။ ဘယ်လိုလုပ် သိတာလဲ!`:lv===1?`${itemName(id)} လား၊ ကျေးဇူးနော်။ ကောင်းလိုက်တာ။`:`ကျေးဇူးပဲ… စိတ်ရင်းလေးကို ကျေးဇူးတင်တယ်။`,f=S.friends[d.id]||0;
   show(`<div class="tk"><canvas class="pt" width="192" height="240"></canvas><div style="flex:1;min-width:0"><div class="who"><h2>${d.name}</h2><span class="hearts">${'♥'.repeat(f)}${'♡'.repeat(10-f)}</span></div><p>“${line}”</p>${lv?`<p class="sub">ခင်မင်မှု +${lv}</p>`:''}</div></div><div class="btns"><button class="bt pri" type="button" id="mC">ပြန်မယ်</button></div>`,c=>{drawPortrait(c.querySelector('.pt'),d.id,lv===2?'h':undefined);c.querySelector('#mC').onclick=close});
@@ -1505,6 +1514,164 @@ async function balloonScene(){
   if(h>=2){NPCS.forEach(d=>bump(d.id));S.sus=Math.max(0,S.sus-20);await say('hla','ကောင်းလိုက်တာ! မင်းအဘိုးလည်း မီးပုံးလွှတ်တာ ရွာထဲမှာ အတော်ဆုံးပဲ။','h');await say('nar','ရွာသားတွေ လက်ခုပ်တီးကြတယ်။ (ရွာသားအားလုံး ♥+1 · သံသယ −20)')}
   else{bump('hla');await say('hla','ဟား ဟား၊ ပထမဆုံးဆိုတော့ ဒီလောက်ဆို ရပြီ။ နောက်နှစ် ပိုကောင်းမှာပါ။','h')}
 }
+/* ---------- festivals: the whole village changes on these days ---------- */
+const FEST={4:{id:'kason',name:'ကဆုန်လပြည့် ညောင်ရေသွန်းပွဲ'},7:{id:'thingyan',name:'သင်္ကြန် အကြိုနေ့'},8:{id:'thingyan',name:'သင်္ကြန် အကြတ်နေ့'},9:{id:'thingyan',name:'သင်္ကြန် အတက်နေ့'},
+  12:{id:'waso',name:'ဝါဆိုသင်္ကန်း ကပ်လှူပွဲ'},20:{id:'thadingyut',name:'သီတင်းကျွတ် မီးထွန်းပွဲ'},24:{id:'htamane',name:'တပို့တွဲ ထမနဲထိုးပွဲ'},28:{id:'tazaung',name:'တန်ဆောင်တိုင် အကြိုနေ့'},29:{id:'tazaung',name:'တန်ဆောင်တိုင် လပြည့်နေ့'}};
+const festNow=()=>S&&FEST[S.day]?FEST[S.day].id:null;
+const FEST_HINT={kason:'ရေပုံးထဲ ရေဖြည့်ပြီး ရွာထဲက ညောင်ပင်ကြီးကို ရေသွန်းကြမယ်။',thingyan:'ရွာထဲမှာ ရေပက်မဏ္ဍပ်၊ ဇရပ်မှာ စတုဒိသာ ကျွေးနေတယ်။ ပိတောက်တွေ ပွင့်နေပြီ။',
+  waso:'ဘုန်းကြီးကျောင်းမှာ ဝါဆိုသင်္ကန်း ကပ်လှူကြမယ်။',thadingyut:'ညဘက် ရွာတစ်ရွာလုံး ဆီမီးထွန်းမယ်။ လူကြီးတွေကို ကန်တော့ပါ။ (ညမှာ လင်းလို့ လူမြင်လွယ်တယ်)',
+  htamane:'ဇရပ်မှာ ထမနဲ ထိုးကြမယ်။',tazaung:'ညဘက် မီးပုံးပျံ လွှတ်ကြမယ်။ ဒေါ်အေးတို့ ယက်ကန်းပြိုင်ပွဲလည်း ရှိတယ်။'};
+const festLine=()=>FEST[S.day]?`<p><b>🎉 ဒီနေ့ ${FEST[S.day].name}</b><br><span class="sub">${FEST_HINT[FEST[S.day].id]}</span></p>`:'';
+const FEST_TALK={
+  kason:['ညောင်ရေသွန်းပြီးပြီလား? ရေအိုးလေး ယူလာခဲ့။','ကဆုန်လပြည့်နေ့ဆိုတော့ ဘုရားဖူးသွားမယ်။','နွေကြီး ပူလိုက်တာ… ညောင်ပင်လည်း ရေငတ်နေမှာ။'],
+  thingyan:['သင်္ကြန်မှာ ပျော်ပါစေ! ရေလေး ပက်ပေးမယ်နော်။','ဇရပ်မှာ မုန့်လုံးရေပေါ် ကျွေးနေတယ်၊ သွားစား။','ပိတောက်ပန်း ပန်ထားတာ လှလား?','မဏ္ဍပ်အောက် ဖြတ်လျှောက်ရင် စိုသွားမယ်နော်! ဟား ဟား။'],
+  waso:['ဝါဆိုလပြည့်ပြီ၊ သင်္ကန်းကပ်ဖို့ ကျောင်းကို သွားမယ်။','ဝါတွင်းဆိုတော့ မင်္ဂလာဆောင်တွေ ရပ်ကြပြီ။','ဦးဇင်းတို့ ဝါကပ်ကြပြီ။'],
+  thadingyut:['ဒီည ဆီမီးတွေ ထွန်းကြမယ်။ အိမ်ရှေ့မှာ မီးခွက်လေး ထားခဲ့နော်။','ကန်တော့ပွဲ ပြီးပြီလား? လူကြီးတွေကို ကန်တော့ရမယ်။','ဝါကျွတ်ပြီဆိုတော့ မင်္ဂလာဆောင် ပြန်စလို့ရပြီ။'],
+  htamane:['ထမနဲ ထိုးကြမယ်! လက်မောင်းတွေ ကြွက်သားထွက်တော့မယ်။','ကောက်ညှင်း၊ နှမ်း၊ ပဲ၊ ဂျင်း… အကုန် ထည့်ရတယ်။','ထမနဲ ပူပူလေး စားရရင် ဆောင်းအေးတာ ပျောက်တယ်။'],
+  tazaung:['ဒီည မီးပုံးပျံတွေ လွှတ်ကြမယ်။ ဘယ်သူ့ဟာ အမြင့်ဆုံး တက်မလဲ!','မတိုသင်္ကန်း ရက်ပြိုင်ပွဲ ကြည့်ပြီးပြီလား?','လပြည့်ည လ ဝိုင်းဝိုင်းလေး လှလိုက်တာ။'],
+};
+const PADAUK_TREES=t=>t===TREE;
+function drawFest(cx,cy,now){
+  const f=festNow();if(!f||S.scene!=='farm')return;
+  const vis=(x,y)=>x>-40&&y>-40&&x<VW*T+40&&y<VH*T+40;
+  const bunt=(rows,cols)=>{for(const row of rows){const y=row*T-cy+2;if(y<-10||y>VH*T)continue;for(let x=-((cx)%12);x<VW*T;x+=12){const sag=Math.round(Math.sin((x+cx)/40)*2);R('#3a2414',x,y+sag,12,1);const c=cols[((x+cx)/12|0)%cols.length];R(c,x+3,y+sag+1,5,2);R(c,x+4,y+sag+3,3,1);R(c,x+5,y+sag+4,1,1)}}};
+  if(S.map==='village'){
+    if(f==='thingyan'&&S.day!==8)bunt([41,48,27],['#e2402f','#f2c14e','#3a9a4a','#2f6aa8','#f6efe0']);
+    if(f==='waso')bunt([11,41,27],['#d8901a','#e8b040','#c8701a']);
+    if(f==='tazaung'||f==='htamane')bunt([41,27],f==='tazaung'?['#e2402f','#f2c14e','#f6efe0']:['#3a9a4a','#f2c14e']);
+    if(f==='thingyan'){
+      // padauk in bloom on every tree
+      const x0=Math.floor(cx/T)-1,y0=Math.floor(cy/T)-2;for(let y=y0;y<=y0+VH+3;y++)for(let x=x0;x<=x0+VW+2;x++){if(tileAtM('village',x,y)!==TREE)continue;const sx=x*T-cx,sy=y*T-cy;for(let k=0;k<7;k++){const h=hash(x*7+k,y);R(k%3?'#f6c81a':'#ffe46a',sx+1+h%14,sy-12+(h>>4)%14,2,2)}}
+      // water pavilion over the main road
+      const mx=10*T-cx,my=41*T-cy;if(vis(mx,my)){R('#7a4a22',mx,my-8,2,30);R('#7a4a22',mx+62,my-8,2,30);R('#c8433a',mx-2,my-12,68,5);for(let i=0;i<8;i++)R(['#f2c14e','#3a9a4a','#2f6aa8','#f6efe0'][i%4],mx+i*8,my-7,6,5);
+        for(let i=0;i<10;i++){const t=(now/300+i*.37)%1;R('#bfe4ff',mx+4+i*6,my-2+t*26|0,1,3)}}
+    }
+    if(f==='kason'){const bx=56*T-cx,by=31*T-cy;if(vis(bx,by))for(let i=0;i<6;i++){const x=bx+i*9;R('#8a4a22',x,by+4,7,6);R('#b8683a',x+1,by+3,5,2);R('#3a5a8a',x+2,by+3,3,1);R('#f2c14e',x+3,by,1,3)}}
+    if(f==='htamane'){const px=37*T-cx,py=47*T-cy;if(vis(px,py)){R('#3a2a1a',px,py+6,30,4);disc('#2a2a2a',px+15,py+4,12);disc('#5a4a3a',px+15,py+3,10);for(let i=0;i<6;i++){const h=hash(i,(now/120)|0);R(h%2?'#ff9a2a':'#ffd36a',px+5+i*4,py+11+(h%3),2,3)}R('#6a4a2a',px+12,py-12,3,14)}}
+  }
+  if(f==='thadingyut'&&S.min>=1080){for(const b of BUILDINGS){if(b.map!==S.map)continue;const y=(b.y+b.h)*T-cy-2;if(y<-10||y>VH*T+10)continue;for(let x=b.x*T-cx;x<(b.x+b.w)*T-cx;x+=7){if(x<-8||x>VW*T)continue;const fl=((now/90+x)|0)%3;R('#8a4a22',x,y,4,2);R(fl?'#ffd36a':'#ffb03a',x+1,y-2-fl%2,2,2);C.globalAlpha=.25;disc('#ffd36a',x+2,y-2,5);C.globalAlpha=1}}}
+}
+function festAct(fx,fy){
+  const f=festNow();if(!f)return false;
+  if(f==='thingyan'&&S.map==='village'&&!S.daily.splash&&S.px>=10&&S.px<=13&&(S.py===42||S.py===43)){S.daily.splash=1;burst(S.px,S.py,'#9fd0ff',18);S.energy=Math.min(S.maxE,S.energy+10);toast('မဏ္ဍပ်က ရေပက်ခံလိုက်ရတယ်! အေးမြလိုက်တာ (အားအင် +10)');return false}
+  return false;
+}
+async function kasonScene(){
+  if(S.water<5)return toast('ညောင်ရေသွန်းဖို့ ရေပုံးထဲ ရေဖြည့်ခဲ့ပါ');
+  S.flags.kason=1;S.water-=5;
+  await say('nar','ရွာသားတွေ ရေအိုးကိုယ်စီ ရွက်ပြီး ညောင်ပင်ကြီးဆီ စီတန်းလာကြတယ်။ ဗုံသံ၊ ဝါးလက်ခုပ်သံတွေ ညံနေတယ်။');
+  await say('aye','ကလေးလည်း လာသွန်းတာလား။ မင်းအဘိုးလည်း နှစ်တိုင်း ပထမဆုံး လာသွန်းတယ်။','h');
+  await say('pc','ညောင်ပင်ကြီး အမြဲ စိမ်းလန်းပါစေ။');
+  await say('nar','ရေအေးအေးကို ညောင်ပင်ရင်းမှာ ဖြည်းဖြည်း သွန်းလိုက်တယ်။ ရေတွေ အမြစ်ကြားထဲ စီးဆင်းသွားတယ်။');
+  bump('aye');bump('hla');S.energy=Math.min(S.maxE,S.energy+20);S.sus=Math.max(0,S.sus-5);
+  if(!S.flags.stone)await say('me','(ရေတွေ အရှေ့ဘက် အမြစ်ကြားကို စီးသွားတယ်… မြေသားတွေ ပြိုကျပြီး ကျောက်တုံးလို တစ်ခုခုရဲ့ ထောင့်လေး ပေါ်လာသလိုပဲ။ လူရှင်းတဲ့ မနက်စောစော ပြန်လာကြည့်မယ်။)');
+  await say('nar','(ဒေါ်အေး ♥+1 · ဦးလှမောင် ♥+1 · အားအင် +20)');
+}
+async function wasoScene(){
+  S.flags.waso=1;
+  await say('nar','ဘုန်းကြီးကျောင်းမှာ ဝါဆိုသင်္ကန်းတွေ စီထားတယ်။ ရွာသားတွေ လက်အုပ်ချီ ထိုင်နေကြတယ်။');
+  const c=await choose('me','(ဝါဆိုသင်္ကန်း ကပ်လှူမလား? ကျပ် 300)',S.money>=300?['ကပ်လှူမယ် (ကျပ် 300)','ဒီနှစ် ကြည့်ရုံပဲ']:['ဒီနှစ် ကြည့်ရုံပဲ']);
+  if(S.money>=300&&c===0){S.money-=300;bump('monk',2);bump('hla');S.sus=Math.max(0,S.sus-10);await say('monk','သာဓု သာဓု။ ဒကာလေးရဲ့ စေတနာ ပြည့်ဝပါစေ။');await say('nar','(ဦးဇင်း ♥+2 · ဦးလှမောင် ♥+1 · ရွာထဲ သံသယ −10)')}
+  else await say('monk','လာရောက် ဖူးမြော်တာလည်း ကုသိုလ်ပဲ ဒကာလေး။');
+}
+const KADAW={aye:'ကလေးရယ်… ကျန်းမာပါစေ၊ ပညာတတ်ပါစေ၊ မင်းအဘိုး လိုချင်တာ အကုန် ပြည့်ပါစေ။',hla:'ဟုတ်ပြီ ကလေး။ ရွာအတွက် မင်း ရှိနေတာ ဝမ်းသာတယ်။ ဆုတောင်းပေးတယ်။',monk:'ဒကာလေး၊ သီလ သမာဓိ ပညာ ပြည့်စုံပါစေ။',kyaw:'ဟေ… ငါ့ကိုတောင် ကန်တော့တာလား။ မင်းကြောင့် ငါ့အသက် ဆယ်နှစ်လောက် ငယ်သွားပြီ။ ဟား ဟား။',san:'အို ဒေါ်ဒေါ့်ကိုလား! ကျန်းမာပါစေကွယ်။'};
+async function kadawScene(id){
+  S.flags.kadaw=S.flags.kadaw||{};S.flags.kadaw[id]=1;
+  await say('pc',id==='monk'?'တပည့်တော် ကန်တော့ပါတယ် ဘုရား။':'ဒီနှစ် ကျွန်တော် ကန်တော့ပါတယ်။ ဘာမှားခဲ့ရင် ခွင့်လွှတ်ပါ။');
+  await say(id,KADAW[id],'h');bump(id,2);await say('nar',`(${NPCS.find(d=>d.id===id).name} ♥+2)`);
+}
+/* a generic timing bar, used by the sky lantern and htamane stirring */
+function timingGame(o){
+  return new Promise(res=>{let round=0,hits=0,t0=performance.now(),raf=0,done=false;card.dataset.dismiss='no';
+    show(`<h2>${o.title}</h2><p class="sub">${o.desc}</p>
+      <div style="position:relative;height:26px;background:#e8d8b8;border-radius:13px;margin:12px 4px;overflow:hidden"><div style="position:absolute;left:42%;width:16%;top:0;bottom:0;background:#8ac46a"></div><div id="bNeedle" style="position:absolute;top:0;bottom:0;width:4px;background:#a8302a;left:0"></div></div>
+      <p id="bMsg" style="text-align:center;font-size:22px">${o.icon} ${o.icon} ${o.icon}</p>
+      <div class="btns"><button class="bt pri" type="button" id="bGo">${o.btn}</button></div>`,c=>{
+      const nd=c.querySelector('#bNeedle'),msg=c.querySelector('#bMsg');let pos=0;
+      const loop=now=>{if(done)return;const sp=1.1+round*.45;pos=(Math.sin((now-t0)/1000*sp*2.2)+1)/2;nd.style.left=(pos*96)+'%';raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop);
+      c.querySelector('#bGo').onclick=()=>{if(done)return;const ok=pos>=.42&&pos<=.58;if(ok)hits++;round++;
+        msg.textContent=Array.from({length:3},(_,i)=>i<round?(i<hits?o.hit:o.miss):o.icon).join(' ')+(ok?'  '+o.okTxt:'  '+o.badTxt);
+        if(round>=3){done=true;cancelAnimationFrame(raf);setTimeout(()=>{card.dataset.dismiss='';close();res(hits)},900)}}})});
+}
+async function htamaneScene(){
+  S.daily.htamane=1;
+  await say('san','ကလေး! လာ လာ၊ ထမနဲ ထိုးမယ်။ ဒေါ်ဒေါ်တို့ အသက်ကြီးပြီ၊ လက်မောင်း မသန်တော့ဘူး။','h');
+  await say('pc','ကျွန်တော် ထိုးမယ် ဒေါ်ဒေါ်!');
+  const h=await timingGame({title:'ထမနဲ ထိုးမယ်',desc:'ဒယ်အိုးကြီးထဲက ထမနဲကို အချိန်ကိုက် (အစိမ်းထဲ) မွှေပါ။ ၃ ကြိမ်။',icon:'🍚',btn:'မွှေမယ်',hit:'✨',miss:'💦',okTxt:'ညီညီညာညာ ရောသွားပြီ!',badTxt:'အိုးကပ်သွားတယ်…'});
+  const n=h>=2?3:1;S.produce.d_htamane=(S.produce.d_htamane||0)+n;
+  if(h>=2){NPCS.forEach(d=>bump(d.id));await say('san','ကောင်းလိုက်တာ! ဒီနှစ် ထမနဲ အရသာ အကောင်းဆုံးပဲ။ ရော့၊ အိမ်ယူသွား။','h');await say('nar',`(ထမနဲ ${n} ထုပ် · ရွာသားအားလုံး ♥+1)`)}
+  else{await say('san','ဟဲ ဟဲ၊ နည်းနည်း ကပ်သွားပေမဲ့ စားလို့ ကောင်းပါတယ်။','h');await say('nar',`(ထမနဲ ${n} ထုပ်)`)}
+}
+async function weaveScene(){
+  S.flags.weave=1;
+  await say('nar','ဒေါ်အေးအိမ်ရှေ့မှာ ယက်ကန်းစင် လေးခု ချထားတယ်။ ရွာသူတွေ ညတွင်းချင်း မတိုသင်္ကန်း ရက်ပြိုင်နေကြတယ်။');
+  if(sideState('aye_wind')==='done'){await say('aye','ကလေး! မင်း ပြန်ရှာပေးခဲ့တဲ့ ငါ့အမေရဲ့ အဆင်နဲ့ ရက်တာ… ပထမ ရတယ်!','h');await say('pc','ဂုဏ်ယူပါတယ် ဒေါ်အေး!');bump('aye',2);await say('nar','(ဒေါ်အေး ♥+2)')}
+  else{await say('aye','ဒီနှစ် ဒုတိယပဲ ရတယ်ကလေး။ နွေတုန်းက ငါ့အမေရဲ့ အဆင် လေထဲ လွင့်သွားလို့… အဲဒါရှိရင် ပထမ ရမှာ။','s');await say('pc','နောက်နှစ် ပထမ ရမှာပါ ဒေါ်အေး။');bump('aye')}
+}
+/* ---------- the dog ---------- */
+function makeDog(f){const c=mk(18,14);withC(c.getContext('2d'),()=>{const O='#2a1a10',B='#c8904a',D='#8a5a2a',L='#f0d8a8',leg=f%2;
+  R(O,3,4,11,6);R(B,4,5,9,4);R(L,5,8,6,1);R(O,12,2,5,6);R(B,13,3,3,4);R(D,13,1,2,2);R(O,16,5,2,2);R('#1a1008',15,4,1,1);
+  R(O,1,f===2?2:3,3,2);R(B,2,f===2?2:3,2,1);
+  R(O,4,10,2,3+leg);R(O,11,10,2,3-leg+1);R(D,4,10,1,2);R(D,11,10,1,2)});return c}
+let DOG_SP=null,DOG_SPL=null;
+let dogRT=null;
+function dogUpdate(now){
+  if(!S||!S.dog||S.scene!=='farm'){dogRT=null;return}
+  if(!dogRT||dogRT.map!==S.map){dogRT={map:S.map,x:S.px-1,y:S.py,t:now,face:1,mv:0}}
+  const dt=Math.min(80,now-dogRT.t);dogRT.t=now;const [dx,dy]=DIRS[S.dir]||[0,1],tx=S.px-dx*1.2,ty=S.py-dy*1.2+.2,ex=tx-dogRT.x,ey=ty-dogRT.y,d=Math.hypot(ex,ey);
+  if(d>6){dogRT.x=tx;dogRT.y=ty}else if(d>.15){const k=Math.min(1,dt*.007);dogRT.x+=ex*k;dogRT.y+=ey*k;dogRT.mv=1;if(Math.abs(ex)>.05)dogRT.face=ex>0?1:-1}else dogRT.mv=0;
+}
+function dogSprite(sprites,cx,cy,now){
+  if(!dogRT)return;if(!DOG_SP){DOG_SP=[0,1,2].map(makeDog);DOG_SPL=DOG_SP.map(flipC)}const x=Math.round(dogRT.x*T-cx),y=Math.round(dogRT.y*T-cy);
+  const f=dogRT.mv?(((now/140)|0)%2):(((now/300)|0)%4===0?2:0),im=(dogRT.face>0?DOG_SP:DOG_SPL)[f];
+  sprites.push({y:dogRT.y-.01,s:()=>{},d:()=>{R('rgba(0,0,0,.22)',x+3,y+12,12,2);C.drawImage(im,x,y);if(S.daily.pet&&((now/500)|0)%6===0){R('#e8405a',x+8,y-5,2,2);R('#e8405a',x+11,y-5,2,2);R('#e8405a',x+9,y-4,3,2)}}})
+}
+function dogAt(fx,fy){return dogRT&&Math.round(dogRT.x)===fx&&Math.round(dogRT.y)===fy}
+function petDog(){
+  if(S.daily.pet)return toast(`${S.dog.name} က ခြေထောက်နား ကပ်ပြီး အိပ်ငိုက်နေတယ်`);
+  S.daily.pet=1;S.dog.love=Math.min(10,(S.dog.love||0)+1);S.energy=Math.min(S.maxE,S.energy+5);burst(dogRT.x,dogRT.y,'#f6a0b0',8);
+  toast(`${S.dog.name} ကို ပွတ်သပ်ပေးလိုက်တယ်။ အမြီးနှံ့နေတယ် (အားအင် +5)`);
+}
+async function dogScene(){
+  S.flags.dogMet=1;
+  await say('nar','အိမ်ရှေ့ ကောက်ရိုးပုံနားမှာ ခွေးကလေး တစ်ကောင် ကွေးကွေးလေး အိပ်နေတယ်။ ဗိုက်ဆာနေပုံပဲ။');
+  await say('me','(အဘိုး ကျွေးနေခဲ့တဲ့ ခွေးလေး ဖြစ်မယ်… အဘိုး မရှိတော့တော့ ဒီမှာပဲ စောင့်နေခဲ့တာ။)');
+  await say('pc','လာ… ငါ့ဆီ လာ။ ဒီကစပြီး ငါနဲ့ အတူ နေမလား?');
+  await say('nar','ခွေးကလေးက အမြီးနှံ့ပြီး လက်ကို လာလျက်တယ်။');
+  const names=['ရွှေဝါ','ဘိုဘို','မဲမဲ'],c=await choose('me','(နာမည် ဘာပေးမလဲ…)',names.map(n=>`"${n}" လို့ ခေါ်မယ်`));
+  S.dog={name:names[c],love:1};
+  await say('me',`(${names[c]}… ညဘက် ခြံစောင့်ပေးမယ်ဆိုရင် ကောင်းမှာပဲ။ ဘယ်သူမှ မသိအောင် ညဘက် လာတူးတဲ့သူ ရှိရင်တော့…)`);
+  toast(`${names[c]} က နောက်က လိုက်လာမယ် · B နဲ့ ပွတ်သပ်ပေးလို့ရတယ်`);
+}
+/* ---------- cooking ---------- */
+const DISHES=[
+  {id:'d_kangkong',name:'ကန်စွန်းရွက်ကြော်',need:{kangkong:2},e:25,sell:90,col:'#4a8a3a'},
+  {id:'d_eggfry',name:'ကြက်ဥကြော်',need:{egg:2},e:30,sell:130,col:'#f2d04a'},
+  {id:'d_fishcurry',name:'ငါးဟင်း',need:{anyfish:1,tomato:1},e:45,sell:300,col:'#c8642a'},
+  {id:'d_mushsoup',name:'မှိုဟင်းချို',need:{mushroom:2},e:30,sell:150,col:'#a8885a'},
+  {id:'d_corn',name:'ပြောင်းဖူးပြုတ်',need:{corn:2},e:30,sell:180,col:'#f0c040'},
+  {id:'d_okra',name:'ရုံးပတီသီးသုပ်',need:{okra:2},e:25,sell:150,col:'#6aa04a'},
+  {id:'d_potato',name:'အာလူးဟင်း',need:{potato:2},e:35,sell:190,col:'#c88a3a'},
+  {id:'d_cabbage',name:'ဂေါ်ဖီကြော်',need:{cabbage:1,egg:1},e:35,sell:200,col:'#9ac87a'},
+  {id:'d_htamane',name:'ထမနဲ',need:{rice:2},e:50,sell:260,col:'#e8d8a8'},
+];
+DISHES.forEach(d=>EXTRA[d.id]={name:d.name,sell:d.sell,dish:1});
+GIFT.hla.love.push('d_htamane');GIFT.kyaw&&GIFT.kyaw.love.push('d_fishcurry');GIFT.aye&&GIFT.aye.love.push('d_mushsoup');GIFT.min&&GIFT.min.love.push('d_eggfry');GIFT.tun&&GIFT.tun.love.push('d_potato');GIFT.san&&GIFT.san.love.push('d_htamane');GIFT.zaw&&GIFT.zaw.love.push('d_fishcurry');GIFT.khine&&GIFT.khine.love.push('d_cabbage');GIFT.mya&&GIFT.mya.love.push('d_okra');GIFT.monk&&GIFT.monk.love.push('d_kangkong');
+const anyFish=()=>FISHES.find(f=>(S.produce[f]||0)>0);
+const haveFor=d=>Object.entries(d.need).every(([k,n])=>k==='anyfish'?!!anyFish():(S.produce[k]||0)>=n);
+const needTxt=d=>Object.entries(d.need).map(([k,n])=>`${k==='anyfish'?'ငါး (ဘယ်အမျိုးမဆို)':itemName(k)} ${n}`).join(' + ');
+function kitchen(){
+  const dishes=DISHES.filter(d=>(S.produce[d.id]||0)>0);
+  show(`<h2>🍳 မီးဖို</h2><p class="sub">ရိတ်သိမ်းထားတာတွေနဲ့ ချက်ရင် အားအင် ပြန်ရတယ်။ လက်ဆောင်ပေးရင် ရွာသားတွေ ကြိုက်ကြတယ်။ ချက်တာ မိနစ် 30 ကြာမယ်။</p>
+  ${DISHES.map(d=>`<div class="item"><b><img src="${iconURL(d.id)}" alt="" width="21" height="21" style="image-rendering:pixelated;vertical-align:middle;margin-right:6px">${d.name}</b><span class="sub">${needTxt(d)} · အားအင် +${d.e}</span><button class="bt" type="button" data-cook="${d.id}" ${haveFor(d)?'':'disabled'}>ချက်မယ်</button></div>`).join('')}
+  ${dishes.length?`<p><b>ချက်ပြီးသား</b></p>${dishes.map(d=>`<div class="item"><b>${d.name}</b><span class="sub">${S.produce[d.id]} ပွဲ</span><button class="bt" type="button" data-eat="${d.id}">စားမယ်</button></div>`).join('')}`:''}
+  <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>{
+    c.querySelector('#mC').onclick=close;
+    c.querySelectorAll('[data-cook]').forEach(b=>b.onclick=()=>{const d=DISHES.find(x=>x.id===b.dataset.cook);if(!haveFor(d))return;
+      for(const [k,n] of Object.entries(d.need)){if(k==='anyfish')S.produce[anyFish()]-=n;else S.produce[k]-=n}
+      S.produce[d.id]=(S.produce[d.id]||0)+1;S.min+=30;S.stats.cooked=(S.stats.cooked||0)+1;toast(`${d.name} ချက်ပြီးပြီ! မွှေးလိုက်တာ`);kitchen()});
+    c.querySelectorAll('[data-eat]').forEach(b=>b.onclick=()=>{const d=DISHES.find(x=>x.id===b.dataset.eat);if(S.energy>=S.maxE)return toast('ဗိုက်ပြည့်နေပြီ');S.produce[d.id]--;S.energy=Math.min(S.maxE,S.energy+d.e);toast(`${d.name} စားလိုက်တယ် (အားအင် +${d.e})`);kitchen()})});
+}
 /* ---------- chapter 3 · winter · the other half ---------- */
 const FALL2=[[36,18],[36,19],[36,20]];
 function setFall2(on){const t=S.maps.forest.tiles;FALL2.forEach(([x,y])=>t[y][x]=on?FALL:CLIFF);if(S.map==='forest')dirty=true}
@@ -1720,6 +1887,8 @@ const GREET={
 };
 async function greetScene(id){for(const [w,t,e] of GREET[id])await say(w,t,e)}
 function storyTalk(d){
+  if(S.day===20&&KADAW[d.id]&&!(S.flags.kadaw||{})[d.id]){cutscene(()=>kadawScene(d.id));return true}
+  if(d.id==='aye'&&S.day===28&&!S.flags.weave){cutscene(weaveScene);return true}
   if((d.id==='aye'&&!S.flags.legend||GP_TALK[d.id]&&!S.clues.includes(GP_TALK[d.id][0]))&&S.q.q_grandpa==='active'){
     if(GP_READY[d.id]()){cutscene(d.id==='aye'?ayeScene:()=>gpScene(d.id));return true}
     S.flags.gpNot=S.flags.gpNot||{};if(S.flags.gpNot[d.id]!==S.day){S.flags.gpNot[d.id]=S.day;cutscene(async()=>{await say('pc',d.id==='aye'?'ဒေါ်အေး၊ ကျွန်တော့်အဘိုးအကြောင်း နည်းနည်း မေးချင်လို့ပါ။':d.id==='min'?'ကိုမင်း၊ ကျွန်တော့်အဘိုးအကြောင်း မေးလို့ ရမလား?':'ဦးကျော်၊ ကျွန်တော့်အဘိုးက ဘယ်လိုနေရာတွေ သွားလေ့ရှိလဲ?');for(const [w,t,e] of GP_NOT[d.id])await say(w,t,e)});return true}
@@ -1739,8 +1908,10 @@ function storyTalk(d){
 function checkStory(){
   if(CUT||DLG||!S||S.over)return;
   const out=S.scene==='farm';
-  if(S.flags.intro)sideMorning();
+  if(S.flags.intro){sideMorning();festAct()}
+  if(S.dog&&S.flags.ch3&&!S.flags.zawCaught&&S.map==='forest'&&S.min>=1260&&!S.daily.bark){S.daily.bark=1;toast(`${S.dog.name} က တောင်ကုန်းဘက်ကို လှည့်ပြီး ဟောင်နေတယ်… ဂူဘက်မှာ တစ်ယောက်ယောက် ရှိလား?`)}
   if(!S.flags.intro){S.flags.intro=1;if(S.day===1&&out&&S.map==='farm')return cutscene(introScene);['q_harvest','q_clear','q_meet','q_grandpa','q_map'].forEach(q=>qStart(q,true));S.has.map1=1;if(!S.clues.includes('c_map'))S.clues.push('c_map');return}
+  if(!S.flags.dogMet&&S.flags.intro&&S.day>=2&&out&&S.map==='farm'&&S.min<900&&modal.hidden)return cutscene(dogScene);
   if(!S.flags.dealer&&S.day>=5&&out&&S.map==='farm'&&S.min>=480&&S.min<1020){S.flags.dealer=1;return cutscene(dealerScene)}
   if(S.flags.zawAsk===1&&modal.hidden){S.flags.zawAsk=2;return cutscene(zawLanternScene)}
   if(S.flags.ch1&&!S.flags.ch2&&S.day>=11&&out&&S.min<1080&&modal.hidden){S.flags.ch2=1;return cutscene(ch2Scene)}
@@ -2163,6 +2334,7 @@ function makeItemIcons(){
   mkI('berry',()=>{R('#2f6a28',6,1,1,3);ell(9,3,2.2,1.2,'#3f8f35');[[5,7],[9,7],[7,10],[4,10],[10,10]].forEach(([x,y])=>{ell(x,y,2.4,2.4,'#7a4a10');ell(x,y,1.8,1.8,'#e8a020');R('#ffd060',x-1,y-1,1,1)})});
 }
 makeItemIcons();
+DISHES.forEach(d=>{const c=mk(14,14);withC(c.getContext('2d'),()=>{R('#2a1a10',1,6,12,6);R('#f4efe2',2,6,10,4);R(d.col,3,4,8,3);R('#ffffff',4,4,2,1);R('#3a6aa8',2,9,10,1);R('#2a1a10',4,12,6,1)});ITEM_ICON[d.id]=c});
 const iconURL=id=>{try{return ITEM_ICON[id]?ITEM_ICON[id].toDataURL():''}catch(e){return ''}};
 const HEN_PAL=[{w:'#fffaf0',m:'#ece4d2',d:'#c8bca4',d2:'#a89c86',t:'#e4dcc8',t2:'#c0b49c'},{w:'#e6a868',m:'#c47a3a',d:'#9a5424',d2:'#743a18',t:'#3a3430',t2:'#2a6a58'}];
 function makeHen(p,f){const c=mk(16,16);withC(c.getContext('2d'),()=>{const O='#3a2418',Y='#e8a020',YD='#b87410';
@@ -3111,6 +3283,8 @@ function renderHouse(now){
   for(let i=0;i<4;i++)for(let j=0;j<3;j++)R('#8a7a6a',kx+4+i*2,ky+6+j*2,1,1);R(['#e2402f','#3f86c9','#7fa556'][curS()],kx+4+((S.day-1)%4)*2,ky+6+(((S.day-1)>>2)%3)*2,1,1);
   // lamp
   R('#3a2414',X(5),Y(1)+8,1,10);OL([['#c99a40',X(5)-2,Y(1)+18,5,5]],'#3a2414');R(night?'#ffe08a':'#e8c86a',X(5)-1,Y(1)+19,3,3);
+  {const fx2=X(8),fy2=Y(4),fl=((now/120)|0)%2;R('rgba(0,0,0,.25)',fx2+1,fy2+13,14,3);OL([['#7a4a2a',fx2+1,fy2+4,14,10]],'#2a1a10');R('#a86a3a',fx2+2,fy2+5,12,3);R('#2a1a10',fx2+4,fy2+9,8,4);R(fl?'#ff9a2a':'#ffd36a',fx2+5,fy2+10,6,2);R('#ffe8a0',fx2+7,fy2+10,2,1);
+    disc('#3a3a3a',fx2+8,fy2+3,5);R('#5a5a5a',fx2+4,fy2+1,8,2);if(((now/400)|0)%3){R('rgba(255,255,255,.5)',fx2+7,fy2-4,1,3);R('rgba(255,255,255,.35)',fx2+9,fy2-7,1,3)}}
   const[rx,ry]=playerPos();drawPlayer(Math.round(ox+rx*T),Math.round(oy+ry*T)-7);
   if(!paused){const[fx,fy]=front();if(HSOLID.has(hTile(fx,fy))&&fy>0)marker(ox+fx*T,oy+fy*T,now)}
   if(night){C.fillStyle='rgba(10,8,30,.38)';C.fillRect(0,0,W,H);C.globalCompositeOperation='lighter';
@@ -3166,6 +3340,7 @@ function render(now){
       if(idle&&n.act==='fish'){const[dx,dy]=DIRS[n.dir];drawRod(px,py,n.dir,(n.x+dx)*T+8-cx,(n.y+dy)*T+8-cy,((now/600+i)|0)%5===0)}
       else if(idle&&n.act==='kite'&&S.weather!=='rain')kites.push([px+12,py+8,i]);
       else if(idle&&((now/1600+i)|0)%6===0)bubble(px,py)}})});
+  dogUpdate(now);dogSprite(sprites,cx,cy,now);
   if(S.sideItems)for(const id in S.sideItems){const o=S.sideItems[id];if(o.map!==S.map)continue;sprites.push({y:o.y+.004,s:()=>{},d:()=>drawSideItem(o,Math.round(o.x*T-cx),Math.round(o.y*T-cy),now)})}
   if(!CUT)npcRT.forEach((n,i)=>{if(!n.active||n.map!==S.map||inShop(n))return;const d=NPCS[i];if(!sideMark(d.id))return;const nx=n.fx+(n.x-n.fx)*n.t,ny=n.fy+(n.y-n.fy)*n.t;sprites.push({y:ny+.006,s:()=>{},d:()=>drawQMark(Math.round(nx*T-cx),Math.round(ny*T-cy)-7,now)})});
   ACT.forEach(a=>{if(a.map!==S.map)return;const nx=a.fx+(a.x-a.fx)*a.t,ny=a.fy+(a.y-a.fy)*a.t;sprites.push({y:ny+.005,s:()=>{const px=Math.round(nx*T-cx),py=Math.round(ny*T-cy)-7;castShadow(a.spr[a.dir][0],px,py,16,22,py+22)},d:()=>{const px=Math.round(nx*T-cx),py=Math.round(ny*T-cy)-7,fr=a.t<1?(a.steps%2?1:2):0;R('rgba(0,0,0,.25)',px+4,py+21,8,2);C.drawImage(a.spr[a.dir][fr],px,py)}})});
@@ -3177,7 +3352,7 @@ function render(now){
   sprites.sort((a,b)=>a.y-b.y);sprites.forEach(sp=>sp.s&&sp.s());sprites.forEach(sp=>sp.d());
   if(SIT.length){const k=(now/3200)|0,pp=SIT[k%SIT.length];speech(pp[0],pp[1]-6,teaLine(k))}
   kites.forEach(([hx,hy,i])=>drawKite(hx,hy,1,now,i));
-  drawThingyan(cx,cy,now);
+  drawThingyan(cx,cy,now);drawFest(cx,cy,now);
 
   {const ppx=Math.round(rx*T-cx),ppy=Math.round(ry*T-cy)-7;
     if(fishRT){const bite=fishRT.phase==='bite';drawRod(ppx,ppy,S.dir,fishRT.x*T+8-cx,fishRT.y*T+8-cy,bite);
