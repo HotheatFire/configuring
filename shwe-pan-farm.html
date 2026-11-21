@@ -529,7 +529,8 @@ function useTool(){
     else if(crop&&crop.dead)doAct('sickle',()=>{delete S.crops[k];burst(fx,fy,'#8a6a3a',10)});
     else toast('ပေါင်းပင်နဲ့ ညှိုးနေတဲ့ အပင်ကို ရှင်းဖို့ သုံးပါ');
   }else if(tool==='hammer'){
-    if(t===RUBBLE){if(!spend(S.up.hammer?2:4))return;doAct('hammer',()=>{S.tiles[fy][fx]=CFLOOR;dirty=true;burst(fx,fy,'#8a8078',16);burst(fx,fy,'#c8c0b4',8);shake=4;toast('ပြိုကျနေတဲ့ ကျောက်တွေကို ခွဲလိုက်ပြီ။ လမ်း ပွင့်သွားပြီ!')});return}
+    if(t===RUBBLE&&!S.up.hammer){if(!spend(1))return;doAct('hammer',()=>{burst(fx,fy,'#ffe08a',6);burst(fx,fy,'#a09488',4);shake=2;if(!S.flags.rubbleTry){S.flags.rubbleTry=1;cutscene(async()=>{await say('nar','ဒေါင်! — တူက ကျောက်ပေါ်ကနေ ခုန်ပြန်လာတယ်။ မီးပွားလေးတွေပဲ ထွက်သွားတယ်။');await say('me','(လက်တွေ တုန်သွားတယ်… ဒီကျောက်က မာလွန်းတယ်။ ဒီတူအဟောင်းနဲ့တော့ ဘယ်လိုမှ မရဘူး။)');await say('me','(ရွာထဲက ကိုထွန်းရဲ့ ပန်းပဲဖိုမှာ တူကို ပိုကောင်းအောင် ထုခိုင်းရမယ်။)')})}else toast('ကျောက်က မာလွန်းတယ်… ပန်းပဲဖိုက "တူကောင်း" လိုမယ်')});return}
+    if(t===RUBBLE){if(!spend(2))return;doAct('hammer',()=>{S.tiles[fy][fx]=CFLOOR;dirty=true;burst(fx,fy,'#8a8078',16);burst(fx,fy,'#c8c0b4',8);shake=4;toast('ပြိုကျနေတဲ့ ကျောက်တွေကို ခွဲလိုက်ပြီ။ လမ်း ပွင့်သွားပြီ!')});return}
     if(t===ROCK){if(!spend(S.up.hammer?1:3))return;doAct('hammer',()=>{S.stats.cleared=(S.stats.cleared||0)+1;S.tiles[fy][fx]=G;dirty=true;burst(fx,fy,'#9a9ca0',14);burst(fx,fy,'#d4d6da',6);shake=3})}
     else toast('ကျောက်တုံးကို ခွဲဖို့ သုံးပါ');
   }else if(tool==='seed'){
@@ -562,7 +563,7 @@ function act(){
   if(S.map==='cave'){const rl=RELICS.find(r=>r.x===fx&&r.y===fy&&!S.relics[r.id]);if(rl)return pickRelic(rl);
     if(t===ALTAR)return S.relics.buddha?(S.daily.altar?toast('ကြေးဆင်းတုတော်ကို ဦးချပြီးပြီ'):(S.daily.altar=1,S.energy=Math.min(S.maxE,S.energy+10),toast('ကြေးဆင်းတုတော်ကို ဦးသုံးကြိမ် ချလိုက်တယ် (အားအင် +10)'))):cutscene(altarScene);
     if(t===MURAL)return cutscene(muralScene);
-    if(t===RUBBLE)return toast('ကျောက်တုံးတွေ ပြိုကျပြီး လမ်းပိတ်နေတယ်။ တူကိုင်ပြီး A နဲ့ ခွဲကြည့်ပါ');
+    if(t===RUBBLE)return toast(S.up.hammer?'ကျောက်တုံးတွေ ပြိုကျပြီး လမ်းပိတ်နေတယ်။ တူကောင်းကိုင်ပြီး A နဲ့ ခွဲပါ':S.flags.rubbleTry?'ကျောက်က မာလွန်းတယ်… ပန်းပဲဖိုက "တူကောင်း" လိုမယ်':'ကျောက်တုံးကြီးတွေ ပြိုကျပြီး လမ်းပိတ်နေတယ်။ တူကိုင်ပြီး A နဲ့ ခွဲကြည့်ပါ');
     if(t===CRYST)return toast('ကျောက်သလင်းတွေ မီးအိမ်အလင်းမှာ ပြာလဲ့လဲ့ တောက်နေတယ်');
     if(t===CBOULD)return toast('ကျောက်တုံးကြီး။ ရွှေ့လို့ မရဘူး');
     if(t===WATER)return toast('မြေအောက် ရေကန်။ ရေက ကြည်လင်ပြီး အေးစိမ့်နေတယ်');}
@@ -885,7 +886,7 @@ const SHOPS={
   smith:{name:'ကိုထွန်းရဲ့ ပန်းပဲဖို',open:480,close:1020,sub:()=>'ကိရိယာတွေကို ပိုကောင်းအောင် ထုပေးမယ်',items:()=>[
     {id:'axe',label:'ပုဆိန်',desc:'တောထဲက လဲနေတဲ့ သစ်တုံးတွေကို ခုတ်ပြီး ထင်း ရမယ်',price:600,ok:()=>!S.has.axe,buy:()=>{S.has.axe=1;S.tool=8}},
     {id:'uhoe',label:'ပေါက်ပြားကောင်း',desc:'မြေထွန်ရင် အားအင် 2 အစား 1 ပဲ ကုန်မယ်',price:1500,ok:()=>!S.up.hoe,buy:()=>S.up.hoe=1},
-    {id:'uham',label:'တူကောင်း',desc:'ကျောက်ခွဲရင် အားအင် 3 အစား 1 ပဲ ကုန်မယ်',price:900,ok:()=>!S.up.hammer,buy:()=>S.up.hammer=1},
+    {id:'uham',label:'တူကောင်း',desc:'ကျောက်ခွဲရင် အားအင် 3 အစား 1 ပဲ ကုန်မယ် · ဂူထဲက မာတဲ့ ကျောက်တုံးကြီးတွေလည်း ခွဲနိုင်မယ်',price:900,ok:()=>!S.up.hammer,buy:()=>S.up.hammer=1},
     {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ်',price:1200,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
   ]},
 };
@@ -1125,7 +1126,7 @@ const QUESTS={
   q_grandpa:{title:'အဘိုးအကြောင်း မေးမြန်း',desc:'ဒေါ်အေး၊ ကိုမင်း၊ ဦးကျော် တို့ကို အဘိုးအကြောင်း မေးကြည့်ပါ။ ရင်းနှီးမှ ပြောပြကြမယ် — လက်ဆောင်၊ အချိန်၊ အလုပ်အကြောင်း။ သိုက်အကြောင်းတော့ မပြောမိစေနဲ့',prog:()=>[['c_legend','c_cart','c_moon'].filter(c=>S.clues.includes(c)).length,3],reward:()=>''},
   q_map:{title:'ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ',desc:()=>S.flags.stoneTry?'"နေထွက်ရာ" — နေရာ တစ်ခုတည်း မဟုတ်ဘဲ အချိန်ပါ ဆိုလိုနိုင်တယ်။ ရွာသားတွေ မြင်ရင် သံသယ ဖြစ်မယ်':'မြေပုံထဲက စာ "ညောင်ပင်ကြီးရဲ့ နေထွက်ရာ" ကို ဖော်ထုတ်ပါ။ ညောင်ပင်ကြီး (နတ်စင်) က ရွာထဲမှာ',prog:()=>[S.flags.stone?1:0,1],reward:()=>''},
   q_ruin:{title:'ကြယ်သုံးပွင့် သင်္ကေတ',desc:()=>S.flags.ruinTry?'စေတီပျက်မှာ ဘာမှ မထူးခြားဘူး။ ကျောက်တုံးမှာ ကြယ်တွေ ထွင်းထားတယ်… အဘိုး ဘယ်အချိန် သွားလေ့ရှိလဲ?':'ကျောက်တုံးက ညွှန်တဲ့ တောင်ကုန်းပေါ်က စေတီပျက်ကို စစ်ပါ (ခြံတောင်ဘက် တောထဲက ကျောက်လှေကား)',prog:()=>[S.flags.letter2?1:0,1],reward:()=>''},
-  q_cave:{title:'ဂူထဲက အမှတ်အသား',desc:()=>!S.has.lantern?'ရွာထဲက ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ပြီး တောထဲက ဂူထဲ ဝင်ပါ (တံတားဖြတ်ပြီး အရှေ့ဘက်)':'ဂူထဲမှာ ရှေးဟောင်းပစ္စည်း 3 ခုနဲ့ ကြေးဆင်းတုတော်ကို ရှာပါ။ ပြိုကျနေတဲ့ ကျောက်ကို တူနဲ့ ခွဲပါ',prog:()=>[discCount(),4],reward:()=>''},
+  q_cave:{title:'ဂူထဲက အမှတ်အသား',desc:()=>!S.has.lantern?'ရွာထဲက ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ပြီး တောထဲက ဂူထဲ ဝင်ပါ (တံတားဖြတ်ပြီး အရှေ့ဘက်)':'ဂူထဲမှာ ရှေးဟောင်းပစ္စည်း 3 ခုနဲ့ ကြေးဆင်းတုတော်ကို ရှာပါ။ '+(S.up.hammer?'ပြိုကျနေတဲ့ ကျောက်ကို တူကောင်းနဲ့ ခွဲပါ':S.flags.rubbleTry?'ပြိုကျနေတဲ့ ကျောက်က မာလွန်းတယ် — ကိုထွန်းရဲ့ ပန်းပဲဖိုမှာ "တူကောင်း" ထုခိုင်းပါ':'ပြိုကျနေတဲ့ ကျောက်ကို တူနဲ့ ခွဲကြည့်ပါ'),prog:()=>[discCount(),4],reward:()=>''},
   q_bridge:{title:'ပြိုသွားတဲ့ တံတား',desc:()=>`ပုဆိန်နဲ့ သစ်တုံးခုတ်ပြီး ထင်း 10 စည်း စုပါ (အခု ${Math.min(10,S.produce.wood)}/10)။ ပြီးရင် တောထဲက ပြိုနေတဲ့ တံတားကို မျက်နှာမူပြီး B နှိပ်ပါ။ ပို့ကုန်ပုံးက ထင်း 10 စည်းကို ချန်ထားပေးမယ်`,prog:()=>[S.flags.bridgeFixed?1:0,1],reward:()=>{S.money+=300;return '300 ကျပ် (ရွာ့အသင်းက)'}},
   q_thingyan:{title:'သင်္ကြန် ရေပက်ပွဲ',desc:'သင်္ကြန်နေ့ (နေ့ 8) မှာ ရွာထဲသွားပြီး ရွာသား 5 ယောက်ကို နှုတ်ဆက်ပါ',prog:()=>[Math.min(5,Object.keys(S.flags.tg||{}).length),5],reward:()=>{S.money+=300;S.tea+=2;return '300 ကျပ်နဲ့ လက်ဖက်ရည် 2 ခွက်'}},
 };
@@ -2096,6 +2097,7 @@ function storyTalk(d){
   if(S.day===20&&KADAW[d.id]&&!(S.flags.kadaw||{})[d.id]){cutscene(()=>kadawScene(d.id));return true}
   if(d.id==='aye'&&S.day===28&&!S.flags.weave){cutscene(weaveScene);return true}
   if(orderTalk(d))return true;
+  if(d.id==='tun'&&S.flags.rubbleTry&&!S.up.hammer&&!S.flags.tunRubble){S.flags.tunRubble=1;cutscene(async()=>{await say('pc','ကိုထွန်း၊ ဂူထဲမှာ ကျောက်တုံးကြီးတွေ ပြိုပြီး လမ်းပိတ်နေတယ်။ တူနဲ့ ထုတာ ခုန်ပြန်လာတယ်။');await say('tun','ဂူထဲက ကျောက်လား? အဲ့ဒါ ကျောက်ချောက် အမာစားဗျ။ သာမန် သံတူနဲ့ မရဘူး။');await say('tun','မင်းတူ အသွားကို သံမဏိနဲ့ ပြန်ထုပေးမယ်။ ကျပ် ၉၀၀ ပေး၊ ဆိုင်ထဲမှာ "တူကောင်း" ရွေးလိုက်။','h')});return true}
   if(d.id==='min'&&S.day>=6&&!S.flags.calfOffer&&!S.has.cow&&!S.flags.ch3){cutscene(calfOffer);return true}
   if((d.id==='aye'&&!S.flags.legend||GP_TALK[d.id]&&!S.clues.includes(GP_TALK[d.id][0]))&&S.q.q_grandpa==='active'){
     if(GP_READY[d.id]()){cutscene(d.id==='aye'?ayeScene:()=>gpScene(d.id));return true}
