@@ -244,9 +244,9 @@ const CAVE_ROWS=["##############################", "##########AAAAAAAAA#########
 const CCH={'#':CWALL,'.':CFLOOR,'A':MURAL,'B':ALTAR,'c':CRYST,'o':CBOULD,'r':RUBBLE,'z':STAIR,'~':WATER};
 const newCave=()=>({w:CAVE_ROWS[0].length,h:CAVE_ROWS.length,tiles:CAVE_ROWS.map(r=>[...r].map(c=>CCH[c]??CFLOOR))});
 const RELICS=[
-  {id:'coin',x:4,y:12,name:'ရှေးဟောင်း ငွေဒင်္ဂါး',desc:'ရေကန်ဘေး ရွှံ့ထဲမှာ မြုပ်နေတဲ့ ငွေဒင်္ဂါး အပြားလေးတွေ။ တစ်ဖက်မှာ နေထွက်ပုံ၊ နောက်တစ်ဖက်မှာ သီရိဝစ္ဆ အမှတ်အသား ထုထားတယ်။ နှစ်ပေါင်း ထောင်ချီ ကြာပြီ ထင်တယ်။'},
-  {id:'urn',x:26,y:16,name:'ရှေးဟောင်း မြေအိုး',desc:'ပြိုကျနေတဲ့ ကျောက်တွေ နောက်ကွယ်မှာ ထားခဲ့တဲ့ အဝိုင်းပုံ မြေအိုး။ နှုတ်ခမ်းမှာ ကြာပန်းပွင့် အဆင်ကို လက်နဲ့ ထွင်းထားတယ်။ ဘိုးဘွားတွေ အရိုးပြာ ထည့်ခဲ့တဲ့ အိုးမျိုး ဖြစ်နိုင်တယ်။'},
-  {id:'gold',x:17,y:3,name:'ရွှေငွေ အဆင်တန်ဆာ',desc:'ကွဲနေတဲ့ ကျောက်သေတ္တာလေးထဲက ရွှေလက်ကောက်နဲ့ ငွေနားကပ်တွေ။ ဖုန်တွေ ဖုံးနေပေမဲ့ မီးအိမ်အလင်းမှာ တလက်လက် တောက်နေတယ်။'},
+  {id:'coin',x:4,y:12,name:'ရှေးဟောင်း ငွေဒင်္ဂါး',desc:'ရေကန်ဘေး ရွှံ့ထဲမှာ မြုပ်နေတဲ့ ငွေဒင်္ဂါး အပြားလေးတွေ။ တစ်ဖက်မှာ နေထွက်ပုံ၊ နောက်တစ်ဖက်မှာ သီရိဝစ္ဆ အမှတ်အသား ထုထားတယ်။ နှစ်ပေါင်း ထောင်ချီ ကြာပြီ ထင်တယ်။ အနားမှာ ကြယ်သုံးပွင့် အထွင်း — ခြံထဲမှာ ကြက်တွေ ယက်ထုတ်တဲ့ ဒင်္ဂါးနဲ့ တူတူပဲ!'},
+  {id:'urn',x:26,y:16,name:'ရှေးဟောင်း မြေအိုး',desc:'ပြိုကျနေတဲ့ ကျောက်တွေ နောက်ကွယ်မှာ ထားခဲ့တဲ့ အဝိုင်းပုံ မြေအိုး။ နှုတ်ခမ်းမှာ ကြာပန်းပွင့် အဆင်ကို လက်နဲ့ ထွင်းထားတယ်။ ဘိုးဘွားတွေ အရိုးပြာ ထည့်ခဲ့တဲ့ အိုးမျိုး ဖြစ်နိုင်တယ်။ နှုတ်ခမ်းအောက်မှာ ရေစက်ပုံနဲ့ လဝိုင်း သုံးခု ထွင်းထားတယ်။'},
+  {id:'gold',x:17,y:3,name:'ရွှေငွေ အဆင်တန်ဆာ',desc:'ကွဲနေတဲ့ ကျောက်သေတ္တာလေးထဲက ရွှေလက်ကောက်နဲ့ ငွေနားကပ်တွေ။ ဖုန်တွေ ဖုံးနေပေမဲ့ မီးအိမ်အလင်းမှာ တလက်လက် တောက်နေတယ်။ ပြားလေး တစ်ချပ်မှာ အဝိုင်းထဲ အစက် — ရှေးသင်္ကေတ "တွင်း" ပဲ။'},
 ];
 const relicCount=()=>RELICS.filter(r=>S.relics[r.id]).length;
 const relicHeld=()=>RELICS.filter(r=>S.relics[r.id]===1).length;
@@ -557,6 +557,7 @@ function act(){
   if(S.dog&&dogAt(fx,fy)){if(dogRT){dogRT.path=[];dogRT.wait=3000;dogRT.face=S.px>dogRT.x?1:-1}return petDog()}
   if(t===SIGN)return toast(signText());
   if(t===CAVE)return S.has.lantern?enterCave():toast('ဂူဝကနေ လေအေးတွေ တိုက်ထွက်နေတယ်။ အထဲမှာ မှောင်လွန်းတယ်။ ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ မီးအိမ် ဝယ်ခဲ့ပါ');
+  if(S.map==='cave'&&fx===11&&fy===18)return S.clues.includes('c_chalk')?toast('အဘိုးရဲ့ မြေဖြူခဲ မျဉ်းတွေ။ စေတီ → တောရေတံခွန်… ✗'):cutscene(chalkScene);
   if(S.map==='cave'){const rl=RELICS.find(r=>r.x===fx&&r.y===fy&&!S.relics[r.id]);if(rl)return pickRelic(rl);
     if(t===ALTAR)return S.relics.buddha?(S.daily.altar?toast('ကြေးဆင်းတုတော်ကို ဦးချပြီးပြီ'):(S.daily.altar=1,S.energy=Math.min(S.maxE,S.energy+10),toast('ကြေးဆင်းတုတော်ကို ဦးသုံးကြိမ် ချလိုက်တယ် (အားအင် +10)'))):cutscene(altarScene);
     if(t===MURAL)return cutscene(muralScene);
@@ -692,8 +693,8 @@ function startAtDay(p){
   if(d>=6)NPCS.forEach(n=>{S.met[n.id]=1;S.friends[n.id]=Math.max(S.friends[n.id]||0,2)});
   if(d>8)S.q.q_thingyan='done';
   if(p.ch>=1){Object.assign(F,{legend:1,stone:1,letter2:1,ch1:1});S.letters.push('l2');S.clues.push('c_legend','c_cart','c_moon','c_stone','r_hole','c_ruin','r_steps','r_dealer');['q_grandpa','q_map','q_ruin'].forEach(q=>S.q[q]='done')}
-  if(p.ch>=2){Object.assign(F,{ch2:1,ch2done:1,flood:15,bridgeFixed:1,dealer2:'kept',zawAsk:2,waso:d>12?1:0});S.has.lantern=1;S.relics={coin:1,urn:1,gold:1,buddha:1};S.letters.push('l3');
-    S.clues.push('r_zawask','r_soot','c_riddle','c_fall');S.q.q_cave='done';S.q.q_bridge='done';setFlood(false);setBridge(true)}
+  if(p.ch>=2){Object.assign(F,{ch2:1,ch2done:1,flood:15,bridgeFixed:1,dealer2:'kept',zawAsk:2,waso:d>12?1:0});S.has.lantern=1;S.relics={coin:1,urn:1,gold:1,buddha:1};
+    S.clues.push('r_zawask','r_soot','c_riddle','c_fall','c_plaque','c_chalk','c_peacock','c_urn','c_ring');S.q.q_cave='done';S.q.q_bridge='done';setFlood(false);setBridge(true)}
   if(d>=20)F.kadaw={};
   if(d>21){F.ch3=1;S.q.q_half='active'}if(d>23)F.dealer3=1;
   S.seedSel=seasonCrops(seasonOf(d))[0];S.seeds[S.seedSel]=9;
@@ -1067,6 +1068,12 @@ const CLUES={
   c_coin:{t:'ကြက်ယက်ထုတ်တဲ့ ဒင်္ဂါး',d:'ခြံထဲမှာ ကြက်တွေ ယက်ထုတ်တဲ့ ရှေးဒင်္ဂါး။ ကြယ်သုံးပွင့် သင်္ကေတ ပါတယ်။ အဘိုးရဲ့ ခြံမြေအောက်မှာ ဘာတွေ ရှိသေးလဲ?',k:'hunt'},
   c_ruin:{t:'စေတီပျက်ထဲက အဘိုးစာ',d:'အဘိုး စေတီပျက်ကို တူးကြည့်ပြီးပြီ၊ ရတနာ မရှိဘူး။ ဂူထဲက နံရံမှာ နောက်ထပ် အမှတ်အသား ရှိတယ်။ မြေပုံ နောက်တစ်ပိုင်းက ရွာထဲက မိသားစု တစ်စုဆီမှာ။',k:'hunt'},
   c_fall:{t:'ရေကြီးနှစ်မှ ပေါ်တဲ့ ရေတံခွန်',d:'ဦးကျော်ပြောတာ: ရေကြီးပြီးကတည်းက တောင်ကုန်း အနောက်ဘက် ကမ်းပါးမှာ ရေတံခွန် နောက်တစ်ခု ပေါ်လာတယ်။ ဦးကျော် ငယ်ငယ်က ရေကြီးနှစ်မှာပဲ မြင်ဖူးတယ်တဲ့။ တောထဲက ရေတံခွန်နဲ့ မတူဘူး။',k:'hunt'},
+  c_plaque:{t:'ဆင်းတုတော်အောက်က ကြေးပြား',d:'ဘဏ္ဍာစိုးခေတ်က ကြေးပြား။ စာတွေ တစ်ဝက် ပွန်းပဲ့နေတယ်: "…ဘဏ္ဍာကို… သစ္စာရှိ အိမ်ထောင် နှစ်ခု… တစ်ဝက်စီ… ပြန်ဆုံမှ…"။ ဒေါ်အေးရဲ့ ပုံပြင်က တကယ့် သမိုင်းပဲ။',k:'hunt'},
+  c_chalk:{t:'အဘိုးရဲ့ မြေဖြူခဲ မျဉ်းတွေ',d:'ဂူဝင်ပေါက်နား နံရံမှာ အဘိုးလက်ရေးနဲ့ ရက်စွဲတွေ အများကြီး။ စေတီကနေ တောထဲက ရေတံခွန်ဆီ မျဉ်းဆွဲထားပြီး ✗ ကြီး ခြစ်ထားတယ်။ အဘိုး ဒီရေတံခွန်နဲ့ အကြိမ်ကြိမ် ကြိုးစားပြီး မမှန်ခဲ့ဘူး။',k:'hunt'},
+  c_peacock:{t:'ရုပ်ကြွထဲက ဒေါင်းအမှတ်အသား',d:'နံရံရုပ်ကြွမှာ မြေပုံ တစ်ဝက်စီ ကိုင်ထားတဲ့ လူနှစ်ယောက်။ တစ်ယောက်ရင်ဘတ်မှာ ကြယ်သုံးပွင့် (အဘိုးဘက်)၊ နောက်တစ်ယောက်မှာ ဒေါင်းပုံ။ ဒေါင်းအမှတ်အသား ရှိတဲ့ မိသားစုဆီမှာ နောက်တစ်ပိုင်း ရှိမယ်။',k:'hunt'},
+  c_urn:{t:'မြေအိုးပေါ်က ရေစက်နဲ့ လသုံးဝိုင်း',d:'ဂူထဲက မြေအိုးနှုတ်ခမ်းမှာ ရေစက်ပုံနဲ့ လဝိုင်း သုံးခု။ ရေကြီးတဲ့ ရာသီ (မိုးသုံးလ) ကို ပြတာလား?',k:'hunt'},
+  c_ring:{t:'ရွှေပြားပေါ်က အဝိုင်းနဲ့ အစက်',d:'ရွှေတန်ဆာထဲက ပြားလေးမှာ အဝိုင်းထဲ အစက် — ရှေးသင်္ကေတမှာ ◎ က "တွင်း"။ ဘဏ္ဍာက တွင်းတစ်ခုနဲ့ ဆိုင်နေမလား?',k:'hunt'},
+  r_peacock:{t:'ကိုဇော့်ဆိုင်က ဒေါင်းသေတ္တာ',d:'ကုန်စုံဆိုင် စင်ပေါ်မှာ ဒေါင်းပုံ ထွင်းထားတဲ့ ယွန်းသေတ္တာဟောင်း။ ကိုဇော်က "အဖေ့ပစ္စည်း" တဲ့။',k:'rival'},
   c_riddle:{t:'နံရံ ပဟေဠိ',d:'"စေတီ၊ ရေတံခွန်၊ ရေတွင်း သုံးခု မျက်နှာချင်းဆိုင်ရာ"။ မြေပုံ နှစ်ပိုင်းလုံး ရှိမှ နေရာအတိအကျ တွက်လို့ရမယ်။',k:'hunt'},
   r_hole:{t:'မကြာသေးတဲ့ မြေကျင်း',d:'ညောင်ပင် အရှေ့ဘက် ကျောက်တုံးဘေးမှာ မကြာသေးခင်က တူးထားတဲ့ မြေကျင်း။ မြေစိုတုန်းပဲ။ ကိုယ့်ထက် အရင် တစ်ယောက်ယောက် ဒီကို ရောက်ခဲ့တယ်။',k:'rival'},
   r_steps:{t:'စေတီပျက်က ဖိနပ်ရာ',d:'စေတီပျက် ကျောက်လှေကားပေါ်မှာ ကိုယ့်ဟာ မဟုတ်တဲ့ ဖိနပ်ရာ။ ရွာသားတွေ စီးတဲ့ ကွင်းထိုးဖိနပ် မဟုတ်ဘူး၊ မြို့ဖိနပ်ရာ။',k:'rival'},
@@ -1143,7 +1150,7 @@ function chapterCard2(){
 }
 function storyCard(html,btn){return new Promise(res=>{card.dataset.dismiss='no';show(`${html}<div class="btns"><button class="bt pri" type="button" id="mC">${btn}</button></div>`,c=>c.querySelector('#mC').onclick=()=>{card.dataset.dismiss='';close();res()})})}
 function pickRelic(r){
-  doAct('pick',()=>{S.relics[r.id]=1;burst(r.x,r.y,'#f6e08a',14);
+  doAct('pick',()=>{S.relics[r.id]=1;({urn:'c_urn',gold:'c_ring'})[r.id]&&addClue(({urn:'c_urn',gold:'c_ring'})[r.id]);burst(r.x,r.y,'#f6e08a',14);
     setTimeout(()=>show(`<h2>${r.name}</h2><p>${r.desc}</p><p class="sub">အိတ်ထဲ ဂရုတစိုက် ထည့်လိုက်တယ်။ (ဂူထဲက တွေ့ရှိချက် ${discCount()} / 4)</p><div class="btns"><button class="bt pri" type="button" id="mC">သိမ်းထားမယ်</button></div>`,c=>c.querySelector('#mC').onclick=close),520)},{item:{kind:r.id}});
 }
 function mural(){addClue('c_riddle');show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p>နံရံမှာ ဆင်တွေ၊ ကြာပန်းတွေ၊ မြို့ရိုး ဝိုင်းဝိုင်းကြီးနဲ့ မြစ်တစ်စင်း ထုထားတယ်။ မြို့ရိုးအောက်မှာ ရှေးစာလုံး တစ်တန်း။</p><p>တက္ကသိုလ်မှာ သင်ခဲ့တဲ့ ရှေးအက္ခရာ ဗဟုသုတနဲ့ ဖော်ဖတ်ကြည့်တော့: <b>"စေတီ၊ ရေတံခွန်၊ ရေတွင်း — သုံးခု မျက်နှာချင်းဆိုင်ရာ"</b></p><div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close)}
@@ -1303,10 +1310,18 @@ async function altarScene(){
   await say('nar','ကျောက်ခုံပေါ်မှာ ကြေးဆင်းတုတော် တစ်ဆူ ကိန်းဝပ်နေတယ်။ မီးအိမ်အလင်း ထိတော့ ညိုမှောင်တဲ့ ကြေးရောင် တောက်လာတယ်။');
   await say('nar','လက်အုပ်ချီပြီး ဦးသုံးကြိမ် ချလိုက်တယ်။ စိတ်တွေ ငြိမ်သက်သွားတယ်။ (အားအင် +20)');
   S.relics.buddha=1;S.daily.altar=1;S.energy=Math.min(S.maxE,S.energy+20);
-  await say('nar','ကျောက်ခုံအောက်မှာ ဖယောင်းစက္ကူနဲ့ ထုပ်ထားတဲ့ စာတစ်စောင် ညှပ်ထားတယ်။ အဘိုးရဲ့ လက်ရေးပဲ…');
-  await say('pc','(တိုးတိုးလေး) အဘိုး… ဒီဂူထဲ ဘယ်နှစ်ခါ ဝင်ခဲ့လဲ မသိဘူး။');
-  await letter('l3');
-  await say('me','(ပဟေဠိနဲ့ မြေပုံ နောက်တစ်ပိုင်း… နှစ်ခုလုံး လိုတယ်။ နောက်တစ်ပိုင်းကို ကိုင်ထားတဲ့သူလည်း ဒီဂူထဲ ရောက်ဖူးမှာပဲ။)');
+  await say('nar','ကျောက်ခုံ ခြေရင်းမှာ ဖုန်တွေ ဖုံးနေတဲ့ ကြေးပြား တစ်ချပ်။ ဖုန်သုတ်လိုက်တော့ ရှေးစာတွေ ပေါ်လာတယ်… ဒါပေမဲ့ တစ်ဝက်လောက် ပွန်းပဲ့နေပြီ။');
+  await storyCard('<h2>ကြေးပြား</h2><p style="font-size:1.1em;line-height:2;text-align:center">"…ရွှေပန်းမြို့ ဘဏ္ဍာကို ░░░ မြှုပ်၍…<br>…သစ္စာရှိ အိမ်ထောင် နှစ်ခုထံ ░░░ တစ်ဝက်စီ…<br>…နှစ်ဝက် ပြန်ဆုံမှ ░░░ ပွင့်…"</p><p class="sub">ကျန်တဲ့ စာတွေ ဖတ်လို့ မရတော့ဘူး။</p>','သိမ်းထားမယ်');
+  addClue('c_plaque');
+  await say('me','(ဒေါ်အေးရဲ့ ပုံပြင်… "မိသားစု နှစ်စု၊ အမှတ်အသား တစ်ခုစီ" — ပုံပြင် မဟုတ်ဘူး၊ ဒီမှာ ရေးထားတယ်။ "တစ်ဝက်စီ" ဆိုတာ မြေပုံ နှစ်ပိုင်းပဲ။)');
+  await say('me','(အဘိုးဆီမှာ တစ်ပိုင်း။ နောက်တစ်ပိုင်းက နောက်မိသားစုဆီမှာ… ဘယ်သူလဲ? ဒီဂူထဲမှာ တခြား အမှတ်အသား ရှိသေးလား?)');
+}
+async function chalkScene(){
+  await say('nar','ဂူနံရံမှာ မြေဖြူခဲနဲ့ ရေးထားတဲ့ မျဉ်းတွေ… ရှေးလက်ရာ မဟုတ်ဘူး၊ မကြာသေးတဲ့ နှစ်တွေက ရေးထားတာ။');
+  await storyCard('<h2>နံရံပေါ်က မြေဖြူခဲ</h2><svg viewBox="0 0 220 120" width="100%" style="max-width:320px;display:block;margin:auto;background:#3a3026;border-radius:8px"><g stroke="#e8e2d0" stroke-width="2" fill="none" stroke-linecap="round"><path d="M30 30l8-14 8 14z"/><path d="M160 80v-22M154 80h12M158 62v14M162 62v14"/><path d="M42 30L156 64" stroke-dasharray="5 4"/><path d="M86 34l24 24M110 34l-24 24" stroke-width="3.5"/></g><g fill="#e8e2d0" font-size="9"><text x="22" y="44">စေတီ</text><text x="140" y="96">တောရေတံခွန်</text><text x="8" y="112">၁၉၈၂၊ ၁၉၉၁၊ ၂၀၀၄၊ ၂၀၁၇၊ ၂၀၂၂…</text></g></svg><p class="sub">စေတီကနေ တောထဲက ရေတံခွန်ဆီ မျဉ်း။ အလယ်မှာ ✗ ကြီး။ အောက်မှာ ရက်စွဲတွေ အများကြီး။</p>','ဆက်ကြည့်မယ်');
+  addClue('c_chalk');
+  await say('me','(အဘိုးရဲ့ လက်ရေးပဲ။ နှစ်ပေါင်း လေးဆယ်လောက် ဒီရေတံခွန်နဲ့ ကြိုးစားခဲ့ပြီး မှားခဲ့တယ်…)');
+  await say('me','(ဒါဆို ပဟေဠိထဲက "ရေတံခွန်" က ဒီတောထဲက ရေတံခွန် မဟုတ်ဘူး။ အဘိုး မမြင်ခဲ့တဲ့ ရေတံခွန် တစ်ခုခု ရှိရမယ်။)');
 }
 async function bridgeScene(){
   await say('nar','ထင်းစည်းတွေကို ပြိုနေတဲ့ တံတားနားမှာ ချလိုက်တယ်။');
@@ -1494,23 +1509,25 @@ const WORDS=['စေတီ','ရေတံခွန်','ရေတွင်း','
 function radSVG(ids,sz=40){return `<svg viewBox="-2 -4 ${ids.length*16+2} 18" width="${sz*ids.length*.8+sz*.4}" height="${sz}" fill="none" stroke="#3a2a14" stroke-width="1.6" stroke-linecap="round">${ids.map((id,i)=>`<g transform="translate(${i*16} 0)">${RADS[id].d}</g>`).join('')}</svg>`}
 function decodePuzzle(){
   const pick=GLYPHS.map(()=>-1);let msg='';
-  return new Promise(res=>{const draw=()=>show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p class="sub">မြို့ရိုးအောက်မှာ ရှေးအက္ခရာ သုံးလုံး။ တက္ကသိုလ်မှာ သင်ခဲ့တဲ့ "အမြစ်စာလုံး" ဇယားနဲ့ ဖော်ဖတ်ကြည့်ပါ။</p>
+  return new Promise(res=>{const draw=()=>show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p class="sub">မြို့ရိုးအောက်မှာ ရှေးအက္ခရာ သုံးလုံး။ တက္ကသိုလ်မှာ သင်ခဲ့တဲ့ "ရှေးသင်္ကေတ" ဇယားနဲ့ ဖော်ဖတ်ကြည့်ပါ။</p>
     <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:#efe2c4;border-radius:8px;padding:6px">${Object.entries(RADS).map(([k,v])=>`<div style="text-align:center;font-size:12px;color:#3a2a14">${radSVG([k],26)}<br>${v.n}</div>`).join('')}</div>
     <div style="display:flex;gap:10px;justify-content:center;margin:10px 0">${GLYPHS.map((g,i)=>`<div style="text-align:center"><div style="background:#c8b088;border-radius:6px;padding:4px 6px;margin-bottom:4px">${radSVG(g.r,40)}</div><br><button class="bt" type="button" data-g="${i}" style="min-width:86px">${pick[i]<0?'?':WORDS[pick[i]]}</button></div>`).join('')}</div>
     <p id="dMsg">${msg||'စာလုံးအောက်က ခလုတ်ကို နှိပ်ပြီး အဓိပ္ပာယ် ရွေးပါ။'}</p>
     <div class="btns"><button class="bt pri" type="button" id="dGo">ဖတ်ကြည့်မယ်</button><button class="bt" type="button" id="mC">နောက်မှ</button></div>`,c=>{
       c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const i=+b.dataset.g;pick[i]=(pick[i]+1)%WORDS.length;msg='';draw()});
-      c.querySelector('#dGo').onclick=()=>{const ok=GLYPHS.every((g,i)=>WORDS[pick[i]]===g.a);if(ok){card.dataset.dismiss='';close();res(true)}else{msg=pick.some(p=>p<0)?'စာလုံး သုံးလုံးလုံး ရွေးပါ။':`(${GLYPHS.filter((g,i)=>WORDS[pick[i]]===g.a).length}/3 လုံး မှန်တယ်… အမြစ်စာလုံးတွေကို ပေါင်းကြည့်)`;draw()}};
+      c.querySelector('#dGo').onclick=()=>{const ok=GLYPHS.every((g,i)=>WORDS[pick[i]]===g.a);if(ok){card.dataset.dismiss='';close();res(true)}else{msg=pick.some(p=>p<0)?'စာလုံး သုံးလုံးလုံး ရွေးပါ။':`(${GLYPHS.filter((g,i)=>WORDS[pick[i]]===g.a).length}/3 လုံး မှန်တယ်… ရှေးသင်္ကေတတွေကို ပေါင်းကြည့်)`;draw()}};
       c.querySelector('#mC').onclick=()=>{card.dataset.dismiss='';close();res(false)}});card.dataset.dismiss='no';draw()});
 }
 async function muralScene(){
-  if(S.clues.includes('c_riddle'))return show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p><b>"စေတီ၊ ရေတံခွန်၊ ရေတွင်း — သုံးခု မျက်နှာချင်းဆိုင်ရာ"</b></p><div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
+    if(S.clues.includes('c_riddle'))return show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p><b>"စေတီ၊ ရေတံခွန်၊ ရေတွင်း — သုံးခု မျက်နှာချင်းဆိုင်ရာ"</b></p><p class="sub">ဘေးမှာ မြေပုံ တစ်ဝက်စီ ကိုင်ထားတဲ့ လူနှစ်ယောက် — ကြယ်သုံးပွင့်နဲ့ ဒေါင်း။</p><div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
   await say('nar','နံရံမှာ ဆင်တွေ၊ ကြာပန်းတွေ၊ မြို့ရိုး ဝိုင်းဝိုင်းကြီးနဲ့ မြစ်တစ်စင်း ထုထားတယ်။ မြို့ရိုးအောက်မှာ ရှေးအက္ခရာ တစ်တန်း။');
-  await say('me','(ပုဂံခေတ်မတိုင်ခင်က အမြစ်စာလုံးတွေပဲ။ ဆရာက "စာလုံးတစ်လုံးကို အမြစ်တွေ ပေါင်းပြီး ဖတ်" လို့ သင်ခဲ့တယ်…)');
+  await say('me','(ပုဂံခေတ်မတိုင်ခင်က ရှေးသင်္ကေတတွေပဲ။ ဆရာက "စာလုံးတစ်လုံးကို သင်္ကေတလေးတွေ ပေါင်းပြီး ဖတ်" လို့ သင်ခဲ့တယ်…)');
   const ok=await decodePuzzle();
   if(!ok)return say('me','(နောက်မှ အေးအေးဆေးဆေး ပြန်ဖတ်မယ်။)');
   addClue('c_riddle');
   await say('pc','"စေတီ… ရေတံခွန်… ရေတွင်း" — "သုံးခု မျက်နှာချင်းဆိုင်ရာ"။');
+  await say('nar','စာတန်းရဲ့ ဘေးမှာ မြေပုံ တစ်ဝက်စီ ကိုင်ထားတဲ့ လူနှစ်ယောက် ထုထားတယ်။ တစ်ယောက်ရင်ဘတ်မှာ ကြယ်သုံးပွင့်၊ နောက်တစ်ယောက်ရင်ဘတ်မှာ ဒေါင်းတစ်ကောင်။');
+  addClue('c_peacock');
   await say('me','(ပဟေဠိပဲ။ ဒီသုံးခု ဘယ်မှာလဲ သိရင် နေရာ တွက်လို့ရမယ်။)');
 }
 /* 2 · stone dial lock on the ruin brick */
@@ -2006,6 +2023,7 @@ function exitShop(){const r=S.room;S.scene='farm';setMap(r.map);S.px=r.ex;S.py=r
 function actShop(c){
   const th=SHOP_THEME[S.room.shop];
   if(c==='c'||c==='k'){const i=NPCS.findIndex(d=>d.id===SHOPKEEP[S.room.shop]);if(i>=0)return talk(i);return openShop(S.room.shop)}
+  if(c==='d'&&S.room.shop==='store'&&S.clues.includes('c_peacock')&&!S.clues.includes('r_peacock'))return cutscene(async()=>{await say('nar','စင်ပေါ်မှာ ဖုန်တက်နေတဲ့ ယွန်းသေတ္တာဟောင်း တစ်လုံး။ အဖုံးပေါ်မှာ ဒေါင်းတစ်ကောင် ထွင်းထားတယ်။');await say('me','(ဒေါင်း… ဂူနံရံက လူနှစ်ယောက်ထဲက တစ်ယောက်!)');await say('pc','ကိုဇော်၊ ဒီသေတ္တာ လှလိုက်တာ။ ဘယ်ကရတာလဲ?');await say('zaw','အဲဒါလား… အဖေ့ပစ္စည်း။ ရောင်းဖို့ မဟုတ်ဘူး။','s');addClue('r_peacock')});
   if(c==='d')return toast(th.disp);
   if(c==='s')return toast(th.shelfMsg);
 }
@@ -3406,7 +3424,7 @@ function render(now){
   sprites.sort((a,b)=>a.y-b.y);sprites.forEach(sp=>sp.s&&sp.s());sprites.forEach(sp=>sp.d());
   if(SIT.length){const k=(now/3200)|0,pp=SIT[k%SIT.length];speech(pp[0],pp[1]-6,teaLine(k))}
   kites.forEach(([hx,hy,i])=>drawKite(hx,hy,1,now,i));
-  drawThingyan(cx,cy,now);drawFest(cx,cy,now);
+  drawThingyan(cx,cy,now);drawFest(cx,cy,now);if(S.map==='cave'&&S.scene==='farm'){const x=11*T-cx,y=18*T-cy;if(x>-20&&x<VW*T&&y>-20&&y<VH*T){C.globalAlpha=.75;R('#e8e2d0',x+3,y+4,7,1);R('#e8e2d0',x+5,y+2,1,5);R('#e8e2d0',x+9,y+8,4,1);R('#e8e2d0',x+4,y+10,1,1);R('#e8e2d0',x+6,y+11,1,1);R('#e8e2d0',x+8,y+12,1,1);C.globalAlpha=1}}
 
   {const ppx=Math.round(rx*T-cx),ppy=Math.round(ry*T-cy)-7;
     if(fishRT){const bite=fishRT.phase==='bite';drawRod(ppx,ppy,S.dir,fishRT.x*T+8-cx,fishRT.y*T+8-cy,bite);
