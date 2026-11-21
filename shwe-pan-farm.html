@@ -244,7 +244,7 @@ const CAVE_ROWS=["##############################", "##########AAAAAAAAA#########
 const CCH={'#':CWALL,'.':CFLOOR,'A':MURAL,'B':ALTAR,'c':CRYST,'o':CBOULD,'r':RUBBLE,'z':STAIR,'~':WATER};
 const newCave=()=>({w:CAVE_ROWS[0].length,h:CAVE_ROWS.length,tiles:CAVE_ROWS.map(r=>[...r].map(c=>CCH[c]??CFLOOR))});
 const RELICS=[
-  {id:'coin',x:4,y:12,name:'ရှေးဟောင်း ငွေဒင်္ဂါး',desc:'ရေကန်ဘေး ရွှံ့ထဲမှာ မြုပ်နေတဲ့ ငွေဒင်္ဂါး အပြားလေးတွေ။ တစ်ဖက်မှာ နေထွက်ပုံ၊ နောက်တစ်ဖက်မှာ သီရိဝစ္ဆ အမှတ်အသား ထုထားတယ်။ နှစ်ပေါင်း ထောင်ချီ ကြာပြီ ထင်တယ်။ အနားမှာ ကြယ်သုံးပွင့် အထွင်း — ခြံထဲမှာ ကြက်တွေ ယက်ထုတ်တဲ့ ဒင်္ဂါးနဲ့ တူတူပဲ!'},
+  {id:'coin',x:4,y:12,name:'ရှေးဟောင်း ငွေဒင်္ဂါး',desc:'ရေကန်ဘေး ရွှံ့ထဲမှာ မြုပ်နေတဲ့ ငွေဒင်္ဂါး အပြားလေးတွေ။ တစ်ဖက်မှာ နေထွက်ပုံ၊ နောက်တစ်ဖက်မှာ သီရိဝစ္ဆ အမှတ်အသား ထုထားတယ်။ နှစ်ပေါင်း ထောင်ချီ ကြာပြီ ထင်တယ်။ အနားမှာ ကြယ်သုံးပွင့် အထွင်း။'},
   {id:'urn',x:26,y:16,name:'ရှေးဟောင်း မြေအိုး',desc:'ပြိုကျနေတဲ့ ကျောက်တွေ နောက်ကွယ်မှာ ထားခဲ့တဲ့ အဝိုင်းပုံ မြေအိုး။ နှုတ်ခမ်းမှာ ကြာပန်းပွင့် အဆင်ကို လက်နဲ့ ထွင်းထားတယ်။ ဘိုးဘွားတွေ အရိုးပြာ ထည့်ခဲ့တဲ့ အိုးမျိုး ဖြစ်နိုင်တယ်။ နှုတ်ခမ်းအောက်မှာ ရေစက်ပုံနဲ့ လဝိုင်း သုံးခု ထွင်းထားတယ်။'},
   {id:'gold',x:17,y:3,name:'ရွှေငွေ အဆင်တန်ဆာ',desc:'ကွဲနေတဲ့ ကျောက်သေတ္တာလေးထဲက ရွှေလက်ကောက်နဲ့ ငွေနားကပ်တွေ။ ဖုန်တွေ ဖုံးနေပေမဲ့ မီးအိမ်အလင်းမှာ တလက်လက် တောက်နေတယ်။ ပြားလေး တစ်ချပ်မှာ အဝိုင်းထဲ အစက် — ရှေးသင်္ကေတ "တွင်း" ပဲ။'},
 ];
@@ -597,7 +597,7 @@ function act(){
   if(t===BIN)return ship();
   if(t===HOUSE){if(fx===DOOR[0]&&fy===DOOR[1])return enterHouse();return toast('အိမ်တံခါးက အလယ်မှာပါ')}
   if(t===TROUGH)return feedChickens();
-  if(egg>=0&&S.eggs[egg].k==='coin'){S.eggs.splice(egg,1);return doAct('pick',()=>{S.produce.ancoin=(S.produce.ancoin||0)+1;burst(fx,fy,'#f6e08a',10);toast('ကြက်တွေ ယက်ထုတ်ထားတဲ့ ရှေးဒင်္ဂါး တစ်ပြား!');addClue('c_coin')},{item:{kind:'coin'}})}
+  if(egg>=0&&S.eggs[egg].k==='coin'){S.eggs.splice(egg,1);return doAct('pick',()=>{S.produce.ancoin=(S.produce.ancoin||0)+1;burst(fx,fy,'#f6e08a',10);const m=S.relics.coin&&!S.clues.includes('c_coin')?'ကြက်တွေ ယက်ထုတ်ထားတဲ့ ရှေးဒင်္ဂါး… ကြယ်သုံးပွင့်! ဂူထဲက ဒင်္ဂါးနဲ့ တူတူပဲ!':'ကြက်တွေ ယက်ထုတ်ထားတဲ့ ရှေးဒင်္ဂါး တစ်ပြား!';addClue('c_coin');setTimeout(()=>toast(m),1600)},{item:{kind:'coin'}})}
   if(egg>=0){S.eggs.splice(egg,1);return doAct('pick',()=>{S.produce.egg++;S.stats.eggs++;burst(fx,fy,'#fff6dc');toast('ကြက်ဥ ကောက်လိုက်တယ်')},{item:{kind:'egg'}})}
   if(crop){
     const d=CROPS[crop.type];
@@ -1151,7 +1151,7 @@ function chapterCard2(){
 function storyCard(html,btn){return new Promise(res=>{card.dataset.dismiss='no';show(`${html}<div class="btns"><button class="bt pri" type="button" id="mC">${btn}</button></div>`,c=>c.querySelector('#mC').onclick=()=>{card.dataset.dismiss='';close();res()})})}
 function pickRelic(r){
   doAct('pick',()=>{S.relics[r.id]=1;({urn:'c_urn',gold:'c_ring'})[r.id]&&addClue(({urn:'c_urn',gold:'c_ring'})[r.id]);burst(r.x,r.y,'#f6e08a',14);
-    setTimeout(()=>show(`<h2>${r.name}</h2><p>${r.desc}</p><p class="sub">အိတ်ထဲ ဂရုတစိုက် ထည့်လိုက်တယ်။ (ဂူထဲက တွေ့ရှိချက် ${discCount()} / 4)</p><div class="btns"><button class="bt pri" type="button" id="mC">သိမ်းထားမယ်</button></div>`,c=>c.querySelector('#mC').onclick=close),520)},{item:{kind:r.id}});
+    setTimeout(()=>show(`<h2>${r.name}</h2><p>${r.desc}${r.id==='coin'?(S.clues.includes('c_coin')?' <b>ခြံထဲမှာ ကြက်တွေ ယက်ထုတ်တဲ့ ဒင်္ဂါးနဲ့ တူတူပဲ!</b>':' ဒီလို ဒင်္ဂါးမျိုး အခုမှ ပထမဆုံး မြင်ဖူးတယ်။'):''}</p><p class="sub">အိတ်ထဲ ဂရုတစိုက် ထည့်လိုက်တယ်။ (ဂူထဲက တွေ့ရှိချက် ${discCount()} / 4)</p><div class="btns"><button class="bt pri" type="button" id="mC">သိမ်းထားမယ်</button></div>`,c=>c.querySelector('#mC').onclick=close),520)},{item:{kind:r.id}});
 }
 function mural(){addClue('c_riddle');show(`<h2>ရှေးဟောင်း နံရံ ရုပ်ကြွ</h2><p>နံရံမှာ ဆင်တွေ၊ ကြာပန်းတွေ၊ မြို့ရိုး ဝိုင်းဝိုင်းကြီးနဲ့ မြစ်တစ်စင်း ထုထားတယ်။ မြို့ရိုးအောက်မှာ ရှေးစာလုံး တစ်တန်း။</p><p>တက္ကသိုလ်မှာ သင်ခဲ့တဲ့ ရှေးအက္ခရာ ဗဟုသုတနဲ့ ဖော်ဖတ်ကြည့်တော့: <b>"စေတီ၊ ရေတံခွန်၊ ရေတွင်း — သုံးခု မျက်နှာချင်းဆိုင်ရာ"</b></p><div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close)}
 function fixBridge(){
