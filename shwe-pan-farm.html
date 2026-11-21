@@ -188,7 +188,7 @@ const YARD={x0:22,x1:27,y0:11,y1:15};
 const FIELD={x0:4,x1:18,y0:9,y1:19};
 const DOOR=[5,5],GATE=[29,20];
 const KEY='shwepan-farm-v6';
-const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt....F#","#.tt...C.#","#........#","####D#####"];
+const HMAP=["##########","#S#w##w#K#","#.....BB.#","#.....BB.#","#.tt.....#","#.tt...C.#","#F.......#","####D#####"];
 const HSOLID=new Set(['#','S','w','K','B','t','C','F']);
 const hTile=(x,y)=>(y<0||y>=HMAP.length||x<0||x>=10)?'#':HMAP[y][x];
 
@@ -3337,7 +3337,7 @@ function renderHouse(now){
   for(let i=0;i<4;i++)for(let j=0;j<3;j++)R('#8a7a6a',kx+4+i*2,ky+6+j*2,1,1);R(['#e2402f','#3f86c9','#7fa556'][curS()],kx+4+((S.day-1)%4)*2,ky+6+(((S.day-1)>>2)%3)*2,1,1);
   // lamp
   R('#3a2414',X(5),Y(1)+8,1,10);OL([['#c99a40',X(5)-2,Y(1)+18,5,5]],'#3a2414');R(night?'#ffe08a':'#e8c86a',X(5)-1,Y(1)+19,3,3);
-  {const fx2=X(8),fy2=Y(4),fl=((now/120)|0)%2;R('rgba(0,0,0,.25)',fx2+1,fy2+13,14,3);OL([['#7a4a2a',fx2+1,fy2+4,14,10]],'#2a1a10');R('#a86a3a',fx2+2,fy2+5,12,3);R('#2a1a10',fx2+4,fy2+9,8,4);R(fl?'#ff9a2a':'#ffd36a',fx2+5,fy2+10,6,2);R('#ffe8a0',fx2+7,fy2+10,2,1);
+  {const fx2=X(1),fy2=Y(6),fl=((now/120)|0)%2;R('rgba(0,0,0,.25)',fx2+1,fy2+13,14,3);OL([['#7a4a2a',fx2+1,fy2+4,14,10]],'#2a1a10');R('#a86a3a',fx2+2,fy2+5,12,3);R('#2a1a10',fx2+4,fy2+9,8,4);R(fl?'#ff9a2a':'#ffd36a',fx2+5,fy2+10,6,2);R('#ffe8a0',fx2+7,fy2+10,2,1);
     disc('#3a3a3a',fx2+8,fy2+3,5);R('#5a5a5a',fx2+4,fy2+1,8,2);if(((now/400)|0)%3){R('rgba(255,255,255,.5)',fx2+7,fy2-4,1,3);R('rgba(255,255,255,.35)',fx2+9,fy2-7,1,3)}}
   const[rx,ry]=playerPos();drawPlayer(Math.round(ox+rx*T),Math.round(oy+ry*T)-7);
   if(!paused){const[fx,fy]=front();if(HSOLID.has(hTile(fx,fy))&&fy>0)marker(ox+fx*T,oy+fy*T,now)}
