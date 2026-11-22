@@ -1,3 +1,4 @@
+# Builds the Android app (debug APK + Play Store bundle) whenever the game or android/ changes.
 name: Android build
 
 on:
