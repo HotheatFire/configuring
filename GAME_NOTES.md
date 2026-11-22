@@ -249,6 +249,12 @@
 - ဖောင့် ၅ ဖိုင် (Padauk မြန်မာ/လက်တင် 400·700, VT323) ကို HTML ထဲ base64 ထည့် → အင်တာနက်မလို
 - နောက်ခံတေးဂီတ (`musTick`, pentatonic, နေ့/ည/မိုး/ဂူ/ပွဲတော် ကွဲ) + မိုးသံ (noise, အပြင်ကျယ် အိမ်ထဲတိုး) · Setting "🎵 တေးဂီတ နဲ့ မိုးသံ" (`shwepan-bgm`)
 
+### Android app (`android/`, `.github/workflows/android.yml`)
+- WebView project (Java, AGP 8.7.3, target 35, package `com.zay.shwepanfarm`) · build ချိန် `shwe-pan-farm.html` → assets/index.html
+- GitHub Actions က push တိုင်း debug APK + release AAB ထုတ် (run #45030993124 အောင်မြင်) · upload key secret ၄ ခု လို (key ကို repo ထဲ မထည့်)
+- Splash/icon = နေကြာပန်း (icon-1) · `play-store/` မှာ listing, privacy policy, feature graphic, screenshot
+- ဂိမ်းဘက်: app ထဲမှာ ⛶ ဖျောက်၊ နောက်ခံရောက်ရင် အသံစနစ် ရပ်၊ ဖုန်းမှာ ဆော့နည်းထဲ ကီးဘုတ်စကား မပြ · နေ့ရွေး ဒီအတိုင်းထား၊ save export မလုပ် (user)
+
 ### မှတ်စု (tab ၅ ခု)
 - 📋 လုပ်စရာ (⭐ ဇာတ်လမ်း / 🧺 မှာစာ / 💬 ဘေး / 🌾 ခြံ · ပြီးသားက ခေါက်ထား) · 🔍 သဲလွန်စ (ဖွင့်/ပိတ်၊ "အသစ်") · 👤 ပြိုင်ဘက် · 📜 စာနဲ့ မြေပုံ · 👥 ရွာသား (♥ + လက်ဆောင်ပေးဖူးတာ ❤️/🙂 `S.giftLog`)
 - ခေါင်းစဉ်မှာ အခန်း · နေ့ · သံသယ၊ အသစ်ရှိတဲ့ tab မှာ အနီစက်၊ နောက်ဆုံးဖွင့်ခဲ့တဲ့ tab ကို မှတ်
