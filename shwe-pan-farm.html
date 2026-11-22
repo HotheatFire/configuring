@@ -2118,15 +2118,95 @@ const ENDINGS={
   lost:{t:'ဇာတ်သိမ်း · နောက်ကျခဲ့တဲ့ည',p:['ကျောက်ခန်းထဲမှာ ဗလာ။ ကိုဇော့်ဆိုင်လည်း နောက်နေ့မနက်မှာ ပိတ်ထားပြီး သူ မြို့ကို ပြောင်းသွားပြီလို့ ကြားရတယ်။','ရွာထဲမှာ သံသယတွေ များလွန်းခဲ့တယ်။ ကိုဇော်က ကိုယ့်ခြေရာကို လိုက်ပြီး အရင် ရောက်သွားခဲ့တာ။','အဘိုးရဲ့ စာကို ပြန်ဖတ်ရင်း… "ဘယ်သူ့ကိုမှ အလွယ်တကူ မယုံနဲ့" တဲ့။'],e:'🌑'},
   none:{t:'ဇာတ်သိမ်း · မပြီးဆုံးသေးတဲ့ ပုံပြင်',p:['ဆောင်းရာသီ ကုန်ဆုံးသွားပြီ။ အဘိုးရဲ့ ဘဏ္ဍာကို မတွေ့ခဲ့ဘူး။','ဒါပေမဲ့ ခြံလေး စိမ်းလန်းလာပြီ၊ ရွာသားတွေနဲ့ ခင်မင်လာပြီ။ အဘိုးလိုပဲ… တစ်နေ့ ရှာတွေ့မှာပါ။'],e:'🍂'},
 };
+/* ---------- endings play out as short scenes before the summary card ---------- */
+const crowdAt=(map,L)=>L.map(([id,x,y,tx,ty])=>({a:addActor(id,id==='rep'?REP_SPR:NS[id],map,x,y),tx,ty}));
+const walkIn=async C=>{await Promise.all(C.map(c=>moveActor(c.a,c.tx,c.ty)))};
+async function endTogether(){
+  await storyCard('<h2 class="big">🌕</h2><p style="text-align:center">တစ်လအကြာ…</p>','ဆက်ကြည့်မယ်');
+  S.min=540;S.weather='sun';fade=1;goMap('village',55,33,'up');await wait(500);
+  const C=crowdAt('village',[['hla',52,37,56,31],['monk',50,36,57,30],['zaw',53,38,54,32],['aye',51,38,55,31],['khine',54,39,59,32],['mya',49,37,60,31],['san',50,39,53,31],['kyaw',55,39,61,30]]);
+  await say('nar','ညောင်ပင်ကြီးအောက်မှာ ရွာသားတွေ စုမိကြတယ်။ ဒီနေ့ ကျောင်းဆောင်သစ်ရဲ့ အုတ်မြစ်ချပွဲ။');
+  await walkIn(C);C.forEach(c=>c.a.dir='up');
+  await say('hla','ကျောင်းဆောင်သစ်၊ ဆေးပေးခန်း၊ ရေကန်… အကုန် ဘိုးဘွားတွေ ချန်ထားခဲ့တဲ့ ဘဏ္ဍာကနေ ဖြစ်လာတာ။ ကလေးနဲ့ ကိုဇော့်ကြောင့်ပဲ။','h');
+  await say('monk','ရွှေကြာပန်းကို ကျောင်းမှာ ပူဇော်ထားမယ် ဒကာလေး။ ရွှေပန်းမြို့သားတို့ရဲ့ အမွေ ရွာထဲမှာပဲ ကျန်ပါစေ။');
+  burst(58,30,'#f6e08a',20);await wait(500);
+  await say('zaw','အမေ မြို့ဆေးရုံမှာ ကုသမှု စခံယူနေပြီ။ ဆရာဝန်က ကောင်းလာမယ်တဲ့။ …ကျေးဇူးပဲ ညီလေး။','h');
+  await say('pc','ကျွန်တော့်အဘိုးနဲ့ ကိုဇော့်အဖေ… အခုမှ ပြန်ဆုံကြတယ်လို့ ခံစားရတယ်ဗျာ။');
+  await say('aye','"နှစ်စု ပြန်ဆုံမှ ပွင့်မယ်"… ငါ့အဘွား ပြောခဲ့တဲ့ ပုံပြင်က အမှန်ပဲ ကလေးရဲ့။','h');
+  for(let k=0;k<4;k++){C.forEach((c,n)=>{if((n+k)%2===0)burst(c.a.x,c.a.y-1,'#9fd0ff',6)});burst(58,30,'#9fd0ff',10);await wait(380)}
+  await say('nar','ရွာသားတွေ ညောင်ပင်ရင်းကို ရေအေးအေး သွန်းကြတယ်။ ရယ်သံတွေ ညောင်ရွက်တွေကြားမှာ လွင့်နေတယ်။');
+  S.min=1050;fade=1;goMap('farm',10,8,'down');await wait(500);
+  const z=addActor('zaw',NS.zaw,'farm',20,8);await moveActor(z,11,8);z.dir='left';S.dir='right';
+  await say('nar','ကိုဇော့်ဆိုင်ထဲမှာ အဘိုးနဲ့ ဦးဘိုးသိန်းရဲ့ မြေပုံ နှစ်ပိုင်းကို ဘောင်ကွပ်ပြီး ချိတ်ထားတယ်။ ညနေတိုင်း ခြံကို လက်ဖက်ရည် လာသောက်တယ်။');
+  await say('zaw','မနက်ဖြန် မျိုးစေ့ချ လာကူမယ်ဗျာ။ မင်းအဘိုးလို ပေါက်ပြား ကိုင်တတ်အောင် သင်ပေး။','h');
+  await say('pc','ကြိုဆိုပါတယ် ကိုဇော်။');
+  await say('me','(အဘိုး… ကျွန်တော် ဒီခြံလေးမှာ ဆက်နေမယ်။ နှစ်စုလုံးနဲ့အတူ။)');
+}
+async function endAlone(){
+  await storyCard('<h2 class="big">🪙</h2><p style="text-align:center">တစ်ပတ်အကြာ…</p>','ဆက်ကြည့်မယ်');
+  S.min=600;fade=1;goMap('village',47,43,'up');await wait(500);
+  await say('nar','ကုန်စုံဆိုင် တံခါး ပိတ်ထားတယ်။ "ဆိုင်ပိတ်ပါပြီ" ဆိုတဲ့ စာရွက်လေး ကပ်ထားတယ်။');
+  await say('me','(ကိုဇော်… ဘာမှ မပြောဘဲ ထွက်သွားတယ်။)');
+  const C=crowdAt('village',[['aye',51,46,48,43]]);await walkIn(C);C[0].a.dir='left';S.dir='right';
+  await say('aye','ကိုဇော်လား? မြို့ကို ပြောင်းသွားပြီတဲ့။ အမေ့ကိုလည်း ခေါ်သွားတယ်… ဆေးဖိုး ရှာရဦးမယ်တဲ့။','s');
+  await say('aye','မင်းအဘိုးနဲ့ ဦးဘိုးသိန်းလည်း ဒီလိုပဲ ကွဲခဲ့ကြတာ ကလေးရဲ့။');
+  S.min=1260;fade=1;goMap('farm',5,8,'down');await wait(600);
+  await say('nar','ငွေတွေ အများကြီး ရှိပေမဲ့ ခြံလေးက တိတ်ဆိတ်နေတယ်။ ပိုးဟပ်ကောင်တွေ အော်သံပဲ ကြားနေရတယ်။');
+  await say('me','(ပေရွက်ပေါ်က "ရွှေပန်းမြို့သားတို့အတွက်" ဆိုတဲ့ စာ… ညတိုင်း ပြန်ပြန် သတိရနေတယ်။)');
+  await say('me','(အဘိုးလိုပဲ… ကျွန်တော်လည်း သူငယ်ချင်း တစ်ယောက် ဆုံးရှုံးခဲ့ပြီ။)');
+}
+async function endSold(){
+  S.min=480;fade=1;goMap('farm',22,12,'down');await wait(500);
+  await say('nar','နောက်နေ့မနက် ကားကြီး တစ်စီး ခြံရှေ့ ထိုးရပ်တယ်။');
+  const r=addActor('rep',REP_SPR,'farm',28,20);const [tx,ty]=nearSpot();await moveActor(r,tx,ty);faceTo(r);
+  await say('rep','ကဲ… ကားပေါ် အကုန်တင်ပြီးပြီ။ ငွေကတော့ သဘောတူထားတဲ့အတိုင်း။','h');
+  await say('pc','ရွှေကြာပန်းကော… ပြတိုက်ကို ပို့မှာလား?');
+  await say('rep','ပြတိုက်? ဟား ဟား… ပြတိုက်က ဒီလောက် မပေးဘူး ညီလေး။ မြို့က စုဆောင်းသူ တစ်ယောက် စောင့်နေတယ်။');
+  await moveActor(r,28,20);
+  S.min=840;fade=1;goMap('village',55,33,'up');await wait(500);
+  const C=crowdAt('village',[['aye',51,37,55,31],['hla',53,38,57,31]]);await walkIn(C);C.forEach(c=>c.a.dir='up');
+  await say('aye','ကလေး… ရွှေပန်းမြို့ဟောင်းရဲ့ အမွေကို ငါတို့ တစ်ခါမှ မမြင်လိုက်ရဘူးနော်။','s');
+  await say('hla','ကလေးရဲ့ ကိစ္စပါ… ဒါပေမဲ့ မင်းအဘိုး ဒီလို လုပ်မယ်လို့တော့ ငါ မထင်ဘူး။');
+  await say('me','(ငွေတွေ ရပေမဲ့… ဘာလို့ ရင်ထဲ ဟာနေတာလဲ။)');
+  await say('nar','ဒေါ်အေးရဲ့ ပုံပြင်ကတော့ ပုံပြင်အဖြစ်ပဲ ကျန်နေခဲ့တယ်။');
+}
+async function endLost(){
+  S.min=480;fade=1;goMap('village',47,43,'up');await wait(500);
+  await say('nar','နောက်နေ့မနက်။ ကုန်စုံဆိုင် တံခါး ပိတ်ထားတယ်။');
+  const C=crowdAt('village',[['kyaw',51,46,48,43],['san',44,46,46,43]]);await walkIn(C);C[0].a.dir='left';C[1].a.dir='right';
+  await say('kyaw','ကိုဇော်လား? မနက်စောစောကြီး ကားငှားပြီး မြို့ကို ပြောင်းသွားပြီကွ။ အိုးကြီး အိမ်ကြီးတွေ တင်သွားတယ်။');
+  await say('san','ရွာထဲမှာ ကလေးအကြောင်း တီးတိုး ပြောနေကြတာ ကြာပြီလေ… ညဘက် ဟိုသွား ဒီသွားနဲ့။','s');
+  await say('me','(ကိုဇော်က ကျွန်တော့် ခြေရာကို လိုက်ပြီး အရင် ရောက်သွားခဲ့တာ…)');
+  S.min=1260;fade=1;goMap('farm',5,8,'down');await wait(600);
+  await say('me','(အဘိုးရဲ့ စာကို ပြန်ဖတ်ကြည့်တယ်… "ဘယ်သူ့ကိုမှ အလွယ်တကူ မယုံနဲ့" တဲ့။)');
+  await say('me','(နောက်ကျခဲ့ပြီ။)');
+}
+async function endNone(){
+  S.min=1080;fade=1;goMap('farm',10,8,'down');await wait(500);
+  await say('nar','ဆောင်းရာသီရဲ့ နောက်ဆုံးညနေ။ ခြံလေးပေါ်ကို နေရောင်ဝါဝါ ကျနေတယ်။');
+  const C=crowdAt('farm',[['hla',20,8,12,8],['mya',20,9,12,9]]);await walkIn(C);C.forEach(c=>c.a.dir='left');S.dir='right';
+  await say('hla','ကလေး၊ ဆောင်းကုန်ပြီနော်။ ခြံလေး စိမ်းစိမ်းစိုစို ဖြစ်လာတာ မင်းအဘိုး မြင်ရင် ဝမ်းသာမှာ။','h');
+  await say('mya','နောက်နှစ် မျိုးစေ့အသစ်တွေ ယူလာပေးမယ်နော်!','h');
+  await say('pc','ကျေးဇူးပါ။ ကျွန်တော် ဒီမှာ ဆက်နေမှာပါ။');
+  await say('me','(အဘိုးရဲ့ ဘဏ္ဍာကို မတွေ့ခဲ့ဘူး… ဒါပေမဲ့ အဘိုးလိုပဲ၊ တစ်နေ့ ရှာတွေ့မှာပါ။)');
+}
+const ENDING_SCENES={together:endTogether,alone:endAlone,sold:endSold,lost:endLost,none:endNone};
+let ENDING_ON=false;
 function finalEnding(k){
-  const E=ENDINGS[k];S.over=true;S.flags.ending=k;if(k==='sold')S.money+=50000;if(k==='alone')S.money+=30000;save();
+  if(ENDING_ON)return;ENDING_ON=true;S.flags.ending=k;if(k==='sold')S.money+=50000;if(k==='alone')S.money+=30000;
+  const run=async()=>{try{await ENDING_SCENES[k]()}catch(e){console.error(e)}$('dlg').hidden=true;endingCard(k)};
+  if(CUT)return run();
+  cutscene(run);
+}
+function endingCard(k){
+  const E=ENDINGS[k];S.over=true;S.flags.ending=k;ENDING_ON=false;save();
   card.dataset.dismiss='no';
   const h=S.clues.filter(c=>CLUES[c].k==='hunt').length,r=S.clues.filter(c=>CLUES[c].k==='rival').length;
-  show(`<h2 class="big">${E.e} ${E.t}</h2>${E.p.map(p=>`<p>${p}</p>`).join('')}
+  show(`<h2 class="big">${E.e} ${E.t}</h2><p>${E.p[E.p.length-1]}</p>
   <div class="kv"><span>ရောက်ခဲ့တဲ့နေ့</span><span>${S.day} / 30</span><span>သိုက်သဲလွန်စ</span><span>${h}</span><span>ပြိုင်ဘက်ရဲ့ ခြေရာ</span><span>${r}</span>
   <span>ရိတ်သိမ်းခဲ့တဲ့ အသီးအနှံ</span><span>${S.stats.harvested}</span><span>ရောင်းရငွေ စုစုပေါင်း</span><span>${fmt(S.stats.earned)} ကျပ်</span><span>ခင်မင်ခဲ့တဲ့ ရွာသား</span><span>${friendsCount()} / ${NPCS.length}</span></div>
   <p class="sub">ဇာတ်သိမ်း ၄ မျိုး ရှိတယ် — မိသားစု နှစ်စု၊ တစ်ယောက်တည်း၊ မြို့ကို ရောင်း၊ မတွေ့ (နောက်ကျခဲ့တဲ့ည)။</p>
-  <div class="btns"><button class="bt pri" type="button" id="mR">ဂိမ်းအသစ် စမယ်</button></div>`,c=>c.querySelector('#mR').onclick=()=>{clearSave();S=fresh();initS();save();card.dataset.dismiss='';close()});
+  <div class="btns"><button class="bt pri" type="button" id="mR">ဂိမ်းအသစ် စမယ်</button></div>`,c=>{const b=c.querySelector('#mR');b.disabled=true;b.blur();setTimeout(()=>{b.disabled=false},1800);b.onclick=()=>{clearSave();S=fresh();initS();save();card.dataset.dismiss='';close()}});
 }
 /* first meeting: everyone says hello before anything else */
 const GREET={
