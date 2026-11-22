@@ -154,6 +154,18 @@ body.touch-off #keys{display:block!important}
   body:not(.touch-off).land-touch .card{max-height:92vh;padding:12px}
   body:not(.touch-off).land-touch #fsBtn{display:block}
 }
+/* minimap: fills the screen, side panel in landscape */
+.card.wide{max-width:min(96vw,620px)}
+.mapsvg svg{width:100%;height:auto;max-height:70vh}
+.mt2{display:none}
+@media (orientation:landscape) and (max-height:600px){
+  .card.wide{max-width:98vw;width:auto;max-height:96vh;padding:8px 12px}
+  .card.wide .mt1{display:none}.card.wide .mt2{display:block;margin:0;font-size:18px}
+  .mapwrap{display:flex;gap:12px;align-items:flex-start;min-height:0}
+  .mapsvg{flex:0 1 auto;min-width:0}
+  .mapsvg svg{height:calc(96vh - 24px);width:auto;max-width:74vw;max-height:none}
+  .mapside{flex:1 1 170px;min-width:150px;max-height:calc(96vh - 24px);overflow:auto;display:flex;flex-direction:column;gap:8px}
+}
 @keyframes pulseDot{0%,100%{r:3.5;opacity:1}50%{r:5.2;opacity:.55}}
 
 </style>
@@ -780,7 +792,7 @@ function endDay(passedOut){
 
 /* ---------- modals ---------- */
 const modal=document.getElementById('modal'),card=document.getElementById('mcard');
-function show(html,bind){card.innerHTML=html;modal.hidden=false;paused=true;held=[];bind&&bind(card);const b=card.querySelector('.bt.pri')||card.querySelector('.bt');b&&b.focus()}
+function show(html,bind){card.classList.remove('wide');card.innerHTML=html;modal.hidden=false;paused=true;held=[];bind&&bind(card);const b=card.querySelector('.bt.pri')||card.querySelector('.bt');b&&b.focus()}
 function close(){modal.hidden=true;paused=false;last=performance.now();hud();belt()}
 let downOnBackdrop=false;modal.addEventListener('pointerdown',e=>{downOnBackdrop=e.target===modal});
 modal.addEventListener('click',e=>{const ok=downOnBackdrop;downOnBackdrop=false;if(ok&&e.target===modal&&!S.over&&card.dataset.dismiss!=='no')close()});
@@ -928,14 +940,15 @@ function openMap(){
   const npcsHere=npcRT.map((n,i)=>n.active&&n.map===m?`<g><circle cx="${(n.x*sc).toFixed(1)}" cy="${(n.y*sc).toFixed(1)}" r="3.4" fill="#7cc4f0" stroke="#162432" stroke-width="1.2"/><text x="${(n.x*sc).toFixed(1)}" y="${Math.min(sh2-2,n.y*sc+10).toFixed(1)}" text-anchor="middle" font-size="7" fill="#bfe6ff" stroke="#162432" stroke-width="2" paint-order="stroke">${NPCS[i].name.replace(/^(ဦး|ဒေါ်|ကို|မ)/,'')}</text></g>`:'').join('');
   const px=(S.px*sc).toFixed(1),py=(S.py*sc).toFixed(1);
   const whoList=NPCS.map((d,i)=>{const n=npcRT[i];const loc=!n||!n.active?'အိမ်ထဲ / နားနေ':inShop(n)?`${MAPNAME[n.map]} (ဆိုင်ထဲ)`:MAPNAME[n.map];return `<span>${d.name}</span><span>${loc}</span>`}).join('');
-  show(`<h2>🗺 ${MAPNAME[m]}${S.scene==='house'?' (အိမ်ထဲ)':S.scene==='shop'?' (ဆိုင်ထဲ)':''}</h2>
-  <svg viewBox="0 0 ${sw} ${sh2}" width="100%" style="max-width:380px;display:block;margin:auto;border:2px solid var(--plank);border-radius:8px;background:${m==='cave'?'#3b322b':'#557a34'}">
+  const mt=`🗺 ${MAPNAME[m]}${S.scene==='house'?' (အိမ်ထဲ)':S.scene==='shop'?' (ဆိုင်ထဲ)':''}`;
+  show(`<h2 class="mt1">${mt}</h2>
+  <div class="mapwrap"><div class="mapsvg"><svg viewBox="0 0 ${sw} ${sh2}" style="display:block;margin:auto;border:2px solid var(--plank);border-radius:8px;background:${m==='cave'?'#3b322b':'#557a34'}">
     ${rects}${pois}${npcsHere}
     <circle cx="${px}" cy="${py}" r="4.5" fill="#8fd16a" stroke="#fff" stroke-width="1.6" style="animation:pulseDot 1.4s infinite"/>
-  </svg>
+  </svg></div><div class="mapside"><h2 class="mt2">${mt}</h2>
   <p class="sub" style="text-align:center">🟢 ကိုယ် · 🔵 ရွာသား · 🟡 ဆိုင်/နေရာ</p>
   <details><summary class="sub">👥 ရွာသားတွေ အခု ဘယ်မှာလဲ</summary><div class="kv" style="margin-top:6px;font-size:13px">${whoList}</div></details>
-  <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>c.querySelector('#mC').onclick=close);
+  <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div></div></div>`,c=>c.querySelector('#mC').onclick=close);card.classList.add('wide');
 }
 function slotMenu(mode,fromTitle){
   card.dataset.dismiss=fromTitle?'no':'';
