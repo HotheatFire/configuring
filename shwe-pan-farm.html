@@ -129,7 +129,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 <div id="app">
   <header id="hud">
-    <div class="row"><span class="chip" id="hDay"></span><span class="chip" id="hTime"></span><span class="chip" id="hWx"></span></div>
+    <div class="row"><span class="chip" id="hDay"></span><span class="chip" id="hTime"></span><button class="chip btn" id="bSpd" type="button" aria-label="အချိန် အမြန်နှုန်း">▶ ×1</button><span class="chip" id="hWx"></span></div>
     <div class="row"><span class="chip gold" id="hMoney"></span><button class="chip btn" id="bQuest" type="button">မှတ်စု</button><button class="chip btn" id="bBag" type="button">အိတ်</button><button class="chip btn" id="bSet" type="button" aria-label="Setting">⚙</button><button class="chip btn" id="fsBtn" type="button" aria-label="Full screen">⛶</button></div>
     <div class="bars">
       <div class="bar"><span>အားအင်</span><i><b id="eBar"></b></i></div>
@@ -850,7 +850,7 @@ function help(){
   <li>တောထဲမှာ မှို၊ မျှစ်၊ ဆီးသီး ရှာလို့ရတယ်။ ပုဆိန် (ပန်းပဲဖို) နဲ့ လဲနေတဲ့ သစ်တုံးကို ခုတ်ရင် ထင်း ရမယ်</li>
   <li>မိုးရာသီ (အခန်း ၂): ကိုဇော်ဆိုင်မှာ မီးအိမ် ဝယ်ပြီး တောထဲက ဂူထဲ ဝင်ပါ။ ပြိုကျနေတဲ့ ကျောက်ကို တူနဲ့ ခွဲပါ။ ရေကြီးပြီး တံတား ပြိုရင် ထင်း 10 စည်းနဲ့ ပြန်ပြင်ပါ</li>
   <li>ဇာတ်လမ်းမှာ ပြောနေတဲ့ စကားကို A / B / Space နဲ့ ဆက်ဖတ်ပါ။ quest တွေနဲ့ အဘိုးရဲ့ စာတွေကို မှတ်စု ခလုတ်မှာ ကြည့်ပါ</li>
-  <li>ဆိုင်တွေ: မျိုးစေ့ = မမြ · ဟင်းချက်ပစ္စည်း = ဒေါ်ခင် (ခြံထဲ) · ကြက်/နွား/ကြက်စာ = ကိုမင်း · မီးအိမ်/ကြိုး/ငါးမျှားတံ = ကိုဇော် · စားသောက်/လက်ဖက်ရည် = ဒေါ်စန်းစန်း · ဆေး = မခိုင် · ကိရိယာ အဆင့်မြှင့် = ကိုထွန်း · ရွာဈေး (6:00–17:00) က နေ့တိုင်း ပစ္စည်းပြောင်း</li><li>အားအင်: ည ၈ နာရီကျော် အလုပ်လုပ်ရင် ပိုကုန်တယ်။ ည ၁၀ မတိုင်ခင် အိပ်မှ အပြည့်ပြန်ရမယ်။ ဇရပ်၊ ဘုရား၊ ရေအိုး စတာတွေက တစ်နေ့ပေါင်း +20 ပဲ ရမယ်</li>
+  <li><b>▶ ×1</b> ခလုတ် (ဒါမှမဟုတ် T): အချိန် ×1 → ×2 → ×4 မြန်အောင် လှည့်ပြောင်း။ လမ်းလျှောက်နှုန်းက မပြောင်းဘူး</li><li>ဆိုင်တွေ: မျိုးစေ့ = မမြ · ဟင်းချက်ပစ္စည်း = ဒေါ်ခင် (ခြံထဲ) · ကြက်/နွား/ကြက်စာ = ကိုမင်း · မီးအိမ်/ကြိုး/ငါးမျှားတံ = ကိုဇော် · စားသောက်/လက်ဖက်ရည် = ဒေါ်စန်းစန်း · ဆေး = မခိုင် · ကိရိယာ အဆင့်မြှင့် = ကိုထွန်း · ရွာဈေး (6:00–17:00) က နေ့တိုင်း ပစ္စည်းပြောင်း</li><li>အားအင်: ည ၈ နာရီကျော် အလုပ်လုပ်ရင် ပိုကုန်တယ်။ ည ၁၀ မတိုင်ခင် အိပ်မှ အပြည့်ပြန်ရမယ်။ ဇရပ်၊ ဘုရား၊ ရေအိုး စတာတွေက တစ်နေ့ပေါင်း +20 ပဲ ရမယ်</li>
   <li>ရွာ မြေပုံကို OpenStreetMap ဒေတာကနေ ပြုလုပ်ထားတယ် (© OpenStreetMap contributors)</li></ul>
   <div class="btns"><button class="bt pri" type="button" id="mC">ရပြီ</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
@@ -2428,6 +2428,7 @@ addEventListener('keydown',e=>{
   if(CUT&&modal.hidden){if(KMAP[e.code])e.preventDefault();return}
   if(!modal.hidden){if(e.code==='Escape'&&card.dataset.dismiss!=='no'&&!S?.over)close();return}
   if(e.code==='Escape'&&S&&!S.over){e.preventDefault();return settingsMenu()}
+  if(e.code==='KeyT'&&S&&!S.over&&modal.hidden&&!CUT){e.preventDefault();return cycleSpeed()}
   const d=KMAP[e.code];
   if(d){e.preventDefault();if(!held.includes(d))held.push(d);return}
   if(e.repeat)return;
@@ -2456,6 +2457,10 @@ $('bQuest').onclick=()=>{if(S&&modal.hidden&&!CUT)questLog()};
 $('fsBtn').onclick=()=>{const d=document,e=d.documentElement;try{if(d.fullscreenElement)d.exitFullscreen();else{const p=(e.requestFullscreen||e.webkitRequestFullscreen).call(e);p&&p.catch&&p.catch(()=>toast('ဒီ app မှာ full screen ခွင့်မပြုဘူး'));try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(_){}}}catch(_){toast('ဒီ app မှာ full screen ခွင့်မပြုဘူး')}};
 document.addEventListener('fullscreenchange',()=>setTimeout(fit,200));
 $('bBag').onclick=()=>{if(S&&modal.hidden&&!CUT)bag()};
+let SPEED=1;try{SPEED=+localStorage.getItem('shwepan-speed')||1}catch(e){}if(![1,2,4].includes(SPEED))SPEED=1;
+const spdBtn=()=>{const b=$('bSpd');b.textContent=(SPEED>1?'⏩':'▶')+' ×'+SPEED;b.classList.toggle('gold',SPEED>1)};spdBtn();
+function cycleSpeed(){SPEED=SPEED===1?2:SPEED===2?4:1;try{localStorage.setItem('shwepan-speed',SPEED)}catch(e){}spdBtn();toast(SPEED===1?'အချိန် ပုံမှန် (တစ်ရက် ~၁၀ မိနစ်)':`အချိန် ${SPEED} ဆ မြန် (တစ်ရက် ~${Math.round(10/SPEED)} မိနစ်)`)}
+$('bSpd').onclick=()=>{if(S&&!S.over)cycleSpeed()};
 $('bSet').onclick=()=>{if(S&&modal.hidden&&!CUT&&!S.over)settingsMenu()};
 document.addEventListener('visibilitychange',()=>{if(document.hidden){held=[];save()}});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
@@ -2469,7 +2474,7 @@ function update(dt){
   updateDlg(dt);updateActors(dt);
   if(paused||!S||CUT)return;
   checkStory();
-  let ticked=false;acc+=dt;while(acc>=TICK){acc-=TICK;S.min++;ticked=true;if(S.min%60===0)save()}
+  let ticked=false;acc+=dt;while(acc>=TICK/SPEED){acc-=TICK/SPEED;S.min++;ticked=true;if(S.min%60===0)save()}
   if(ticked)nightWatch();
   if(S.min>=1440){toast('');S.flags.passMap=S.map;endDay(true);return}
   if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
