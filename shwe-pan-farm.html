@@ -168,19 +168,19 @@ const SEASONS=[
 const seasonOf=d=>Math.min(2,Math.floor((d-1)/SLEN));
 const curS=()=>seasonOf(S.day);
 const CROPS={
-  kangkong:{name:'ကန်စွန်း',s:0,grow:3,regrow:0,sell:45,bag:120,col:'#4fb848',col2:'#9fe07a'},
-  tomato:{name:'ခရမ်းချဉ်သီး',s:0,grow:6,regrow:3,sell:60,bag:300,col:'#e2402f',col2:'#ff8a6c'},
-  melon:{name:'ဖရဲသီး',s:0,grow:8,regrow:0,sell:180,bag:600,col:'#2f7a2f',col2:'#e2504a'},
-  okra:{name:'ရုံးပတီ',s:1,grow:4,regrow:2,sell:35,bag:260,col:'#7cc04a',col2:'#f2d35e'},
-  corn:{name:'ပြောင်းဖူး',s:1,grow:7,regrow:3,sell:90,bag:400,col:'#f2cf3a',col2:'#fbe68a'},
-  rice:{name:'စပါး',s:1,grow:8,regrow:0,sell:150,bag:500,col:'#e0b84a',col2:'#f6dc8a'},
-  turnip:{name:'မုန်လာဥ',s:2,grow:4,regrow:0,sell:55,bag:130,col:'#f4eef6',col2:'#a35bb5'},
-  potato:{name:'အာလူး',s:2,grow:6,regrow:0,sell:90,bag:220,col:'#c49a5a',col2:'#f6f1d0'},
-  cabbage:{name:'ဂေါ်ဖီထုပ်',s:2,grow:8,regrow:0,sell:170,bag:550,col:'#b8e09a',col2:'#7cc46a'},
+  kangkong:{name:'ကန်စွန်း',s:0,grow:3,regrow:0,sell:35,bag:140,col:'#4fb848',col2:'#9fe07a'},
+  tomato:{name:'ခရမ်းချဉ်သီး',s:0,grow:6,regrow:3,sell:45,bag:330,col:'#e2402f',col2:'#ff8a6c'},
+  melon:{name:'ဖရဲသီး',s:0,grow:8,regrow:0,sell:150,bag:650,col:'#2f7a2f',col2:'#e2504a'},
+  okra:{name:'ရုံးပတီ',s:1,grow:4,regrow:3,sell:25,bag:300,col:'#7cc04a',col2:'#f2d35e'},
+  corn:{name:'ပြောင်းဖူး',s:1,grow:7,regrow:3,sell:60,bag:420,col:'#f2cf3a',col2:'#fbe68a'},
+  rice:{name:'စပါး',s:1,grow:8,regrow:0,sell:120,bag:520,col:'#e0b84a',col2:'#f6dc8a'},
+  turnip:{name:'မုန်လာဥ',s:2,grow:4,regrow:0,sell:40,bag:150,col:'#f4eef6',col2:'#a35bb5'},
+  potato:{name:'အာလူး',s:2,grow:6,regrow:0,sell:65,bag:240,col:'#c49a5a',col2:'#f6f1d0'},
+  cabbage:{name:'ဂေါ်ဖီထုပ်',s:2,grow:8,regrow:0,sell:130,bag:600,col:'#b8e09a',col2:'#7cc46a'},
 };
 const CROP_IDS=Object.keys(CROPS);
 const seasonCrops=s=>CROP_IDS.filter(id=>CROPS[id].s===s);
-const EXTRA={ancoin:{name:'ရှေးဒင်္ဂါး',sell:0},egg:{name:'ကြက်ဥ',sell:50},fish:{name:'ငါး',sell:120},catfish:{name:'ငါးခူ',sell:80},carp:{name:'ငါးကြင်း',sell:120},snakehead:{name:'ငါးရံ',sell:160},prawn:{name:'ပုစွန်ထုပ်',sell:220},wood:{name:'ထင်း',sell:40},mushroom:{name:'မှို',sell:60},shoot:{name:'မျှစ်',sell:50},berry:{name:'ဆီးသီး',sell:45}};
+const EXTRA={ancoin:{name:'ရှေးဒင်္ဂါး',sell:0},egg:{name:'ကြက်ဥ',sell:35},fish:{name:'ငါး',sell:90},catfish:{name:'ငါးခူ',sell:60},carp:{name:'ငါးကြင်း',sell:90},snakehead:{name:'ငါးရံ',sell:120},prawn:{name:'ပုစွန်ထုပ်',sell:160},wood:{name:'ထင်း',sell:25},mushroom:{name:'မှို',sell:35},shoot:{name:'မျှစ်',sell:30},berry:{name:'ဆီးသီး',sell:25}};
 const TOOLS=[{id:'hoe',name:'ပေါက်ပြား'},{id:'can',name:'ရေပုံး'},{id:'sickle',name:'တံစဉ်'},{id:'hammer',name:'တူ'},{id:'seed',name:'မျိုးစေ့'},{id:'tea',name:'လက်ဖက်ရည်'},{id:'rod',name:'ငါးမျှားတံ'},{id:'kite',name:'စွန်'},{id:'axe',name:'ပုဆိန်'}];
 const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 const OPP={up:'down',down:'up',left:'right',right:'left'};
@@ -268,10 +268,10 @@ function goMap(m,x,y,d){setMap(m);S.px=x;S.py=y;S.dir=d;mv=null;fade=1;kiteRT=nu
 function signText(){const m=S.map;return m==='farm'?(S.px>24?'→ ရွှေပန်းရွာ (အရှေ့ဘက်)':'↓ တောနဲ့ တောင်ကုန်း · မြစ်၊ ကွင်းပြင် (တောင်ဘက်)'):m==='village'?(S.py>40?'↓ တော၊ မြစ်၊ ကွင်းပြင်':'← ကိုယ့်ခြံ (အနောက်ဘက်)'):(S.py<5?(S.px<30?'↑ ကိုယ့်ခြံ':'↑ ရွှေပန်းရွာ'):'← ကွင်းပြင် · ↓ မြစ်ဆိပ် · → တောင်ကုန်းနဲ့ ဂူ')}
 function spawnForest(){
   const f=S.maps.forest,ft=f.tiles,r=Math.random,kinds=[['berry','mushroom'],['mushroom','shoot'],['berry','mushroom']][curS()];f.forage=[];
-  for(let i=0;i<200&&f.forage.length<10;i++){const x=1+Math.floor(r()*54),y=1+Math.floor(r()*28);if(ft[y][x]===G&&!f.forage.some(o=>o.x===x&&o.y===y))f.forage.push({x,y,k:kinds[i%2]})}
-  let logs=0;for(const row of ft)for(const v of row)if(v===LOG)logs++;
-  for(let i=0;i<120&&logs<8;i++){const x=2+Math.floor(r()*52),y=2+Math.floor(r()*26);
-    if(ft[y][x]===G&&![[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>[PATH,STAIR,BRIDGE,JETTY].includes(ft[y+b][x+a]))&&!(x>=2&&x<=18&&y>=14&&y<=28)&&!(x>=36&&x<=52&&y>=16&&y<=29)){ft[y][x]=LOG;logs++}}
+  for(let i=0;i<200&&f.forage.length<6;i++){const x=1+Math.floor(r()*54),y=1+Math.floor(r()*28);if(ft[y][x]===G&&!f.forage.some(o=>o.x===x&&o.y===y))f.forage.push({x,y,k:kinds[i%2]})}
+  let logs=0,add=0;for(const row of ft)for(const v of row)if(v===LOG)logs++;
+  for(let i=0;i<120&&logs<5&&add<2;i++){const x=2+Math.floor(r()*52),y=2+Math.floor(r()*26);
+    if(ft[y][x]===G&&![[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>[PATH,STAIR,BRIDGE,JETTY].includes(ft[y+b][x+a]))&&!(x>=2&&x<=18&&y>=14&&y<=28)&&!(x>=36&&x<=52&&y>=16&&y<=29)){ft[y][x]=LOG;logs++;add++}}
 }
 function fresh(){
   const seeds={},produce={};CROP_IDS.forEach(id=>{seeds[id]=0;produce[id]=0});seeds.kangkong=9;for(const id in EXTRA)produce[id]=0;
@@ -413,7 +413,7 @@ function tryMove(d){
 }
 
 /* ---------- actions ---------- */
-function spend(n){if(n>0&&S.min>=1200)n++;if(S.energy<n){toast('အားအင်ကုန်နေပြီ။ လက်ဖက်ရည်သောက် ဒါမှမဟုတ် အိမ်ပြန်အိပ်ပါ');return false}S.energy-=n;return true}
+function spend(n){if(n>0&&S.min>=1200&&!S.flags.ayeVest)n++;if(S.energy<n){toast('အားအင်ကုန်နေပြီ။ လက်ဖက်ရည်သောက် ဒါမှမဟုတ် အိမ်ပြန်အိပ်ပါ');return false}S.energy-=n;return true}
 /* ---------- actions with motion ---------- */
 const ACTS={hoe:{dur:560,at:.58},can:{dur:760,at:.5},fill:{dur:620,at:.55},sickle:{dur:400,at:.5},hammer:{dur:660,at:.62},axe:{dur:660,at:.62},
   seed:{dur:460,at:.55},tea:{dur:980,at:.6},pick:{dur:560,at:.4},harvest:{dur:900,at:.32},cast:{dur:560,at:.72},reel:{dur:520,at:.3}};
@@ -493,7 +493,7 @@ function useTool(){
     if(!S.has.rod)return toast('ငါးမျှားတံ မရှိသေးဘူး။ ရွာထဲက ကိုဇော်ရဲ့ ကုန်စုံဆိုင်မှာ ဝယ်ပါ');
     if(t!==WATER)return toast('ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး ငါးမျှားပါ');
     if(!spend(3))return;
-    doAct('cast',()=>{fishRT={phase:'wait',t:1500+Math.random()*3500,x:fx,y:fy,river:S.map!=='farm'};burst(fx,fy,'#cfe8ff',6);toast('ငါးမျှားချိတ် ချလိုက်ပြီ။ ဖော့ငုပ်ပြီး ! ပေါ်ရင် A ချက်ချင်းနှိပ်ပါ')});return;
+    doAct('cast',()=>{fishRT={phase:'wait',t:(1500+Math.random()*3500)*(S.flags.kyawBait?.6:1),x:fx,y:fy,river:S.map!=='farm'};burst(fx,fy,'#cfe8ff',6);toast('ငါးမျှားချိတ် ချလိုက်ပြီ။ ဖော့ငုပ်ပြီး ! ပေါ်ရင် A ချက်ချင်းနှိပ်ပါ')});return;
   }
   if(tool==='axe'){
     if(!S.has.axe)return toast('ပုဆိန် မရှိသေးဘူး။ ရွာထဲက ကိုထွန်းရဲ့ ပန်းပဲဖိုမှာ ဝယ်ပါ');
@@ -572,11 +572,12 @@ function act(){
   if(t===FALL){if(S.map==='forest'&&FALL2.some(([x,y])=>x===fx&&y===fy)){if(!S.clues.includes('c_fall')){addClue('c_fall');return toast('(ဒီကမ်းပါးမှာ ရေတံခွန် မရှိခဲ့ဘူး… ရေကြီးပြီးမှ ပေါ်လာတာ!)')}return toast('ရေကြီးနှစ်မှ ပေါ်တဲ့ ရေတံခွန်')}return toast('ရေတံခွန်က ရေစက်တွေ အေးမြလိုက်တာ')}
   if(S.map==='forest'){const fi=S.maps.forest.forage.findIndex(o=>o.x===fx&&o.y===fy);if(fi>=0){const o=S.maps.forest.forage.splice(fi,1)[0];return doAct('pick',()=>{S.produce[o.k]++;burst(fx,fy,'#f6e08a');toast(`${EXTRA[o.k].name} ရှာတွေ့ပြီ! ပို့ကုန်ပုံးမှာ ရောင်းလို့ရတယ်`)},{item:{kind:o.k}})}}
   if(t===BLD){const b=bAt(fx,fy);if(!b)return;
+    if(b.id==='h4')return jobBoard();
     if(b.shop)return openShop(b.shop);
     if(b.style==='monastery'&&S.day===12&&!S.flags.waso)return cutscene(wasoScene);
     if(b.style==='zayat'&&S.day===24&&!S.daily.htamane)return cutscene(htamaneScene);
     if(b.style==='zayat'&&festNow()==='thingyan'&&!S.daily.satu){S.daily.satu=1;S.energy=Math.min(S.maxE,S.energy+40);bump('san');return toast('ဇရပ်မှာ စတုဒိသာ မုန့်လုံးရေပေါ် ကျွေးနေတယ်။ စားလိုက်တယ် (အားအင် +40)')}
-    if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;const hadG=!!S.garland;S.garland=0;let gl=rest(15);if(hadG){const x=Math.min(15,S.maxE-S.energy);S.energy+=x;gl+=x}return toast(`${b.name}မှာ ${hadG?'စံပယ်ပန်းကုံး ကပ်ပြီး ':''}ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +${gl})`)}
+    if(b.style==='monastery'||b.style==='stupa'){if(S.daily.pray)return toast('ဒီနေ့ ဘုရားဖူးပြီးပြီ');S.daily.pray=1;if(S.flags.monkBless)S.sus=Math.max(0,S.sus-5);const hadG=!!S.garland;S.garland=0;let gl=rest(15);if(hadG){const x=Math.min(15,S.maxE-S.energy);S.energy+=x;gl+=x}return toast(`${b.name}မှာ ${hadG?'စံပယ်ပန်းကုံး ကပ်ပြီး ':''}ဘုရားဖူးလိုက်တယ်။ စိတ်ချမ်းသာသွားတယ် (အားအင် +${gl})`)}
     if(b.style==='zayat'){if(S.daily.zayat)return toast('ဇရပ်မှာ ခဏ နားပြီးပြီ');S.daily.zayat=1;return toast(`ဇရပ်မှာ လေညင်းခံရင်း ခဏ နားလိုက်တယ် (အားအင် +${rest(10)})`)}
     if(b.style==='potstand'){if(S.daily.potw)return toast('ရေအိုးထဲက ရေ သောက်ပြီးပြီ');S.daily.potw=1;return toast(`ရေအိုးစင်က ရေအေးအေး သောက်လိုက်တယ် (အားအင် +${rest(5)})`)}
     if(b.style==='oldwell')return oldWell();
@@ -619,10 +620,10 @@ function actHouse(c){
   if(c==='K')return calendar();
   if(c==='F')return kitchen();
   if(c==='S'){if(S.daily.shrine)return toast('ဒီနေ့ ဘုရားရှိခိုးပြီးပြီ');S.daily.shrine=1;return toast(`ဘုရားရှိခိုးလိုက်တယ်။ စိတ်ငြိမ်သွားတယ် (အားအင် +${rest(10)})`)}
-  if(c==='t'){if(S.daily.pot)return toast('ကရားထဲ လက်ဖက်ရည် ကုန်သွားပြီ။ မနက်ဖြန် ပြန်ဖျော်မယ်');if(S.min>=720)return toast('ကရားထဲက လက်ဖက်ရည်ကြမ်း အေးသွားပြီ… မနက်ပိုင်းမှ ပူပူလေး ရမယ်');S.daily.pot=1;S.energy=Math.min(S.maxE,S.energy+10);return toast('မနက်ခင်း လက်ဖက်ရည်ကြမ်း ပူပူလေး သောက်လိုက်တယ် (အားအင် +10)')}
+  if(c==='t'){if(S.daily.pot)return toast('ကရားထဲ လက်ဖက်ရည် ကုန်သွားပြီ။ မနက်ဖြန် ပြန်ဖျော်မယ်');if(S.min>=720)return toast('ကရားထဲက လက်ဖက်ရည်ကြမ်း အေးသွားပြီ… မနက်ပိုင်းမှ ပူပူလေး ရမယ်');S.daily.pot=1;const pg=S.flags.sanPot?15:10;S.energy=Math.min(S.maxE,S.energy+pg);return toast(`မနက်ခင်း လက်ဖက်ရည်ကြမ်း ပူပူလေး သောက်လိုက်တယ် (အားအင် +${pg})`)}
   if(c==='w')return toast(['အပြင်မှာ နေပူပူ နွေရာသီ။ ပိတောက်ပန်းတွေ ဝါဝါဖြာဖြာ။','အပြင်မှာ စိမ်းစိုနေတဲ့ မိုးရာသီ။','အပြင်မှာ အေးမြတဲ့ ဆောင်းရာသီ။'][curS()]);
 }
-function ship(){
+function ship(){colTrack();
   let n=0,v=0;const keep=S.q.q_bridge==='active'?Math.min(10,S.produce.wood):0;S.produce.wood-=keep;
   const res={};for(const id of [...CROP_IDS,...Object.keys(EXTRA)]){const r=Math.min(S.produce[id]||0,ordReserve(id));if(r){res[id]=r;S.produce[id]-=r}}
   CROP_IDS.forEach(id=>{n+=S.produce[id];v+=S.produce[id]*CROPS[id].sell*mktMul(id);S.produce[id]=0});
@@ -850,7 +851,7 @@ function help(){
   <li>တောထဲမှာ မှို၊ မျှစ်၊ ဆီးသီး ရှာလို့ရတယ်။ ပုဆိန် (ပန်းပဲဖို) နဲ့ လဲနေတဲ့ သစ်တုံးကို ခုတ်ရင် ထင်း ရမယ်</li>
   <li>မိုးရာသီ (အခန်း ၂): ကိုဇော်ဆိုင်မှာ မီးအိမ် ဝယ်ပြီး တောထဲက ဂူထဲ ဝင်ပါ။ ပြိုကျနေတဲ့ ကျောက်ကို တူနဲ့ ခွဲပါ။ ရေကြီးပြီး တံတား ပြိုရင် ထင်း 10 စည်းနဲ့ ပြန်ပြင်ပါ</li>
   <li>ဇာတ်လမ်းမှာ ပြောနေတဲ့ စကားကို A / B / Space နဲ့ ဆက်ဖတ်ပါ။ quest တွေနဲ့ အဘိုးရဲ့ စာတွေကို မှတ်စု ခလုတ်မှာ ကြည့်ပါ</li>
-  <li><b>▶ ×1</b> ခလုတ် (ဒါမှမဟုတ် T): အချိန် ×1 → ×2 → ×4 မြန်အောင် လှည့်ပြောင်း။ လမ်းလျှောက်နှုန်းက မပြောင်းဘူး</li><li>ဆိုင်တွေ: မျိုးစေ့ = မမြ · ဟင်းချက်ပစ္စည်း = ဒေါ်ခင် (ခြံထဲ) · ကြက်/နွား/ကြက်စာ = ကိုမင်း · မီးအိမ်/ကြိုး/ငါးမျှားတံ = ကိုဇော် · စားသောက်/လက်ဖက်ရည် = ဒေါ်စန်းစန်း · ဆေး = မခိုင် · ကိရိယာ အဆင့်မြှင့် = ကိုထွန်း · ရွာဈေး (6:00–17:00) က နေ့တိုင်း ပစ္စည်းပြောင်း</li><li>အားအင်: ည ၈ နာရီကျော် အလုပ်လုပ်ရင် ပိုကုန်တယ်။ ည ၁၀ မတိုင်ခင် အိပ်မှ အပြည့်ပြန်ရမယ်။ ဇရပ်၊ ဘုရား၊ ရေအိုး စတာတွေက တစ်နေ့ပေါင်း +20 ပဲ ရမယ်</li>
+  <li><b>▶ ×1</b> ခလုတ် (ဒါမှမဟုတ် T): အချိန် ×1 → ×2 → ×4 မြန်အောင် လှည့်ပြောင်း။ လမ်းလျှောက်နှုန်းက မပြောင်းဘူး</li><li>သူကြီးရုံး (ရွာထဲ) မှာ <b>အလုပ်ကြော်ငြာဘုတ်</b> ရှိတယ် · နေ့တိုင်း အလုပ် ၃ ခု · ပို့ပေးရင် ငွေနဲ့ ♥+1</li><li>ရွာသားနဲ့ ♥3 / ♥6 / ♥9 ရောက်ရင် စကားပြောတဲ့အခါ သူတို့ရဲ့ ကိုယ်ပိုင်ဇာတ်လမ်းလေး ပွင့်မယ် · မှတ်စု 📖 မှာ ငါး၊ ဟင်း၊ အသီးအနှံ စုဆောင်းမှတ်တမ်း</li><li>ဆိုင်တွေ: မျိုးစေ့ = မမြ · ဟင်းချက်ပစ္စည်း = ဒေါ်ခင် (ခြံထဲ) · ကြက်/နွား/ကြက်စာ = ကိုမင်း · မီးအိမ်/ကြိုး/ငါးမျှားတံ = ကိုဇော် · စားသောက်/လက်ဖက်ရည် = ဒေါ်စန်းစန်း · ဆေး = မခိုင် · ကိရိယာ အဆင့်မြှင့် = ကိုထွန်း · ရွာဈေး (6:00–17:00) က နေ့တိုင်း ပစ္စည်းပြောင်း</li><li>အားအင်: ည ၈ နာရီကျော် အလုပ်လုပ်ရင် ပိုကုန်တယ်။ ည ၁၀ မတိုင်ခင် အိပ်မှ အပြည့်ပြန်ရမယ်။ ဇရပ်၊ ဘုရား၊ ရေအိုး စတာတွေက တစ်နေ့ပေါင်း +20 ပဲ ရမယ်</li>
   <li>ရွာ မြေပုံကို OpenStreetMap ဒေတာကနေ ပြုလုပ်ထားတယ် (© OpenStreetMap contributors)</li></ul>
   <div class="btns"><button class="bt pri" type="button" id="mC">ရပြီ</button></div>`,c=>c.querySelector('#mC').onclick=close);
 }
@@ -863,19 +864,19 @@ const SHOPS={
   market:{name:'ရွာဈေး',open:360,close:1020,sub:()=>`မနက်စောစော ဖွင့်တဲ့ ဈေး · ${SEASONS[curS()].name}ရာသီ မျိုးစေ့တွေ ရတယ်`,items:()=>SHOPS.stall.items().filter(i=>i.id!=='hen')},
   florist:{name:'မမြရဲ့ ပန်းနဲ့ မျိုးစေ့ဆိုင်',open:420,close:1080,sub:()=>`${SEASONS[curS()].name}ရာသီ မျိုးစေ့တွေနဲ့ ပန်းတွေ`,items:()=>SHOPS.stall.items().filter(i=>i.id.startsWith('s_')).concat([{id:'garland',label:'စံပယ်ပန်းကုံး',desc:'ဘုရားကပ်ဖို့ · ဘုန်းကြီးကျောင်းမှာ ဘုရားဖူးရင် အားအင် +30 ရမယ်',price:40,ok:()=>!S.garland,buy:()=>S.garland=1}])},
   livestock:{name:'ကိုမင်းရဲ့ ကြက်နွားခြံ',open:450,close:1080,sub:()=>'ဥကောင်းတဲ့ ကြက်မတွေနဲ့ ကြက်စာ',items:()=>[
-    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:`စာကျွေးရင် နေ့တိုင်း ဥတယ် · ကြက်ဥ ၃ ရက် မကောက်ရင် ကြက်ပေါက် ဖောက်တယ် · အများဆုံး 6 ကောင် (${S.chickens.length}/6)`,price:500,ok:()=>S.chickens.length<6,buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
-    {id:'cow',label:'နွား တစ်ကောင်',desc:'ခြံမှာ ချည်ထားမယ် · လေးလံတဲ့ ပစ္စည်း ဆွဲနိုင်တယ်',price:1800,ok:()=>!S.has.cow,buy:()=>{S.has.cow=1;S.cow={age:5};dirty=true}},
+    {id:'hen',label:'ကြက်မ တစ်ကောင်',desc:`စာကျွေးရင် နေ့တိုင်း ဥတယ် · ကြက်ဥ ၃ ရက် မကောက်ရင် ကြက်ပေါက် ဖောက်တယ် · အများဆုံး ${coopMax()} ကောင် (${S.chickens.length}/${coopMax()})`,price:700,ok:()=>S.chickens.length<coopMax(),buy:()=>{S.chickens.push({x:24+Math.random()*2,y:13});syncChickens()}},
+    {id:'cow',label:'နွား တစ်ကောင်',desc:'ခြံမှာ ချည်ထားမယ် · လေးလံတဲ့ ပစ္စည်း ဆွဲနိုင်တယ်',price:3000,ok:()=>!S.has.cow,buy:()=>{S.has.cow=1;S.cow={age:5};dirty=true}},
     {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:45,ok:()=>true,buy:()=>S.feed+=5},
   ]},
   pharmacy:{name:'မခိုင်ရဲ့ ဆေးဆိုင်',open:480,close:1080,sub:()=>'အားဆေးနဲ့ ကျန်းမာရေး ပစ္စည်း',items:()=>[
     {id:'tonic',label:'အားဆေး တစ်ပုလင်း',desc:'ချက်ချင်း သောက်မယ် · အားအင် +50',price:250,ok:()=>S.energy<S.maxE,buy:()=>{S.energy=Math.min(S.maxE,S.energy+50);toast('အားဆေး သောက်လိုက်တယ်။ အားအင် +50')}},
-    {id:'vit',label:'ဗီတာမင် တစ်ဘူး',desc:'အားအင် အများဆုံး 100 ကနေ 120 အထိ တိုးမယ်',price:1500,ok:()=>S.maxE<120,buy:()=>{S.maxE=120;S.energy=Math.min(120,S.energy+20)}},
+    {id:'vit',label:'ဗီတာမင် တစ်ဘူး',desc:'အားအင် အများဆုံး 100 ကနေ 120 အထိ တိုးမယ်',price:2500,ok:()=>S.maxE<120,buy:()=>{S.maxE=120;S.energy=Math.min(120,S.energy+20)}},
   ]},
   store:{name:'ကိုဇော်ရဲ့ ကုန်စုံဆိုင်',open:480,close:1080,sub:()=>'ငါးမျှားတံ၊ စွန်နဲ့ အိမ်သုံးပစ္စည်း',items:()=>[
-    {id:'rod',label:'ငါးမျှားတံ',desc:'ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး သုံးပါ။ ဖော့ငုပ်ရင် A ချက်ချင်းနှိပ်',price:800,ok:()=>!S.has.rod,buy:()=>{S.has.rod=1;S.tool=6}},
-    {id:'lantern',label:'မီးအိမ်',desc:'ဂူထဲ ဝင်ရင် အလိုလို ထွန်းမယ် · မှောင်တဲ့ ဂူထဲမှာ လမ်းမြင်ရအောင်',price:350,ok:()=>!S.has.lantern,buy:()=>{S.has.lantern=1;if(!S.flags.zawAsk)S.flags.zawAsk=1;setTimeout(()=>toast('မီးအိမ် ရပြီ။ တောထဲက ဂူဝကို မျက်နှာမူပြီး အပေါ် လျှောက်ပါ'),50)}},
-    {id:'rope',label:'ကြိုးရှည် တစ်ခွေ',desc:'ခိုင်ခံ့တဲ့ ကြိုး · လေးလံတဲ့ ပစ္စည်း ချည်ဆွဲဖို့',price:120,ok:()=>!S.has.rope,buy:()=>{S.has.rope=1}},
-    {id:'kite',label:'စွန်',desc:'ခြံတောင်ဘက် တောထဲက ကွင်းပြင်မှာ လွှတ်ပါ။ တစ်ရက် တစ်ကြိမ် စိတ်ကြည်လင်ပြီး အားအင် +20',price:300,ok:()=>!S.has.kite,buy:()=>{S.has.kite=1;S.tool=7}},
+    {id:'rod',label:'ငါးမျှားတံ',desc:'ရေကန် ဒါမှမဟုတ် မြစ်ကို မျက်နှာမူပြီး သုံးပါ။ ဖော့ငုပ်ရင် A ချက်ချင်းနှိပ်',price:1000,ok:()=>!S.has.rod,buy:()=>{S.has.rod=1;S.tool=6}},
+    {id:'lantern',label:'မီးအိမ်',desc:'ဂူထဲ ဝင်ရင် အလိုလို ထွန်းမယ် · မှောင်တဲ့ ဂူထဲမှာ လမ်းမြင်ရအောင်',price:500,ok:()=>!S.has.lantern,buy:()=>{S.has.lantern=1;if(!S.flags.zawAsk)S.flags.zawAsk=1;setTimeout(()=>toast('မီးအိမ် ရပြီ။ တောထဲက ဂူဝကို မျက်နှာမူပြီး အပေါ် လျှောက်ပါ'),50)}},
+    {id:'rope',label:'ကြိုးရှည် တစ်ခွေ',desc:'ခိုင်ခံ့တဲ့ ကြိုး · လေးလံတဲ့ ပစ္စည်း ချည်ဆွဲဖို့',price:200,ok:()=>!S.has.rope,buy:()=>{S.has.rope=1}},
+    {id:'kite',label:'စွန်',desc:'ခြံတောင်ဘက် တောထဲက ကွင်းပြင်မှာ လွှတ်ပါ။ တစ်ရက် တစ်ကြိမ် စိတ်ကြည်လင်ပြီး အားအင် +20',price:400,ok:()=>!S.has.kite,buy:()=>{S.has.kite=1;S.tool=7}},
     {id:'feed',label:'ကြက်စာ 5 ခွက်',desc:'ကြက်တစ်ကောင် တစ်ရက် တစ်ခွက်',price:50,ok:()=>true,buy:()=>S.feed+=5},
     {id:'tea',label:'လက်ဖက်ရည်ခြောက် တစ်ထုပ်',desc:'လက်ဖက်ရည် 2 ခွက် ဖျော်လို့ရတယ်',price:110,ok:()=>true,buy:()=>S.tea+=2},
   ]},
@@ -885,10 +886,10 @@ const SHOPS={
     {id:'teacup',label:'လက်ဖက်ရည် ပါဆယ်',desc:'နောက်မှ သောက်ဖို့ · အားအင် +25',price:60,ok:()=>true,buy:()=>S.tea++},
   ]},
   smith:{name:'ကိုထွန်းရဲ့ ပန်းပဲဖို',open:480,close:1020,sub:()=>'ကိရိယာတွေကို ပိုကောင်းအောင် ထုပေးမယ်',items:()=>[
-    {id:'axe',label:'ပုဆိန်',desc:'တောထဲက လဲနေတဲ့ သစ်တုံးတွေကို ခုတ်ပြီး ထင်း ရမယ်',price:600,ok:()=>!S.has.axe,buy:()=>{S.has.axe=1;S.tool=8}},
-    {id:'uhoe',label:'ပေါက်ပြားကောင်း',desc:'မြေထွန်ရင် အားအင် 2 အစား 1 ပဲ ကုန်မယ်',price:1500,ok:()=>!S.up.hoe,buy:()=>S.up.hoe=1},
-    {id:'uham',label:'တူကောင်း',desc:'ကျောက်ခွဲရင် အားအင် 3 အစား 1 ပဲ ကုန်မယ် · ဂူထဲက မာတဲ့ ကျောက်တုံးကြီးတွေလည်း ခွဲနိုင်မယ်',price:900,ok:()=>!S.up.hammer,buy:()=>S.up.hammer=1},
-    {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ်',price:1200,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
+    {id:'axe',label:'ပုဆိန်',desc:'တောထဲက လဲနေတဲ့ သစ်တုံးတွေကို ခုတ်ပြီး ထင်း ရမယ်',price:900,ok:()=>!S.has.axe,buy:()=>{S.has.axe=1;S.tool=8}},
+    {id:'uhoe',label:'ပေါက်ပြားကောင်း',desc:'မြေထွန်ရင် အားအင် 4 အစား 2 ပဲ ကုန်မယ်',price:2500,ok:()=>!S.up.hoe,buy:()=>S.up.hoe=1},
+    {id:'uham',label:'တူကောင်း',desc:'ကျောက်ခွဲရင် အားအင် 5 အစား 2 ပဲ ကုန်မယ် · ဂူထဲက မာတဲ့ ကျောက်တုံးကြီးတွေလည်း ခွဲနိုင်မယ်',price:1500,ok:()=>!S.up.hammer,buy:()=>S.up.hammer=1},
+    {id:'can',label:'ရေပုံးကြီး',desc:'ရေ 30 ကနေ 80 အထိ ဆံ့မယ် · ရေလောင်းရင် အားအင် 2 အစား 1',price:2000,ok:()=>S.canMax<80,buy:()=>{S.canMax=80;S.water=80}},
   ]},
 };
 function openShopHook(id){
@@ -928,13 +929,14 @@ function catchFish(){
   const r=Math.random();let id;
   if(!fishRT.river)id=r<.6?'catfish':'carp';
   else{const pr=curS()===1?.3:.15;id=r<pr?'prawn':r<pr+.4?'snakehead':'carp'}
+  {const q=Math.random();if(S.weather==='rain'&&q<.22)id='pyayma';else if(fishRT.river&&S.min>=1200&&q<.2)id='ngadan';else if(fishRT.river&&S.flags.flood&&q<.07)id='goldfish'}
   S.produce[id]++;S.stats.fish=(S.stats.fish||0)+1;burst(fishRT.x,fishRT.y,'#bfe6fa',10);
   toast(`${EXTRA[id].name} ရပြီ! (${EXTRA[id].sell} ကျပ်) · ပို့ကုန်ပုံးမှာ ရောင်းပါ`);fishRT=null;return id;
 }
 function updateFun(dt,ticked){
   if(fishRT){
     if(held.length){fishRT=null;toast('ငါးမျှားတာ ရပ်လိုက်တယ်')}
-    else{fishRT.t-=dt;if(fishRT.t<=0){if(fishRT.phase==='wait'){fishRT.phase='bite';fishRT.t=800}else{toast('ငါးလွတ်သွားတယ်။ ထပ်ကြိုးစားပါ');fishRT=null}}}
+    else{fishRT.t-=dt;if(fishRT.t<=0){if(fishRT.phase==='wait'){fishRT.phase='bite';fishRT.t=S.up.rod?1300:800}else{toast('ငါးလွတ်သွားတယ်။ ထပ်ကြိုးစားပါ');fishRT=null}}}
   }
   if(kiteRT){
     if(S.scene!=='farm'||S.weather==='rain'||!inMeadow(S.px,S.py)){kiteRT=null;toast('စွန်ကို ပြန်ရစ်လိုက်တယ်')}
@@ -1731,7 +1733,7 @@ function kitchen(){
     c.querySelector('#mC').onclick=close;
     c.querySelectorAll('[data-cook]').forEach(b=>b.onclick=()=>{const d=DISHES.find(x=>x.id===b.dataset.cook);if(!haveFor(d))return;
       for(const [k,n] of Object.entries(d.need)){if(k==='anyfish')S.produce[anyFish()]-=n;else S.produce[k]-=n}
-      S.produce[d.id]=(S.produce[d.id]||0)+1;S.min+=30;S.stats.cooked=(S.stats.cooked||0)+1;toast(`${d.name} ချက်ပြီးပြီ! မွှေးလိုက်တာ`);kitchen()});
+      S.produce[d.id]=(S.produce[d.id]||0)+1;colTrack();S.min+=30;S.stats.cooked=(S.stats.cooked||0)+1;toast(`${d.name} ချက်ပြီးပြီ! မွှေးလိုက်တာ`);kitchen()});
     c.querySelectorAll('[data-eat]').forEach(b=>b.onclick=()=>{const d=DISHES.find(x=>x.id===b.dataset.eat);if(S.energy>=S.maxE)return toast('ဗိုက်ပြည့်နေပြီ');S.produce[d.id]--;S.energy=Math.min(S.maxE,S.energy+d.e);toast(`${d.name} စားလိုက်တယ် (အားအင် +${d.e})`);kitchen()})});
 }
 /* ---------- village orders: promise, deliver, keep your word ---------- */
@@ -1787,7 +1789,7 @@ const isMarket=d=>d%5===0&&d<30;
 const mktCrop=d=>{const c=seasonCrops(seasonOf(d));return c[(d/5)%c.length]};
 const mktMul=id=>isMarket(S.day)&&mktCrop(S.day)===id?2:1;
 /* ---------- the calf, chicks and a night fox ---------- */
-EXTRA.milk={name:'နွားနို့',sell:150};
+EXTRA.milk={name:'နွားနို့',sell:100};
 DISHES.push({id:'d_milktea',name:'နွားနို့လက်ဖက်ရည်',need:{milk:1},e:30,sell:120,col:'#c8a070'},{id:'d_pudding',name:'နွားနို့ ကြက်ဥ ပူတင်း',need:{milk:1,egg:1},e:45,sell:240,col:'#f2d88a'});
 DISHES.slice(-2).forEach(d=>EXTRA[d.id]={name:d.name,sell:d.sell,dish:1});
 GIFT.san&&GIFT.san.love.push('d_milktea');GIFT.aye&&GIFT.aye.like.push('d_pudding');GIFT.mya&&GIFT.mya.love.push('d_pudding');
@@ -1804,9 +1806,9 @@ function cowAct(){
 async function calfOffer(){
   S.flags.calfOffer=1;
   await say('min','ကလေး… ငါ့နွားမ နွားကလေး မွေးထားတယ်။ ငါ့ခြံမှာ နေရာ မလောက်တော့ဘူး။ မင်းခြံမှာ ကောက်ရိုးပုံ ရှိတယ်နော်။');
-  await say('min','ကျပ် ၆၀၀ နဲ့ ပေးမယ်။ နေ့တိုင်း ကောက်ရိုး ကျွေးရင် ၅ ရက်နဲ့ ကြီးမယ်။ ကြီးရင် နွားနို့ ညှစ်လို့ရတယ်၊ လေးလံတာလည်း ဆွဲနိုင်တယ်။');
-  const c=await choose('me','(နွားကလေး ယူမလား…)',S.money>=600?['ယူမယ် (ကျပ် ၆၀၀)','နောက်မှ']:['ငွေ မလောက်သေးဘူး၊ နောက်မှ']);
-  if(S.money>=600&&c===0){S.money-=600;S.has.cow=1;S.cow={age:0};dirty=true;await say('min','ကောင်းတယ်။ ညိုလေး လို့ ခေါ်လိုက်။ ကောက်ရိုးပုံနားမှာ ချည်ထားပေးမယ်။','h');await say('nar','(နွားကလေးကို မျက်နှာမူပြီး B နဲ့ နေ့တိုင်း ကောက်ရိုး ကျွေးပါ)')}
+  await say('min','ကျပ် ၉၀၀ နဲ့ ပေးမယ်။ နေ့တိုင်း ကောက်ရိုး ကျွေးရင် ၅ ရက်နဲ့ ကြီးမယ်။ ကြီးရင် နွားနို့ ညှစ်လို့ရတယ်၊ လေးလံတာလည်း ဆွဲနိုင်တယ်။');
+  const c=await choose('me','(နွားကလေး ယူမလား…)',S.money>=900?['ယူမယ် (ကျပ် ၉၀၀)','နောက်မှ']:['ငွေ မလောက်သေးဘူး၊ နောက်မှ']);
+  if(S.money>=900&&c===0){S.money-=900;S.has.cow=1;S.cow={age:0};dirty=true;await say('min','ကောင်းတယ်။ ညိုလေး လို့ ခေါ်လိုက်။ ကောက်ရိုးပုံနားမှာ ချည်ထားပေးမယ်။','h');await say('nar','(နွားကလေးကို မျက်နှာမူပြီး B နဲ့ နေ့တိုင်း ကောက်ရိုး ကျွေးပါ)')}
   else await say('min','ရတယ်။ ငါ့ခြံ ဆိုင်ကနေ ဝယ်လို့ရတယ်။');
 }
 function farmEndDay(note){
@@ -1814,7 +1816,7 @@ function farmEndDay(note){
   if(S.cow&&S.cow.fed===S.day&&S.cow.age<5){S.cow.age++;if(S.cow.age===5)note('🐄 နွားကလေး ကြီးလာပြီ! ဒီနေ့ကစပြီး ကောက်ရိုး ကျွေးရင် နွားနို့ ညှစ်လို့ရပြီ')}
   // chicks grow up, eggs left three nights hatch
   S.chickens.forEach(c=>{if(c.chick){c.grow=(c.grow||0)+1;if(c.grow>=4){delete c.chick;note('🐔 ကြက်ပေါက်လေး ကြီးလာပြီ၊ ကြက်ဥ ဥတော့မယ်')}}});
-  for(let i=S.eggs.length-1;i>=0;i--){const e=S.eggs[i];if(e.k)continue;e.age=(e.age||0)+1;if(e.age>=3&&S.chickens.length<6){S.eggs.splice(i,1);S.chickens.push({x:e.x,y:e.y,chick:1,grow:0});note('🐣 ကြက်ဥ တစ်လုံးက ကြက်ပေါက်လေး ဖောက်ထွက်လာတယ်!')}}
+  for(let i=S.eggs.length-1;i>=0;i--){const e=S.eggs[i];if(e.k)continue;e.age=(e.age||0)+1;if(e.age>=(S.flags.minHatch?2:3)&&S.chickens.length<coopMax()){S.eggs.splice(i,1);S.chickens.push({x:e.x,y:e.y,chick:1,grow:0});note('🐣 ကြက်ဥ တစ်လုံးက ကြက်ပေါက်လေး ဖောက်ထွက်လာတယ်!')}}
   // a fox at night
   if(S.day>=8&&S.eggs.some(e=>!e.k)&&Math.random()<.22){
     if(S.dog&&(S.dog.love||0)>=3){S.dog.love=Math.min(10,S.dog.love+1);note(`🦊 ညက မြေခွေး ကြက်ခြံနား လာတယ်။ ${S.dog.name} ဟောင်ပြီး မောင်းထုတ်လိုက်တယ်!`)}
@@ -1844,10 +1846,10 @@ async function koukseikScene(){
 let QTAB='todo';
 const qGroup=id=>id.startsWith('o_')?'order':id.startsWith('s_')?'side':['q_harvest','q_clear','q_meet','q_thingyan'].includes(id)?'farm':'story';
 function questLog(tab){
-  if(['todo','clue','rival','docs','people'].includes(tab))QTAB=tab;S.seen=S.seen||{};
+  if(['todo','clue','rival','docs','people','col'].includes(tab))QTAB=tab;S.seen=S.seen||{};
   const ch=S.flags.ch3?'အခန်း ၃ · မြေပုံ နောက်တစ်ပိုင်း':S.flags.ch2?`အခန်း ၂ · ဂူနဲ့ ရေကြီးခြင်း${S.flags.ch2done?' (ပြီးပြီ)':''}`:`အခန်း ၁ · အဘိုးရဲ့ မြေပုံ${S.flags.ch1?' (ပြီးပြီ)':''}`;
   const unseen=k=>S.clues.filter(c=>CLUES[c].k===k&&!S.seen[c]).length;
-  const TABS=[['todo','📋','လုပ်စရာ',0],['clue','🔍','သဲလွန်စ',unseen('hunt')],['rival','👤','ပြိုင်ဘက်',unseen('rival')],['docs','📜','စာ',0],['people','👥','ရွာသား',0]];
+  const TABS=[['todo','📋','လုပ်စရာ',0],['clue','🔍','သဲလွန်စ',unseen('hunt')],['rival','👤','ပြိုင်ဘက်',unseen('rival')],['docs','📜','စာ',0],['people','👥','ရွာသား',0],['col','📖','မှတ်တမ်း',0]];
   const bar=`<div style="display:flex;gap:4px;margin:6px 0 10px">${TABS.map(([k,ic,t,n])=>`<button type="button" class="bt${QTAB===k?' pri':''}" data-tab="${k}" style="flex:1;padding:6px 2px;min-width:0;line-height:1.2;position:relative"><span style="font-size:18px">${ic}</span><br><small>${t}</small>${n?'<span style="position:absolute;top:3px;right:5px;width:8px;height:8px;border-radius:50%;background:#e8402a"></span>':''}</button>`).join('')}</div>`;
   let body='';
   if(QTAB==='todo'){
@@ -1868,6 +1870,7 @@ function questLog(tab){
     body=`<div class="btns" style="flex-direction:column;align-items:stretch">${S.has.map1?'<button class="bt" type="button" id="mMap">🗺 အဘိုးရဲ့ မြေပုံ</button>':''}${S.letters.map(l=>`<button class="bt" type="button" data-l="${l}">✉ ${LETTERS[l].title}</button>`).join('')}</div>`;
     if(!S.has.map1&&!S.letters.length)body='<p class="sub">မရှိသေးဘူး။</p>';
   }
+  if(QTAB==='col')body=colTab();
   if(QTAB==='people'){
     const G=S.giftLog||{};
     body=NPCS.filter(d=>S.met[d.id]||S.friends[d.id]).map(d=>{const f=S.friends[d.id]||0,g=G[d.id]||{},lv=v=>Object.keys(g).filter(k=>g[k]===v).map(itemName).join('၊ ');
@@ -1896,7 +1899,7 @@ SHOPS.stall.items=()=>[ingItem('oil','ဆီ (၃ ခါစာ)','ကြော�
 {const gar={id:'garland',label:'စံပယ်ပန်းကုံး',desc:'ဘုရားကပ်ဖို့ · ဘုန်းကြီးကျောင်းမှာ ဘုရားဖူးရင် အားအင် ပိုရမယ်',price:40,ok:()=>!S.garland,buy:()=>{S.garland=1}};
   SHOPS.florist.sub=()=>`${SEASONS[curS()].name}ရာသီ မျိုးစေ့၊ ပန်းနဲ့ မြေဩဇာ · မျိုးစေ့ ဒီဆိုင်မှာပဲ ရတယ်`;
   SHOPS.florist.items=()=>seedItems().concat([
-    {id:'fert',label:'မြေဩဇာ (၉ ပင်စာ)',desc:`မျိုးစေ့ချရင် အလိုလို ထည့်မယ် · တစ်ရက် စောရင့်မယ် (${S.fert||0} ပင်စာ ကျန်)`,price:150,ok:()=>true,buy:()=>{S.fert=(S.fert||0)+9}},
+    {id:'fert',label:'မြေဩဇာ (၉ ပင်စာ)',desc:`မျိုးစေ့ချရင် အလိုလို ထည့်မယ် · တစ်ရက် စောရင့်မယ် (${S.fert||0} ပင်စာ ကျန်)`,price:200,ok:()=>true,buy:()=>{S.fert=(S.fert||0)+9}},
     {id:'bouquet',label:'ပန်းစည်း',desc:'လက်ဆောင်ပေးဖို့ · ရွာသား အများစု ကြိုက်တယ်',price:60,ok:()=>true,buy:()=>{S.produce.bouquet++}}].concat(gar?[gar]:[]))}
 function mktRand(i){let h=(Math.imul(S.day+1,2654435761)^Math.imul(i+7,40503))>>>0;h^=h>>>13;h=Math.imul(h,1274126177)>>>0;h=(h^(h>>>16))>>>0;return h/4294967296}
 const MKT_POOL=[
@@ -1913,7 +1916,7 @@ SHOPS.market.items=()=>{const n=isMarket(S.day)?5:3,L=[...MKT_POOL.keys()].sort(
   return L};
 {const st=SHOPS.store.items;SHOPS.store.items=()=>st().filter(i=>i.id!=='feed'&&i.id!=='tea');SHOPS.store.sub=()=>'ငါးမျှားတံ၊ စွန်၊ မီးအိမ်၊ ကြိုး · ခရီးသွားပစ္စည်း'}
 {const ph=SHOPS.pharmacy.items;SHOPS.pharmacy.items=()=>ph().concat([{id:'herb',label:'မှိုဆေး ဖော်ပေး',desc:`မှို 2 ပွင့် ယူလာရင် ဆေးဖော်ပေးမယ် · ချက်ချင်း သောက်မယ် · အားအင် +30 (မှို ${S.produce.mushroom||0})`,price:40,ok:()=>(S.produce.mushroom||0)>=2&&S.energy<S.maxE,buy:()=>{S.produce.mushroom-=2;S.energy=Math.min(S.maxE,S.energy+30);toast('ခါးခါးလေး… ဒါပေမဲ့ အားပြန်ရှိလာတယ်')}}])}
-{const sm=SHOPS.smith.items;SHOPS.smith.items=()=>{const L=sm();L.splice(3,0,{id:'usick',label:'တံစဉ်ကောင်း',desc:'ပေါင်းရှင်းရင် အားအင် 2 အစား 1 ပဲ ကုန်မယ်',price:700,ok:()=>!S.up.sickle,buy:()=>{S.up.sickle=1}});return L}}
+{const sm=SHOPS.smith.items;SHOPS.smith.items=()=>{const L=sm();L.splice(3,0,{id:'usick',label:'တံစဉ်ကောင်း',desc:'ပေါင်းရှင်းရင် အားအင် 2 အစား 1 ပဲ ကုန်မယ်',price:1200,ok:()=>!S.up.sickle,buy:()=>{S.up.sickle=1}});return L}}
 /* ---------- suspicion: night, fatigue, gossip ---------- */
 function addSus(n,msg){S.sus=Math.min(100,S.sus+n);hud();if(msg)toast(`${msg} (သံသယ +${n}%)`)}
 function nightWatch(){
@@ -1928,6 +1931,95 @@ function gpAsk(id){S.daily.gpAsk=S.daily.gpAsk||{};S.daily.gpAsk[id]=1;if(Object
 const REST_CAP=20;
 function rest(n){const left=Math.max(0,REST_CAP-(S.daily.rest||0)),g=Math.min(n,left,S.maxE-S.energy);S.daily.rest=(S.daily.rest||0)+Math.min(n,left);S.energy+=Math.max(0,g);
   if(!left)setTimeout(()=>toast('(ဒီနေ့ နားတာ များပြီ… အားအင် ထပ်မတက်တော့ဘူး။ အိပ်မှ ပြန်ရမယ်)'),1500);return g}
+/* ---------- rare fish ---------- */
+Object.assign(EXTRA,{pyayma:{name:'ငါးပြေမ',sell:250},ngadan:{name:'ငါးဒန်ကြီး',sell:300},goldfish:{name:'ရွှေငါး',sell:400}});
+FISHES.push('pyayma','ngadan','goldfish');
+/* ---------- village job board (at the headman's office) ---------- */
+const JOB_POOL=[
+  ['san','egg',3,()=>S.chickens.length>0],['san','milk',1,()=>cowGrown()],['tun','wood',5,()=>!!S.has.axe],['kyaw','carp',1,()=>!!S.has.rod],['kyaw','snakehead',1,()=>!!S.has.rod&&(S.flags.bridgeFixed||!S.flags.flood)],
+  ['khine','mushroom',2,()=>true],['aye','berry',3,()=>curS()!==1],['aye','shoot',3,()=>curS()===1],['monk','crop',2,()=>true],['mya','crop',3,()=>true],
+  ['hla','crop',2,()=>true],['min','crop',3,()=>true],['zaw','crop',2,()=>S.flags.zawCaught||!S.flags.ch3]];
+function jobsToday(){
+  if(S.jobs&&S.jobs.day===S.day)return S.jobs.list;
+  const R=i=>{let h=(Math.imul(S.day+31,2246822519)^Math.imul(i+3,3266489917))>>>0;h=(h^(h>>>15))>>>0;h=Math.imul(h,668265263)>>>0;return((h^(h>>>13))>>>0)/4294967296};
+  const pool=JOB_POOL.map((j,i)=>({j,r:R(i)})).filter(o=>o.j[3]()).sort((a,b)=>a.r-b.r),list=[],who=new Set();
+  for(const {j,r} of pool){if(list.length>=3)break;if(who.has(j[0]))continue;who.add(j[0]);
+    let item=j[1];if(item==='crop'){const c=seasonCrops(curS());item=c[Math.floor(r*997)%c.length]}
+    list.push({npc:j[0],item,n:j[2],st:'open'})}
+  S.jobs={day:S.day,list};return list}
+const jobPay=j=>j.n*(CROPS[j.item]?CROPS[j.item].sell:EXTRA[j.item].sell);
+const npcName=id=>NPCS.find(d=>d.id===id).name;
+function jobBoard(){
+  const L=jobsToday();
+  show(`<h2>📋 ရွာ အလုပ်ကြော်ငြာဘုတ်</h2><p class="sub">ရွာသားတွေ လိုချင်တာ · ကိုယ်တိုင် ပို့ပေးရင် ငွေနဲ့ ♥+1 · ည ကုန်ရင် ဘုတ်က စာရွက်တွေ အသစ် လဲမယ်</p>
+  ${L.map((j,i)=>`<div class="item"><b><img src="${iconURL(j.item)}" alt="" width="21" height="21" style="image-rendering:pixelated;vertical-align:middle;margin-right:6px">${npcName(j.npc)} · ${itemName(j.item)} ${j.n}</b><span class="sub">${j.st==='done'?'✔ ပို့ပြီးပြီ':j.st==='acc'?`လက်ခံထားတယ် · ${npcName(j.npc)}ဆီ ပို့ပါ (လက်ထဲ ${S.produce[j.item]||0})`:`ကျပ် ${fmt(jobPay(j))} + ♥`}</span>${j.st==='open'?`<button class="bt" type="button" data-j="${i}">လက်ခံမယ်</button>`:''}</div>`).join('')}
+  <p class="sub">ပြီးခဲ့တဲ့ အလုပ် ${S.stats.jobs||0} ခု</p>
+  <div class="btns"><button class="bt pri" type="button" id="mC">ပိတ်မယ်</button></div>`,c=>{c.querySelector('#mC').onclick=close;
+    c.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{L[+b.dataset.j].st='acc';toast('စာရွက်ကို ဖြုတ်ယူလိုက်တယ်');jobBoard()})})}
+function jobTalk(d){
+  const j=(S.jobs&&S.jobs.day===S.day)?S.jobs.list.find(x=>x.npc===d.id&&x.st==='acc'):null;
+  if(!j||(S.produce[j.item]||0)<j.n)return false;
+  cutscene(async()=>{S.produce[j.item]-=j.n;j.st='done';const pay=jobPay(j);S.money+=pay;bump(d.id);S.stats.jobs=(S.stats.jobs||0)+1;
+    await say('pc',`${itemName(j.item)} ${j.n} ယူလာပေးတယ်။ ဘုတ်မှာ တွေ့လို့။`);
+    await say(d.id,['ဟယ်၊ ကျေးဇူးပဲ! အချိန်မီလိုက်တာ။','တကယ် ကူညီတတ်တဲ့ ကလေးပဲ။','ကောင်းလိုက်တာ၊ ဒါပဲ လိုနေတာ။'][S.day%3],'h');
+    await say('nar',`(ကျပ် ${fmt(pay)} · ${d.name} ♥+1)`)});
+  return true}
+/* ---------- collection log ---------- */
+const COL_GROUPS=[
+  {k:'crop',t:'🌾 အသီးအနှံ',ids:()=>CROP_IDS,rw:'မြေဩဇာ ၁၈ ပင်စာ',give:()=>{S.fert=(S.fert||0)+18}},
+  {k:'fish',t:'🐟 ငါး',ids:()=>FISHES.filter(f=>f!=='fish'),rw:'ငါးမျှားတံကောင်း (ငါးကိုက်ချိန် ပိုကြာ)',give:()=>{S.up.rod=1}},
+  {k:'wild',t:'🍄 တောထွက်',ids:()=>['mushroom','shoot','berry','wood'],rw:'ကျပ် 300',give:()=>{S.money+=300}},
+  {k:'dish',t:'🍳 ဟင်း',ids:()=>DISHES.map(d=>d.id),rw:'အားအင် အများဆုံး +10',give:()=>{S.maxE+=10;S.energy+=10}}];
+const FISH_HINT={pyayma:'မိုးရွာရင် မိမယ်',ngadan:'ည ၈ နာရီကျော် မြစ်ထဲ',goldfish:'ရေကြီးပြီးနောက် မြစ်ထဲ',prawn:'မြစ်ထဲ',snakehead:'မြစ်ထဲ',catfish:'ရေကန်',carp:'ရေကန်/မြစ်',fish:'?'};
+function colTrack(){if(!S)return;S.col=S.col||{};let nw=0;
+  for(const g of COL_GROUPS)for(const id of g.ids())if(!S.col[id]&&(S.produce[id]||0)>0){S.col[id]=1;nw=1}
+  if(!nw)return;S.colDone=S.colDone||{};
+  for(const g of COL_GROUPS)if(!S.colDone[g.k]&&g.ids().every(id=>S.col[id])){S.colDone[g.k]=1;g.give();setTimeout(()=>toast(`📖 ${g.t} မှတ်တမ်း ပြည့်ပြီ! ဆု: ${g.rw}`),1200)}}
+function colTab(){S.col=S.col||{};
+  return COL_GROUPS.map(g=>{const ids=g.ids(),n=ids.filter(id=>S.col[id]).length;
+    return `<p style="margin:10px 0 4px"><b>${g.t}</b> <span class="sub">${n}/${ids.length}${(S.colDone||{})[g.k]?' ✔':''} · ဆု: ${g.rw}</span></p><div style="display:flex;flex-wrap:wrap;gap:6px">${ids.map(id=>S.col[id]?`<span title="${itemName(id)}" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;padding:2px 6px;border-radius:8px;background:rgba(255,255,255,.07)"><img src="${iconURL(id)}" alt="" width="18" height="18" style="image-rendering:pixelated">${itemName(id)}</span>`:`<span style="font-size:12px;padding:2px 6px;border-radius:8px;background:rgba(0,0,0,.25);opacity:.7">❔${g.k==='fish'&&FISH_HINT[id]&&FISH_HINT[id]!=='?'?' '+FISH_HINT[id]:''}</span>`).join('')}</div>`}).join('')}
+/* ---------- friendship events (♥3 / ♥6 / ♥9) ---------- */
+const HEV={
+  hla:[async()=>{await say('hla','ကလေး၊ ခဏလာ။ ဒီဓာတ်ပုံဟောင်း ကြည့်။','h');await say('nar','အဝါရောင် ဖျော့နေတဲ့ ဓာတ်ပုံ။ လူငယ် နှစ်ယောက် ဝါးတံတားပေါ်မှာ ပြုံးနေကြတယ်။');await say('hla','ဒါ ငါနဲ့ မင်းအဘိုး။ ရွာက ပထမဆုံး တံတား ဆောက်ပြီးတဲ့နေ့။ မင်းအဘိုးက ဝါးတွေ တစ်ယောက်တည်း ထမ်းလာတာ။');await say('pc','အဘိုး ငယ်ငယ်က ဒီလိုပုံကိုး…')},
+    async()=>{await say('hla','ရွာက လူငယ်တွေ မြို့ထွက်ကုန်ပြီ ကလေး။ ခြံတွေ မြက်ရိုင်းတွေ ပြန်ဖုံးကုန်ပြီ။','s');await say('pc','ကျွန်တော်လည်း မြို့က လာတာပါ ဦးလေး။');await say('hla','အဲ့ဒါကြောင့် ဝမ်းသာတာပေါ့။ မင်းလို ပြန်လာတဲ့သူ ရှိသေးတယ်ဆိုတာ ရွာအတွက် မျှော်လင့်ချက်ပဲ။','h')},
+    async()=>{await say('hla','ဒါ ယူထား။ မင်းအဘိုး ငါ့ဆီ ချန်ခဲ့တဲ့ ကောက်ရိုးဦးထုပ်။ "မြေးလေး ပြန်လာရင် ပေးလိုက်" တဲ့။','h');await say('pc','…ကျေးဇူးပါ ဦးလေး။ အဘိုးရဲ့ ချွေးနံ့လေး ရသေးတယ်။');await say('hla','ရွာထဲမှာ မင်းအကြောင်း ပြောတဲ့သူရှိရင် ငါ ကာပေးမယ်။ မင်းက ငါ့ရွာသားပဲ။','h');S.sus=Math.max(0,S.sus-10);await say('nar','(အဘိုးရဲ့ ဦးထုပ် · ရွာထဲ သံသယ −10%)')}],
+  aye:[async()=>{await say('aye','ထိုင်ဦး ကလေး။ ချည်ခင် ကိုင်ပေး။','h');await say('aye','ငါ ငယ်ငယ်က ရွှေပန်းမြို့ ပုံပြင်ကို အဘွားက ယက်ကန်းခတ်ရင်း ပြောပြတာ။ ချည်တစ်ချောင်း ကြာပန်း တစ်ပွင့်… ဆိုပြီး သီချင်းလိုလို ဆိုတာ။');await say('me','(ပုံပြင်ကို ချည်ပုံစံထဲမှာ မှတ်ထားကြတာပဲ…)')},
+    async()=>{await say('aye','ဒီလုံချည်ပုံစံ မြင်လား? ငါ ဆယ့်ခြောက်နှစ်က ယက်ကန်းပြိုင်ပွဲမှာ ဒုတိယ ရခဲ့တာ။');await say('aye','ပထမက ဘယ်သူလဲ သိလား? မင်းအဘွား။ ငါ တစ်သက်လုံး မနိုင်ခဲ့ဘူး။ ဟား ဟား…','h');await say('pc','အဘွားက ယက်ကန်း တော်ခဲ့တာကိုး။')},
+    async()=>{await say('aye','ဒါ မင်းအဘွားရဲ့ ရင်ဖုံးအင်္ကျီဟောင်း။ ငါ ပြန်ပြင်ပြီး ချုပ်ထားတယ်။ ဆောင်းညတွေ အေးတယ်၊ ဝတ်ထား။','h');await say('pc','ပူနွေးလိုက်တာ… ကျေးဇူးပါ ဒေါ်အေး။');S.flags.ayeVest=1;await say('nar','(ရင်ဖုံးအင်္ကျီ · ည ၈ နာရီကျော် အလုပ်လုပ်ရင် အားအင် ပို မကုန်တော့ဘူး)')}],
+  mya:[async()=>{await say('mya','စံပယ်က နေသိပ်မပူတဲ့နေရာ ကြိုက်တယ်။ မြေဩဇာလေး ထည့်ပေးရင် အမွှေးပိုထွက်တယ်။ ဒီမှာ ယူသွား၊ စမ်းစိုက်ကြည့်။','h');S.fert=(S.fert||0)+9;await say('nar','(မြေဩဇာ ၉ ပင်စာ)')},
+    async()=>{await say('mya','…ရန်ကုန်က ပန်းဆိုင်ကြီး တစ်ဆိုင်က အလုပ်ခေါ်ထားတယ်။ လစာ ကောင်းတယ်။','s');const c=await choose('mya','ငါ သွားသင့်လား?',['သွားပါ။ မမြ အိပ်မက်ပဲ။','ရွာမှာ နေပါ။ ရွာကို ပန်းတွေ လှအောင် လုပ်ပေးနေတာ မမြပဲ။']);S.flags.myaChoice=c?'stay':'go';await say('mya',c?'…ဟုတ်တယ်နော်။ ဒီမှာ ငါ့ပန်းခင်းလေး ရှိတယ်။':'…ကြိုးစားကြည့်ရမလား။ စဉ်းစားဦးမယ်။','h')},
+    async()=>{if(S.flags.myaChoice==='go'){await say('mya','ရန်ကုန် သွားပြီး ပြန်လာခဲ့တယ်။ ဆိုင်ကြီးကို ပန်းပို့ပေးတဲ့ အလုပ် ရတယ်။ ရွာမှာ စိုက်ပြီး မြို့ကို ပို့မယ်!','h');await say('mya','မင်း သွားဆိုလို့ ရဲရဲ သွားခဲ့တာ။ ကျေးဇူးပဲ။')}else{await say('mya','ရွာမှာ နေဖြစ်တယ်။ ဘုန်းကြီးကျောင်းနား စံပယ်ခင်းကြီး လုပ်နေတယ်။ နောက်နှစ် ရွာတစ်ရွာလုံး မွှေးနေမယ်!','h');await say('mya','မင်း နေပါ ဆိုလို့ ဆုံးဖြတ်ရဲတာ။ ကျေးဇူးပဲ။')}S.flags.myaDisc=1;await say('nar','(မမြဆိုင်မှာ မျိုးစေ့ 10% ဈေးလျှော့)')}],
+  kyaw:[async()=>{await say('kyaw','လှေပေါ် တက်ခဲ့။ မြစ်ထဲက ငါးတွေ အကြောင်း သင်ပေးမယ်။','h');await say('kyaw','မိုးရွာရင် ငါးပြေမ ထွက်တယ်။ ညဘက် မြစ်ထဲမှာ ငါးဒန်ကြီး ကိုက်တယ်။ ပြီးတော့… ရေကြီးတဲ့နှစ်တွေမှာ ရွှေငါး ဆိုတာ ပေါ်တတ်တယ်တဲ့။');await say('pc','ရွှေငါး? တကယ်ရှိလား?');await say('kyaw','ငါ တစ်ခါပဲ မြင်ဖူးတယ်။ ဟား ဟား။')},
+    async()=>{await say('kyaw','…ငါ့သား မြို့မှာ အလုပ်လုပ်တာ ဖုန်းမဆက်တာ နှစ်လ ရှိပြီ။','s');await say('kyaw','ငါ စာ မရေးတတ်ဘူး။ မင်း ရေးပေးမလား?');const c=await choose('me','(စာထဲ ဘာရေးမလဲ…)',['"အဖေ နေကောင်းတယ်။ ပြန်လာရင် ငါးဟင်း ချက်ကျွေးမယ်"','"အဖေ လွမ်းတယ်။ အလုပ်များရင်လည်း စာလေး ရေးပါ"']);await say('kyaw',c?'…အင်း။ ဒါပဲ ငါ ပြောချင်တာ။':'ဟား… ငါးဟင်း။ အဲ့ကောင် ငါးဟင်း ကြိုက်တယ်။','h')},
+    async()=>{await say('kyaw','ကလေး! သားဆီက စာ ပြန်ရောက်ပြီ! သင်္ကြန်မှာ ပြန်လာမယ်တဲ့!','h');await say('kyaw','ဒါ ငါ့ အထူး ငါးစာ။ ပုစွန်ခြောက်နဲ့ ဆန်ကွဲ ရောထားတာ။ ငါးတွေ မြန်မြန် ကိုက်မယ်။');S.flags.kyawBait=1;await say('nar','(ငါးစာ အထူး · ငါးကိုက်တာ ပိုမြန်)')}],
+  san:[async()=>{await say('san','လက်ဖက်ရည် ဘာလို့ ဒီလောက် မွှေးလဲ သိလား? ရေနွေး ဆူဆူကို ချက်ချင်း မလောင်းနဲ့။ ခဏ အငွေ့ထွက်အောင် စောင့်။','h');await say('san','အိမ်မှာလည်း ဒီလို ဖျော်ကြည့်။');S.flags.sanPot=1;await say('nar','(အိမ်ကရား လက်ဖက်ရည် အားအင် +10 → +15)')},
+    async()=>{await say('san','…ဆိုင်က အကြွေးတွေ များနေတယ် ကလေး။ ဆီဈေး၊ နို့ဈေး တက်တော့ ပိတ်ရမလား စဉ်းစားနေတယ်။','s');await say('pc','ဒေါ်ဒေါ့်ဆိုင် မရှိရင် ရွာက မနက်ခင်းတွေ ပျင်းသွားမှာ။ ကျွန်တော် ခြံက ပစ္စည်းတွေ ပို့ပေးမယ်။');await say('san','…ကျေးဇူးပဲ။ မင်းကြောင့် အားရှိလာတယ်။','h')},
+    async()=>{await say('san','ဆိုင် ပြန်ကောင်းလာပြီ! ဒီမှာ ကြည့်… ဆိုင်းဘုတ်မှာ "ခြံသားလေး လက်ဖက်ရည်" ဆိုပြီး အသစ် ထည့်ထားတယ်။','h');await say('pc','ဟာ… ကျွန်တော့် နာမည်နဲ့လား!');S.flags.sanDisc=1;await say('nar','(ဒေါ်စန်းစန်းဆိုင်မှာ 20% ဈေးလျှော့)')}],
+  zaw:[async()=>{await say('zaw','…အမေ နေမကောင်းဘူး။ မြို့ဆေးရုံ သွားဖို့ ငွေ စုနေတယ်။','s');await say('pc','ကိုဇော့် အဖေကော?');await say('zaw','…မရှိတော့ဘူး။ အဲ့အကြောင်း မပြောချင်ဘူး။')},
+    async()=>{await say('zaw','ငယ်ငယ်က အဖေနဲ့ တောထဲ ညတိုင်း ရှာခဲ့ကြတယ်။ မီးအိမ်လေး ကိုင်ပြီး အဖေ့နောက်က လိုက်တာ။','s');await say('zaw','အဖေက ပြောတယ်… "မင်းအဘိုးနဲ့ ငါ တစ်နေ့ ပြန်ဆုံရင် အတူတူ ရှာမယ်" တဲ့။ မဆုံလိုက်ကြဘူး။');await say('pc','အခု ကျွန်တော်တို့ ဆုံနေပြီလေ ကိုဇော်။')},
+    async()=>{await say('zaw','ဒါ အဖေ့ ဓားမြှောင်။ မြေပုံ တစ်ပိုင်းကို ဒါနဲ့ အတူ သိမ်းထားခဲ့တာ။','h');await say('zaw','မင်းကို ညီအရင်းလို သဘောထားတယ်။ ဒါ မင်းဆီမှာ ထားပါ။');await say('pc','…ကိုဇော်။');S.flags.zawDagger=1;await say('nar','(ဦးဘိုးသိန်းရဲ့ ဓားမြှောင် · အမှတ်တရ)')}],
+  tun:[async()=>{await say('tun','ဖိုထဲမှာ သံပူနေတုန်း ထုကြည့်မလား? အချိန်ကိုက်မှ ထုရမယ်နော်။','h');const h=await timingGame({title:'သံထုမယ်',desc:'သံနီနေတုန်း (အစိမ်းထဲ) ထုပါ။ ၃ ကြိမ်။',icon:'🔨',btn:'ထုမယ်',hit:'✨',miss:'💨',okTxt:'ချွင်!',badTxt:'ချော်သွားတယ်'});await say('tun',h>=2?'ဟေ့! လက်သွက်တယ်။ မင်းအဘိုး သွေးပါတယ်။':'ဟား ဟား… ပထမဆုံးတော့ ဒီလိုပဲ။','h');S.produce.wood+=3;await say('nar','(ထင်း ၃ စည်း လက်ဆောင်)')},
+    async()=>{await say('tun','မင်း ကိုင်နေတဲ့ ပေါက်ပြား… အဲ့ဒါ ငါ့အဖေ ထုပေးခဲ့တာ။ ရိုးမှာ အမှတ်လေး ရှိတယ်၊ ကြည့်။');await say('pc','ဟုတ်တယ်… ကြယ်ပုံလေး။');await say('tun','ငါ့အဖေနဲ့ မင်းအဘိုး ဆယ်နှစ်လောက် ဒီပေါက်ပြား အကြောင်း ငြင်းခဲ့ကြတာ။ ဟား ဟား။','h')},
+    async()=>{await say('tun','မင်းက အမြဲ ကူညီတယ်။ ကိရိယာ ထုခ ငါ လျှော့ပေးမယ်။','h');S.flags.tunDisc=1;await say('nar','(ပန်းပဲဖိုမှာ 20% ဈေးလျှော့)')}],
+  monk:[async()=>{await say('monk','ဒကာလေး၊ ကျောင်းဝင်းထဲမှာ ကုက္ကိုပင်လေး စိုက်ချင်တယ်။ ကူပေးပါလား။');await say('nar','ဦးဇင်းနဲ့ အတူ ကျင်းတူးပြီး ပင်ပေါက်လေး စိုက်လိုက်တယ်။ ရေလောင်းပြီး မြေကို ဖိပေးတယ်။');await say('monk','နှစ်ငါးဆယ်ကြာရင် ဒီအရိပ်အောက်မှာ ကလေးတွေ စာကျက်ကြမယ်။ သာဓု။','h')},
+    async()=>{await say('monk','မင်းအဘိုး ဒီကျောင်းမှာ လာ တရားထိုင်ခဲ့တယ်။ ဘဏ္ဍာ ရှာတဲ့ စိတ်က သူ့ကို မအိပ်နိုင်အောင် လုပ်ခဲ့တယ်။');await say('monk','ဦးဇင်း ပြောခဲ့တယ်… "ရှာတာ မမှားဘူး ဒကာကြီး။ ဘာအတွက် ရှာလဲ ဆိုတာ မမေ့နဲ့" လို့။');await say('me','(ဘာအတွက် ရှာလဲ…)')},
+    async()=>{await say('monk','ဒကာလေးကို ရွာက ယုံကြည်လာကြပြီ။ ဘုရားလာဖူးတိုင်း စိတ်အေးအေး ထားပါ။','h');S.flags.monkBless=1;await say('nar','(ဘုရားဖူးတိုင်း ရွာထဲ သံသယ −5%)')}],
+  khine:[async()=>{await say('khine','ကျွန်မ ဆေးကျောင်း ဝင်ချင်တာ။ ဒါပေမဲ့ ငွေ မရှိလို့ ရွာမှာ သူနာပြု လုပ်နေတာ။','s');await say('pc','မခိုင် ဆရာဝန် ဖြစ်ရင် ရွာအတွက် ကောင်းမှာပဲ။');await say('khine','…ကျေးဇူး။ အဲ့စကား ကြားရတာ ပထမဆုံးပဲ။','h')},
+    async()=>{await say('khine','မနေ့ညက ဦးကျော့်အိမ်က အဘွား ဖျားလို့ ကျွန်မ သွားကြည့်တယ်။ ညဘက် တစ်ယောက်တည်း ကြောက်တယ်။','s');await say('khine','နောက်ခါ ညဘက် လူနာ ရှိရင် အဖော်လိုက်ပေးမလား?');await say('pc','ရပါတယ်။ ခေါ်ပါ။');await say('khine','ဒါ ယူထား။ ကျွန်မ ဖော်ထားတဲ့ အားဆေး။','h');S.energy=Math.min(S.maxE,S.energy+40);await say('nar','(အားအင် +40)')},
+    async()=>{await say('khine','ကြည့်! ဆေးကျောင်း ဝင်ခွင့်စာ ရပြီ! ပညာသင်ဆု ရတယ်!','h');await say('khine','မင်း အားပေးလို့ လျှောက်ဖြစ်တာ။ မသွားခင် ဆိုင်က ဆေးတွေ ဈေးလျှော့ပေးမယ်။');S.flags.khineDisc=1;await say('nar','(မခိုင်ဆိုင်မှာ 20% ဈေးလျှော့)')}],
+  min:[async()=>{await say('min','ကြက်ဥကို ကြက်မအောက်မှာ နွေးနွေးလေး ထားရင် မြန်မြန် ဖောက်တယ်။ ကောက်ရိုး ခင်းပေးထား။','h');S.flags.minHatch=1;await say('nar','(ကြက်ဥ ၂ ည မကောက်ရင် ဖောက်မယ် — ၃ ည အစား)')},
+    async()=>{await say('min','…ညိုလေးရဲ့ အမေ နွားအိုကြီး မနေ့က သေသွားတယ်။','s');await say('min','ငါ ငယ်ငယ်ကတည်းက အတူ ကြီးလာတာ။ ငါ့ညီမလိုပဲ။');await say('pc','…ကိုမင်း။ ညနေ ကျွန်တော် လာထိုင်ပေးမယ်။');await say('min','…အင်း။ ကျေးဇူး။')},
+    async()=>{await say('min','မင်းကြက်ခြံ ကြည့်ပြီးပြီ။ နည်းနည်း ချဲ့ပေးမယ်။ ကြက် ၈ ကောင် ဆံ့အောင်။','h');S.flags.minCoop=1;await say('nar','(ကြက်ခြံ · ကြက် ၆ → ၈ ကောင်)')}],
+};
+function heartTalk(d){
+  const L=HEV[d.id];if(!L)return false;S.hev=S.hev||{};const lv=S.hev[d.id]||0;if(lv>=3)return false;
+  if((S.friends[d.id]||0)<[3,6,9][lv]||S.hevDay===S.day)return false;
+  if(d.id==='zaw'&&(lv===1&&(!S.flags.zawCaught||S.flags.zawEnemy)||lv===2&&!S.flags.map2))return false;
+  S.hev[d.id]=lv+1;S.hevDay=S.day;cutscene(L[lv]);return true}
+/* discounts and perks from friends */
+{const wrap=(id,flag,pred)=>{const o=SHOPS[id].items;SHOPS[id].items=()=>o().map(i=>S.flags[flag]&&pred(i)&&i.price>0?{...i,price:Math.round(i.price*(flag==='myaDisc'?.9:.8))}:i)};
+  wrap('tea','sanDisc',()=>true);wrap('smith','tunDisc',()=>true);wrap('pharmacy','khineDisc',i=>i.id!=='herb');wrap('florist','myaDisc',i=>i.id.startsWith('s_'))}
+const coopMax=()=>S.flags.minCoop?8:6;
 /* ---------- chapter 3 · winter · the other half ---------- */
 const FALL2=[[36,18],[36,19],[36,20]];
 function setFall2(on){const t=S.maps.forest.tiles;FALL2.forEach(([x,y])=>t[y][x]=on?FALL:CLIFF);if(S.map==='forest')dirty=true}
@@ -2226,7 +2318,9 @@ function storyTalk(d){
   if(S.day===20&&KADAW[d.id]&&!(S.flags.kadaw||{})[d.id]){cutscene(()=>kadawScene(d.id));return true}
   if(d.id==='aye'&&S.day===28&&!S.flags.weave){cutscene(weaveScene);return true}
   if(orderTalk(d))return true;
-  if(d.id==='tun'&&S.flags.rubbleTry&&!S.up.hammer&&!S.flags.tunRubble){S.flags.tunRubble=1;cutscene(async()=>{await say('pc','ကိုထွန်း၊ ဂူထဲမှာ ကျောက်တုံးကြီးတွေ ပြိုပြီး လမ်းပိတ်နေတယ်။ တူနဲ့ ထုတာ ခုန်ပြန်လာတယ်။');await say('tun','ဂူထဲက ကျောက်လား? အဲ့ဒါ ကျောက်ချောက် အမာစားဗျ။ သာမန် သံတူနဲ့ မရဘူး။');await say('tun','မင်းတူ အသွားကို သံမဏိနဲ့ ပြန်ထုပေးမယ်။ ကျပ် ၉၀၀ ပေး၊ ဆိုင်ထဲမှာ "တူကောင်း" ရွေးလိုက်။','h')});return true}
+  if(jobTalk(d))return true;
+  if(heartTalk(d))return true;
+  if(d.id==='tun'&&S.flags.rubbleTry&&!S.up.hammer&&!S.flags.tunRubble){S.flags.tunRubble=1;cutscene(async()=>{await say('pc','ကိုထွန်း၊ ဂူထဲမှာ ကျောက်တုံးကြီးတွေ ပြိုပြီး လမ်းပိတ်နေတယ်။ တူနဲ့ ထုတာ ခုန်ပြန်လာတယ်။');await say('tun','ဂူထဲက ကျောက်လား? အဲ့ဒါ ကျောက်ချောက် အမာစားဗျ။ သာမန် သံတူနဲ့ မရဘူး။');await say('tun','မင်းတူ အသွားကို သံမဏိနဲ့ ပြန်ထုပေးမယ်။ ကျပ် ၁၅၀၀ ပေး၊ ဆိုင်ထဲမှာ "တူကောင်း" ရွေးလိုက်။','h')});return true}
   if(d.id==='min'&&S.day>=6&&!S.flags.calfOffer&&!S.has.cow&&!S.flags.ch3){cutscene(calfOffer);return true}
   if((d.id==='aye'&&!S.flags.legend||GP_TALK[d.id]&&!S.clues.includes(GP_TALK[d.id][0]))&&S.q.q_grandpa==='active'){
     gpAsk(d.id);
@@ -2379,7 +2473,7 @@ function drawSigns(b,bx,by,sp){const t=SIGNS[b.id];if(!t)return;const fx=bx+sp.o
 const $=id=>document.getElementById(id);
 const hudCache={};
 function setT(id,v){if(hudCache[id]!==v){hudCache[id]=v;$(id).textContent=v}}
-function hud(){
+function hud(){colTrack();
   if(!S)return;
   const h=Math.floor(S.min/60)%24,m=S.min%60;
   setT('hDay',`နေ့ ${S.day} / ${DAYS}`);
@@ -2475,7 +2569,7 @@ function update(dt){
   if(paused||!S||CUT)return;
   checkStory();
   let ticked=false;acc+=dt;while(acc>=TICK/SPEED){acc-=TICK/SPEED;S.min++;ticked=true;if(S.min%60===0)save()}
-  if(ticked)nightWatch();
+  if(ticked){nightWatch();if(S.min%10===0)colTrack()}
   if(S.min>=1440){toast('');S.flags.passMap=S.map;endDay(true);return}
   if(mv){mv.t+=dt/140;if(mv.t>=1)mv=null}
   updateFun(dt,ticked);
@@ -2696,6 +2790,9 @@ function makeItemIcons(){
   fish('catfish','#6a6a60','#9a9a8a','#4a4a40',()=>{R('#3a3a30',1,8,2,1);R('#3a3a30',0,9,2,1);R('#3a3a30',1,5,2,1)});
   fish('carp','#c89a4a','#f2d088','#8a6420',()=>{for(const x of [5,7,9])R('#a8783a',x,8,1,1)});
   fish('snakehead','#4a5a3a','#7a8a5a','#2a3a1a',()=>{for(const x of [4,6,8,10])R('#2a3420',x,6,1,3)});
+  fish('pyayma','#9ab0b8','#e8f0f2','#5a7a88',()=>{R('#d8e8ee',5,8,4,1)});
+  fish('ngadan','#3a3a4a','#6a6a80','#1a1a2a',()=>{R('#8a8aa8',4,5,6,1);R('#1a1a2a',1,7,2,1)});
+  fish('goldfish','#e8a820','#fff0a0','#b87410',()=>{R('#ffffff',5,6,1,1);R('#fff6c0',8,8,1,1)});
   mkI('prawn',()=>{for(let i=0;i<7;i++){const a=i/6*Math.PI*.9,x=7+Math.round(Math.cos(a+1.2)*4),y=7-Math.round(Math.sin(a+1.2)*4);ell(x,y,1.8,1.8,'#7a2a10')}
     for(let i=0;i<7;i++){const a=i/6*Math.PI*.9,x=7+Math.round(Math.cos(a+1.2)*4),y=7-Math.round(Math.sin(a+1.2)*4);ell(x,y,1.1,1.1,i%2?'#f08a4a':'#e8703a')}
     R('#1a1a1a',9,3,1,1);R('#e8703a',10,1,3,1);R('#e8703a',11,2,2,1);R('#f0a070',4,11,3,2)});
