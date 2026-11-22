@@ -134,7 +134,7 @@ body.touch-off #keys{display:block!important}
   body:not(.touch-off).land-touch #hud .bar>span,body:not(.touch-off).land-touch #hud .bar em,body:not(.touch-off).land-touch #hWx{display:none}
   body:not(.touch-off).land-touch #hud .bar i{min-width:24px}
   body:not(.touch-off).land-touch .chip{font-size:14px;line-height:1.3;padding:1px 6px;background:rgba(34,25,15,.72);backdrop-filter:blur(2px)}
-  body:not(.touch-off).land-touch #belt{position:fixed;z-index:3;bottom:max(4px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);width:min(60vw,500px);display:grid;grid-template-columns:repeat(9,1fr);overflow:visible;gap:3px}
+  body:not(.touch-off).land-touch #belt{position:fixed;z-index:3;bottom:max(4px,env(safe-area-inset-bottom,0px));left:calc(max(10px,env(safe-area-inset-left,0px)) + 158px);right:calc(max(12px,env(safe-area-inset-right,0px)) + 158px);transform:none;width:auto;max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(9,1fr);overflow:visible;gap:3px}
   body:not(.touch-off).land-touch .slot{flex:none;min-height:42px;padding:3px 1px;border-radius:6px;background:rgba(53,38,23,.76)}
   body:not(.touch-off).land-touch .slot.on{background:rgba(74,53,32,.9)}
   body:not(.touch-off).land-touch .slot span{display:none}
