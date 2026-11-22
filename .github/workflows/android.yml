@@ -40,7 +40,15 @@ jobs:
           SIGNING_KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleDebug bundleRelease
+          set -o pipefail
+          ./gradlew --no-daemon --stacktrace assembleDebug bundleRelease 2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      - name: Report build errors
+        if: failure()
+        run: |
+          grep -n -A12 -E "What went wrong|error:|e: |FAILURE|Could not" "$RUNNER_TEMP/build.log" | head -c 30000 > "$RUNNER_TEMP/err.txt" || true
+          msg=$(sed -e 's/%/%25/g' "$RUNNER_TEMP/err.txt" | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Gradle build failed::$msg"
 
       - name: Test APK (install on a phone to try)
         uses: actions/upload-artifact@v4
