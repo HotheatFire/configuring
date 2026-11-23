@@ -1,0 +1,179 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Padauk;font-weight:700;src:url(file:///home/claude/fonts/package/files/padauk-myanmar-700-normal.woff2)}
+body{margin:0;background:#000}#w{position:relative;width:1280px;height:960px}
+canvas{width:1280px;height:960px;image-rendering:pixelated;display:block}
+.l{position:absolute;font-family:Padauk;font-weight:700;font-size:20px;color:#3a2a1a;background:rgba(255,250,235,.88);padding:0 8px;border-radius:6px;line-height:1.5}
+.sg{position:absolute;font-family:Padauk;font-weight:700;color:#fff6dc;font-size:15px;line-height:1.3;text-align:center}
+</style></head><body><div id="w"><canvas id="cv" width="320" height="240"></canvas></div>
+<script>const cv=document.getElementById('cv'),c=cv.getContext('2d');
+const label=(x,y,t)=>{const d=document.createElement('div');d.className='l';d.style.left=(x*4)+'px';d.style.top=(y*4)+'px';d.textContent=t;document.getElementById('w').appendChild(d)};
+const sign=(x,y,w,t,size)=>{const d=document.createElement('div');d.className='sg';d.style.left=(x*4)+'px';d.style.top=(y*4)+'px';d.style.width=(w*4)+'px';if(size)d.style.fontSize=size+'px';d.textContent=t;document.getElementById('w').appendChild(d)};
+</script><script src="lib.js"></script><script>
+R(0,0,320,240,'#efe8d8');
+const OUT='#2a1a12';
+/* soft grass patches under buildings */
+grassField(2,2,100,112);grassField(106,2,96,112);grassField(206,2,112,112);grassField(2,120,122,118);grassField(128,120,72,118);grassField(204,120,114,118);
+/* ---------------- thatch helper ---------------- */
+function thatch(pts,ox,oy,dark){ // rows of straw bundles, scalloped bottom edges, lit from left
+  poly(pts,(x,y)=>{const row=Math.floor((y-oy)/4),ry=(y-oy)-row*4,bx=Math.floor((x-ox+row*2)/3),bxx=(x-ox+row*2)-bx*3;
+    const n=h2(bx,row);let v=ry===0?2:ry===3?-2:(bxx===0?-1:0);if(n>.8)v+=1;if(n<.15)v-=1;if(dark)v-=1;
+    const pal=['#6a4410','#8a5e1a','#b07e2a','#d4a440','#ecc868','#f8e098'];return pal[Math.max(0,Math.min(5,v+3))]});
+  polyOutline(pts,OUT);
+}
+function fringe(x0,x1,y,dark){for(let x=x0;x<=x1;x++){const d=h2(x,7)*3|0;R(x,y,1,2+d,dark?'#8a5e1a':(x%3===0?'#b07e2a':'#d4a440'));P(x,y+2+d,OUT)}}
+function weave(x,y,w,h){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const k=(((i+j)>>1)+((i-j+64)>>2))%2;const n=h2(i>>1,j>>1);P(x+i,y+j,k?(n>.85?'#ecd29a':'#dcbc7c'):(n>.85?'#b8945a':'#c8a466'))}
+  for(let j=0;j<h;j+=6)R(x,y+j,w,1,'#a88450')}
+function post(x,y,h,w=3){R(x,y,w,h,OUT);R(x+1,y,w-2,h,'#8a5630');P(x+1,y,'#c88a50');R(x+1,y+1,1,h-2,'#a8703e')}
+/* ---------------- 1. grandpa's thatched stilt house ---------------- */
+function stiltHouse(X,Y){
+  SH(X+44,Y+86,44,5,.3);
+  for(const px of [8,30,52,74])post(X+px,Y+60,26,4);
+  // cross braces
+  for(let i=0;i<20;i++){P(X+12+i,Y+64+i*.9,'#6a4226');P(X+52+i,Y+82-i*.9,'#6a4226')}
+  R(X+4,Y+57,82,5,OUT);R(X+5,Y+58,80,3,'#a8703e');R(X+5,Y+58,80,1,'#d4985a');for(let i=8;i<84;i+=6)R(X+i,Y+60,1,1,'#6a4226');
+  weave(X+8,Y+34,72,23);R(X+7,Y+33,74,1,OUT);for(const px of [7,42,80])post(X+px,Y+33,24,3);
+  // door
+  R(X+36,Y+37,15,20,OUT);R(X+37,Y+38,13,19,'#4a2c18');for(let i=0;i<13;i+=3)R(X+37+i,Y+38,1,19,'#5a3420');R(X+37,Y+38,13,1,'#8a5630');P(X+47,Y+48,'#e8c070');
+  // ladder
+  for(let i=0;i<7;i++){R(X+36,Y+62+i*3.4,15,1,OUT);R(X+37,Y+61+i*3.4,13,1,'#c88a50')}R(X+35,Y+60,2,27,OUT);R(X+50,Y+60,2,27,OUT);P(X+36,Y+60,'#a8703e');
+  // windows with propped shutters
+  for(const wx of [14,60]){R(X+wx,Y+40,13,11,OUT);R(X+wx+1,Y+41,11,9,'#2a3a48');R(X+wx+1,Y+41,11,2,'#3a5a6a');for(let i=0;i<11;i+=3)R(X+wx+1+i,Y+41,1,9,'#4a3018');
+    // shutter propped up as an awning
+    for(let i=0;i<4;i++)R(X+wx-1+i*.3,Y+36+i,15-i*.6,1,i===0?OUT:i===3?'#6a4226':'#a8703e');R(X+wx+12,Y+37,1,4,'#6a4226');
+    R(X+wx-1,Y+51,15,3,OUT);R(X+wx,Y+51,13,2,'#9a5a34');
+    for(let i=0;i<6;i++){const col=['#e8507a','#ffffff','#f6c829','#e2402f','#ff9ac0','#ffffff'][i];leaf(X+wx+1+i*2,Y+51,-1.57-.4+i*.15,3,1,G);P(X+wx+1+i*2,Y+48,col);P(X+wx+2+i*2,Y+48,col);P(X+wx+1+i*2,Y+49,col)}}
+  // hip roof
+  const RY=Y+2,RB=Y+34;
+  thatch([[X+26,RY],[X+62,RY],[X+92,RB],[X-4,RB]],X,RY);
+  thatch([[X+62,RY],[X+66,RY+2],[X+94,RB-2],[X+92,RB]],X,RY,true);
+  R(X+25,RY-3,39,4,OUT);R(X+26,RY-2,37,2,'#8a5e1a');R(X+26,RY-2,37,1,'#d4a440');for(let x=X+27;x<X+62;x+=4)R(x,RY-3,1,1,'#f8e098');
+  fringe(X-4,X+93,RB,false);
+  R(X+8,Y+35,72,3,'rgba(40,20,10,.35)');
+  // water pots stand
+  R(X+60,Y+76,20,2,OUT);R(X+61,Y+76,18,1,'#a8703e');R(X+62,Y+78,1,8,OUT);R(X+77,Y+78,1,8,OUT);
+  for(const px of [65,74]){for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const d=(i/4)**2+(j/4.2)**2;if(d<=1)P(X+px+i,Y+71+j,d>.8?'#4a1e10':(i<0&&j<0)?'#d88a5a':'#b8603a')}R(X+px-2,Y+66,5,1,OUT);R(X+px-2,Y+67,5,1,'#8a3a1e');R(X+px-1,Y+65,3,1,'#c8a070')}
+  // smoke
+  for(let i=0;i<4;i++){const r=1.6+i*.7;for(let a=0;a<6.28;a+=.35)P(X+80+i*2+Math.cos(a)*r,Y-4-i*5+Math.sin(a)*r*.8,`rgba(250,250,246,${.8-i*.17})`)}
+}
+stiltHouse(6,10);label(4,104,'အဘိုးအိမ် (သက်ကယ်မိုး ဝါးထရံ)');
+/* ---------------- 2. teak house with zinc roof ---------------- */
+function zinc(pts,ox,dark){poly(pts,(x,y)=>{const k=(x-ox)%3;let col=k===0?'#e6ecf0':k===1?'#b8c2ca':'#8a96a0';if(dark)col=k===0?'#a8b4bc':k===1?'#8a96a0':'#6a7680';
+    const n=h2(x>>1,y>>1);if(n>.985)col='#b8704a';else if(n>.975)col='#9a5a3a';return col});polyOutline(pts,'#3a4048')}
+function planks(x,y,w,h,dark){for(let j=0;j<h;j++)for(let i=0;i<w;i++){const r=j%4;const n=h2(i>>3,(j>>2)+i%7);let col=r===0?'#d48e52':r===3?'#5a3020':n>.6?'#a8663a':'#9a5a32';if(dark)col=r===0?'#a86a3e':r===3?'#3a2018':n>.6?'#7a4626':'#6a3e22';if(h2(i,j)>.97)col='#5a3020';P(x+i,y+j,col)}}
+function louver(x,y,w,h){R(x,y,w,h,OUT);for(let j=1;j<h-1;j+=2){R(x+1,y+j,w-2,1,'#c88a50');R(x+1,y+j+1,w-2,1,'#6a3e22')}R(x+Math.floor(w/2),y,1,h,OUT)}
+function teakHouse(X,Y){
+  SH(X+44,Y+88,44,5,.3);
+  for(const px of [6,30,54,78])post(X+px,Y+66,22,4);
+  R(X+2,Y+63,86,4,OUT);R(X+3,Y+64,84,2,'#a8663a');R(X+3,Y+64,84,1,'#d48e52');
+  planks(X+5,Y+30,80,33);R(X+4,Y+29,82,1,OUT);for(const px of [4,44,84])post(X+px,Y+29,34,2);
+  // veranda + railing
+  for(let x=X+6;x<X+84;x+=5){R(x,Y+54,2,9,OUT);R(x,Y+55,1,7,'#d48e52')}R(X+5,Y+53,80,2,OUT);R(X+5,Y+53,80,1,'#e0a868');
+  louver(X+12,Y+34,12,15);louver(X+66,Y+34,12,15);
+  R(X+36,Y+33,18,20,OUT);R(X+37,Y+34,8,19,'#7a4626');R(X+46,Y+34,7,19,'#7a4626');for(let j=0;j<19;j+=6){R(X+38,Y+35+j,6,4,'#9a5a32');R(X+47,Y+35+j,5,4,'#9a5a32')}P(X+44,Y+44,'#f2d07a');
+  // stairs
+  for(let i=0;i<6;i++){R(X+34+i*0,Y+67+i*3.5,22,1,OUT);R(X+35,Y+66+i*3.5,20,1,'#d48e52')}R(X+33,Y+66,2,22,OUT);R(X+55,Y+66,2,22,OUT);
+  // zinc gable roof (front plane + gable end)
+  zinc([[X-4,Y+30],[X+12,Y+6],[X+82,Y+6],[X+94,Y+30]],X);
+  zinc([[X+82,Y+6],[X+88,Y+10],[X+98,Y+26],[X+94,Y+30]],X,true);
+  R(X+12,Y+4,70,3,'#3a4048');R(X+13,Y+5,68,1,'#f4f8fa');
+  R(X-5,Y+30,100,2,'#3a4048');R(X-4,Y+30,98,1,'#c8d0d6');
+  // potted plants & bougainvillea
+  for(const px of [8,80]){R(X+px,Y+82,6,5,OUT);R(X+px+1,Y+83,4,4,'#c46e52');blob(scallop(X+px+3,Y+77,5,5,2.6),['#24503a','#33733e','#4c9640','#74b844','#a8dc5c'],'#163428');for(let i=0;i<6;i++)P(X+px+h2(i,px)*7,Y+74+h2(px,i)*6,'#e8508a')}
+}
+teakHouse(108,8);label(106,104,'ကျွန်းသစ်အိမ် (သွပ်မိုး)');
+/* ---------------- 3. tea shop ---------------- */
+function teaShop(X,Y){
+  SH(X+52,Y+92,52,4,.28);
+  // concrete floor
+  R(X+2,Y+80,104,10,'#9a9890');R(X+2,Y+80,104,1,'#c8c6be');R(X+2,Y+89,104,1,'#6a6862');for(let x=X+4;x<X+104;x+=12)R(x,Y+81,1,8,'#8a8880');
+  // back wall: painted plaster (pale green) + shelves
+  R(X+4,Y+36,100,44,OUT);for(let j=0;j<42;j++)for(let i=0;i<98;i++)P(X+5+i,Y+37+j,j>30?(h2(i>>1,j)>.5?'#8ab0a0':'#7aa090'):(h2(i>>2,j>>2)>.8?'#c8e4d8':'#b8dccc'));
+  R(X+5,Y+67,98,1,'#5a7a6a');
+  // shelf with jars + glass display case
+  R(X+10,Y+46,40,2,'#6a3e22');for(let i=0;i<7;i++){const cx=X+12+i*5.5;R(cx,Y+40,4,6,OUT);R(cx+1,Y+41,2,5,['#f2c14e','#e2702a','#c8402c','#f6e6b8','#8ac85a','#e2702a','#f2c14e'][i]);R(cx+1,Y+40,2,1,'#e8e8e8')}
+  R(X+60,Y+56,34,22,OUT);R(X+61,Y+57,32,20,'#bcd8e4');R(X+61,Y+57,32,2,'#e4f4fa');for(let i=0;i<6;i++){R(X+63+i*5,Y+64,4,3,['#e8b860','#f2d488','#d89a40','#e8b860','#c87a30','#f2d488'][i])}for(let i=0;i<6;i++)R(X+63+i*5,Y+71,4,3,['#f8f0e0','#e8c070','#f8f0e0','#d88a5a','#f8f0e0','#e8c070'][i]);R(X+61,Y+68,32,1,'#8aa8b4');
+  // charcoal stove + kettles
+  R(X+14,Y+66,14,12,OUT);R(X+15,Y+67,12,10,'#5a5a5a');R(X+16,Y+73,10,3,'#e2702a');R(X+17,Y+74,8,1,'#ffc060');
+  for(const kx of [17,23]){for(let j=-3;j<=2;j++)for(let i=-3;i<=3;i++)if(i*i/9+j*j/9<=1)P(X+kx+i,Y+62+j,(i<0&&j<0)?'#e8e8ec':'#a8aab0');R(X+kx+3,Y+61,2,1,'#a8aab0');R(X+kx-1,Y+58,3,1,'#6a6a70')}
+  for(let i=0;i<3;i++)P(X+19+i,Y+54-i*2,'rgba(255,255,255,.7)');
+  // zinc lean-to roof + striped awning
+  zinc([[X,Y+36],[X+8,Y+20],[X+100,Y+20],[X+108,Y+36]],X);
+  for(let j=0;j<12;j++){const yy=Y+37+j,ext=j*.6;for(let x=X-2-ext;x<X+110+ext;x++){const st=Math.floor((x-X+40)/6)%2;P(x,yy,j===0?OUT:st?(j<2?'#e8f0ff':'#f4f8ff'):(j<2?'#3a6ac8':'#2a58b8'))}}
+  for(let x=X-9;x<X+118;x+=6){for(let k=0;k<3;k++)P(x+k,Y+49+(k===1?1:0),Math.floor((x-X+40)/6)%2?'#f4f8ff':'#2a58b8');P(x+1,Y+51,OUT)}
+  // signboard (red, text overlaid)
+  R(X+28,Y+12,52,9,OUT);R(X+29,Y+13,50,7,'#c8302a');R(X+29,Y+13,50,1,'#e8604a');
+  // low tables and plastic stools in front
+  for(const [tx,ty] of [[16,86],[62,86]]){SH(tx+X+10,ty+Y+7,14,2);R(X+tx,Y+ty,20,3,OUT);R(X+tx+1,Y+ty,18,2,'#e8e8e0');R(X+tx+2,Y+ty+3,1,4,OUT);R(X+tx+17,Y+ty+3,1,4,OUT);
+    for(let i=0;i<2;i++){const cx=X+tx+4+i*12;R(cx-2,Y+ty-4,3,2,'#f2efe6');}
+    for(const [sx,col] of [[-7,'#d83a2a'],[23,'#2a6ac8']]){const x0=X+tx+sx;R(x0,Y+ty+1,6,2,OUT);R(x0+1,Y+ty+1,4,1,col);R(x0+1,Y+ty+3,1,4,OUT);R(x0+4,Y+ty+3,1,4,OUT);R(x0+1,Y+ty+3,4,1,col)}}
+}
+teaShop(208,10);sign(236,22.2,52,'လက်ဖက်ရည်ဆိုင်',17);label(208,104,'လက်ဖက်ရည်ဆိုင်');
+/* ---------------- 4. monastery (multi-tier roof) ---------------- */
+function tierRoof(cx,y,w,h,shade){ // one tier: dark shingles, gold zigzag trim, upturned eaves
+  const pts=[[cx-w/2-3,y+h],[cx-w/2+h*1.3,y],[cx+w/2-h*1.3,y],[cx+w/2+3,y+h]];
+  poly(pts,(x,yy)=>{const r=(yy-y)%3,b=Math.floor((x+((yy-y)>>1))/3)%2;let col=r===2?'#3a2018':b?'#7a4a32':'#6a3e2a';if(x<cx-w/4)col=r===2?'#4a2a1e':b?'#9a6040':'#8a5436';if(x>cx+w/3)col=r===2?'#2a160e':'#5a3424';return col});
+  polyOutline(pts,OUT);
+  // gold trim along the eave with little zigzag points
+  for(let x=Math.floor(cx-w/2-3);x<=cx+w/2+3;x++){R(x,y+h,1,2,'#e8b830');P(x,y+h,'#fff0a0');if((x-cx|0)%4===0){P(x,y+h+2,'#c89020');P(x,y+h+3,'#e8b830')}}
+  // upturned tips
+  for(const s of [-1,1]){const ex=cx+s*(w/2+3);for(let i=0;i<4;i++)P(ex+s*i*.6,y+h-i,'#e8b830')}
+}
+function monastery(X,Y){
+  SH(X+58,Y+112,58,5,.3);
+  // stilts + platform
+  for(let px=6;px<=106;px+=20)post(X+px,Y+84,28,4);
+  R(X+2,Y+81,112,5,OUT);R(X+3,Y+82,110,3,'#7a4626');R(X+3,Y+82,110,1,'#a8663a');
+  // dark teak walls with carved panels
+  planks(X+8,Y+56,100,25,true);R(X+7,Y+55,102,1,OUT);
+  for(let i=0;i<6;i++){const px=X+12+i*16;R(px,Y+59,10,16,OUT);R(px+1,Y+60,8,14,'#4a2616');R(px+2,Y+61,6,12,'#6a3a22');for(let j=0;j<12;j+=4){P(px+4,Y+62+j,'#c89020');P(px+5,Y+63+j,'#c89020')}}
+  // central stair with naga-style rails
+  for(let i=0;i<8;i++){R(X+46,Y+86+i*3.5,24,1,OUT);R(X+47,Y+85+i*3.5,22,1,'#e8e0d0')}R(X+44,Y+84,3,30,'#e8e0d0');R(X+69,Y+84,3,30,'#e8e0d0');R(X+44,Y+84,1,30,OUT);R(X+71,Y+84,1,30,OUT);
+  // roof tiers
+  tierRoof(X+58,Y+40,118,14);tierRoof(X+58,Y+24,80,13);tierRoof(X+58,Y+10,50,11);
+  R(X+30,Y+54,56,2,'rgba(30,10,5,.35)');
+  // golden finial (hti)
+  for(let i=0;i<14;i++){const w=Math.max(1,4-i*.25);R(X+58-w/2,Y+9-i,w,1,i%3===0?'#fff0a0':'#e8b830')}P(X+58,Y-6,'#ffffff');
+  for(const s of [-1,1])for(let i=0;i<5;i++)P(X+58+s*(26+i),Y+38-i*2,'#e8b830');
+}
+monastery(6,120);label(4,232,'ဘုန်းကြီးကျောင်း');
+/* ---------------- 5. stupa (white & gold) ---------------- */
+function stupa(cx,by){
+  SH(cx,by+2,30,4,.3);
+  const prof=[[0,28],[4,28],[4,24],[8,24],[8,20],[12,20],[12,17],[14,16],[16,16.5],[20,17],[26,16],[32,13],[38,9],[42,6],[44,5],[46,6],[48,5],[50,4],[52,4.5],[54,4],[58,3],[62,2.5],[66,2],[70,1.6],[74,1.2],[78,1]];
+  const W=y=>{for(let i=0;i<prof.length-1;i++){const [a,wa]=prof[i],[b,wb]=prof[i+1];if(y>=a&&y<=b){if(i===1||i===3||i===5)return wb;return wa+(wb-wa)*(y-a)/((b-a)||1)}}return 0};
+  for(let h=0;h<=78;h++){const w=W(h),y=by-h;const gold=h>=42;
+    for(let x=-Math.ceil(w);x<=Math.ceil(w);x++){if(Math.abs(x)>w)continue;const t=(x+w)/(2*w||1);let col;
+      if(Math.abs(x)>w-1)col=gold?'#7a5010':'#8a8478';
+      else if(gold)col=t<.3?'#fff0a0':t<.55?'#f2c840':t<.8?'#d89a20':'#a87010';
+      else col=t<.3?'#ffffff':t<.6?'#f4f0e8':t<.82?'#dcd6ca':'#bcb4a6';
+      if(!gold&&(h===4||h===8||h===12))col='#a89e90';if(gold&&h%4===0&&h<56)col='#fff8c8';P(cx+x,y,col)}}
+  // bells and tiny pennant
+  for(const s of [-1,1]){P(cx+s*15,by-17,'#e8b830');P(cx+s*15,by-16,'#c89020');P(cx+s*9,by-33,'#e8b830')}
+  for(let i=0;i<5;i++){P(cx,by-79-i,'#e8b830')}P(cx+1,by-82,'#ffffff');P(cx+2,by-82,'#e8b830');P(cx-1,by-83,'#fff8c8');
+  // little shrine plinth flowers
+  for(const s of [-1,1]){R(cx+s*22-2,by-3,5,3,OUT);R(cx+s*22-1,by-3,3,2,'#c8402c');leaf(cx+s*22,by-3,-1.57,4,1,G);P(cx+s*22,by-7,'#f6c829');P(cx+s*22+1,by-7,'#f6c829')}
+}
+stupa(164,222);label(132,232,'စေတီ');
+/* ---------------- 6. zayat (rest pavilion) with water pots ---------------- */
+function tiles(pts,ox,oy){poly(pts,(x,y)=>{const u=x-ox,v=y-oy,row=Math.floor(v/3),fy=v-row*3,fx=(u+(row%2)*2)%4;if(fy===2)return '#6a1e18';if(fx===0)return '#8a2e22';const n=h2((u+(row%2)*2)>>2,row);return fy===0?'#f08a5a':n>.6?'#c8402c':'#d2503a'});polyOutline(pts,'#4a1612')}
+function zayat(X,Y){
+  SH(X+52,Y+104,54,5,.3);
+  // plinth
+  R(X+2,Y+92,104,10,OUT);R(X+3,Y+93,102,8,'#d8d0c0');R(X+3,Y+93,102,2,'#f4ece0');for(let x=X+6;x<X+104;x+=10)R(x,Y+95,1,6,'#b8b0a0');
+  // posts
+  for(const px of [8,36,66,94])post(X+px,Y+46,46,4);
+  // bench
+  R(X+14,Y+82,80,3,OUT);R(X+15,Y+82,78,2,'#a8703e');R(X+15,Y+82,78,1,'#d4985a');for(const px of [16,52,90])R(X+px,Y+85,2,7,OUT);
+  // hip tiled roof
+  tiles([[X-4,Y+46],[X+22,Y+16],[X+86,Y+16],[X+112,Y+46]],X,Y+16);
+  R(X+21,Y+13,66,4,'#4a1612');R(X+22,Y+14,64,1,'#f08a5a');
+  for(let x=X-5;x<=X+113;x++)R(x,Y+46,1,2,(x%4===0)?'#4a1612':'#8a2e22');
+  // ornamental gold tips
+  for(const s of [-1,1]){for(let i=0;i<5;i++)P(X+54+s*(34+i),Y+14-i,'#e8b830')}
+  // water pot stand (ye-o zin) at the side with its own tiny roof
+  const wx=X+82,wy=Y+66;R(wx,wy+10,22,2,OUT);R(wx+1,wy+10,20,1,'#a8703e');R(wx+1,wy+12,1,14,OUT);R(wx+20,wy+12,1,14,OUT);
+  for(const px of [6,15]){for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const d=(i/4)**2+(j/4.2)**2;if(d<=1)P(wx+px+i,wy+5+j,d>.8?'#4a1e10':(i<0&&j<0)?'#d88a5a':'#b8603a')}R(wx+px-2,wy,5,1,OUT);R(wx+px-3,wy-1,7,1,'#c8a070');R(wx+px-1,wy-1,3,1,'#6a4226')}
+  R(wx+11,wy-4,1,5,'#8a8a90');R(wx+10,wy-5,3,1,'#c8c8d0'); // cup on string
+}
+zayat(208,126);label(206,232,'ဇရပ် (ရေအိုးစင်ပါ)');
+</script></body></html>

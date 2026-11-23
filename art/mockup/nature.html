@@ -1,0 +1,115 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:Padauk;font-weight:700;src:url(file:///home/claude/fonts/package/files/padauk-myanmar-700-normal.woff2)}
+body{margin:0;background:#000}#w{position:relative;width:1280px;height:960px}
+canvas{width:1280px;height:960px;image-rendering:pixelated;display:block}
+.l{position:absolute;font-family:Padauk;font-weight:700;font-size:20px;color:#3a2a1a;background:rgba(255,250,235,.88);padding:0 8px;border-radius:6px;line-height:1.5}
+.sg{position:absolute;font-family:Padauk;font-weight:700;color:#fff6dc;font-size:15px;line-height:1.3;text-align:center}
+</style></head><body><div id="w"><canvas id="cv" width="320" height="240"></canvas></div>
+<script>const cv=document.getElementById('cv'),c=cv.getContext('2d');
+const label=(x,y,t)=>{const d=document.createElement('div');d.className='l';d.style.left=(x*4)+'px';d.style.top=(y*4)+'px';d.textContent=t;document.getElementById('w').appendChild(d)};
+const sign=(x,y,w,t,size)=>{const d=document.createElement('div');d.className='sg';d.style.left=(x*4)+'px';d.style.top=(y*4)+'px';d.style.width=(w*4)+'px';if(size)d.style.fontSize=size+'px';d.textContent=t;document.getElementById('w').appendChild(d)};
+</script><script src="lib.js"></script><script>
+R(0,0,320,240,'#efe8d8');const OUT='#2a1a12';
+grassField(2,2,316,108);grassField(2,114,316,64);grassField(2,182,316,56);
+const LV=['#24503a','#33733e','#4c9640','#74b844','#a8dc5c'],LVO='#163428';
+function trunk(x,y,h,w,curve=0){for(let k=0;k<h;k++){const cx=x+curve*(k/h)*(k/h)*h*.3;for(let i=0;i<w;i++){const t=i/(w-1||1);P(cx+i-w/2,y-k,i===0||i===w-1?OUT:t<.35?'#9a6a44':t<.7?'#7a4e30':'#5a3622')}if(k%5===0&&w>3)P(cx,y-k,'#5a3622')}}
+/* ---- padauk in bloom ---- */
+function padauk(x,y){SH(x,y+2,22,4,.3);trunk(x,y,26,6);for(const s of [-1,1])for(let i=0;i<8;i++){P(x+s*(3+i),y-22-i*.8,OUT);P(x+s*(3+i),y-21-i*.8,'#7a4e30')}
+  blob([...scallop(x,y-40,22,17,3.2),[x,y-40,12],[x-16,y-30,9],[x+16,y-31,9]],LV,LVO);
+  for(let i=0;i<160;i++){const a=rnd()*6.28,d=Math.sqrt(rnd());const px=x+Math.cos(a)*20*d,py=y-40+Math.sin(a)*15*d;if(h2(px|0,py|0)>.35){P(px,py,'#f8d030');if(rnd()<.6)P(px+1,py,'#fff07a');if(rnd()<.4)P(px,py+1,'#d89a18')}}
+  for(let i=0;i<24;i++)P(x-20+rnd()*40,y+1+rnd()*5,rnd()<.5?'#f8d030':'#e8a820')}
+padauk(32,98);label(8,100,'ပိတောက်');
+/* ---- banyan with aerial roots ---- */
+function banyan(x,y){SH(x,y+2,28,5,.3);
+  poly([[x-7,y+1],[x-5,y-24],[x+5,y-24],[x+8,y+1],[x+13,y+3],[x-12,y+3]],(px,py)=>{const n=h2(px,py>>1);return px<x-2?'#8a6a4a':px>x+3?'#4a3424':n>.5?'#6a4a30':'#5e4028'});
+  polyOutline([[x-7,y+1],[x-5,y-24],[x+5,y-24],[x+8,y+1],[x+13,y+3],[x-12,y+3]],OUT);
+  for(let i=0;i<22;i++)P(x-4+(i%5)*2,y-20+i,'#4a3424');
+  blob([...scallop(x,y-42,30,18,3.4),[x,y-42,17],[x-14,y-40,13],[x+14,y-40,13],[x-22,y-32,11],[x+22,y-33,11],[x-10,y-55,10],[x+12,y-56,10]],['#1f4630','#2c6638','#3f863c','#62a842','#94cc58'],'#122a20');
+  for(const dx of [-22,-16,-9,10,17,24]){const top=y-30,len=12+h2(dx,3)*14;for(let k=0;k<len;k++)P(x+dx+Math.sin(k*.4)*.6,top+k,k%3?'#6a4a30':'#4a3424')}}
+banyan(96,100);label(76,100,'ညောင်ပင်');
+/* ---- toddy palm (htan bin) ---- */
+function toddy(x,y){SH(x,y+2,10,3,.3);for(let k=0;k<52;k++){const w=k<4?5:3;for(let i=0;i<w;i++)P(x+i-w/2,y-k,i===0||i===w-1?OUT:i===1?'#8a7462':'#5a4a3e');if(k%4===0)P(x,y-k,'#3a2e26')}
+  // crown of fan leaves radiating all round (older ones droop and brown)
+  const cx=x,cy=y-58;
+  const fans=[];for(let k=0;k<14;k++){const a=k/14*Math.PI*2-Math.PI/2;fans.push(a)}
+  fans.sort((a,b)=>Math.sin(a)-Math.sin(b)); // back (top) first, front (bottom) last
+  for(const a of fans){const old=Math.sin(a)>.55,L=old?13:16;
+    for(let r=1;r<L;r++){const spread=.08+r*.028;for(let k=-3;k<=3;k++){const aa=a+k*spread*.5;const px=cx+Math.cos(aa)*r,py=cy+Math.sin(aa)*r*.85+(old?r*.25:0);
+      const edge=r===L-1||Math.abs(k)===3;P(px,py,edge?(old?'#5a4a20':LVO):old?(k%2?'#a8943a':'#8a7a2a'):(k%2?'#74b844':(Math.cos(a)<0?'#a8dc5c':'#4c9640')))}}
+    }
+  for(const dx of [-3,0,3]){for(let jj=-2;jj<=2;jj++)for(let ii=-2;ii<=2;ii++)if(ii*ii+jj*jj<=4)P(cx+dx+ii,cy+5+jj,(ii<0&&jj<0)?'#5a4a3e':'#2a2420')}}
+toddy(150,104);label(134,100,'ထန်းပင်');
+/* ---- coconut palm ---- */
+function coconut(x,y){SH(x+6,y+2,10,3,.3);for(let k=0;k<50;k++){const cx=x+Math.pow(k/50,2)*12;for(let i=0;i<4;i++)P(cx+i-2,y-k,i===0||i===3?OUT:i===1?'#b89a72':'#8a7458');if(k%3===0)R(cx-1,y-k,2,1,'#6a5844')}
+  const cx=x+12,cy=y-52;for(const [a,l] of [[-3.0,18],[-2.4,17],[-1.9,14],[-1.2,14],[-0.6,17],[0,18],[0.5,14],[2.6,14]]){
+    for(let i=0;i<l;i++){const t=i/l,px=cx+Math.cos(a)*i,py=cy+Math.sin(a)*i+t*t*6;P(px,py,'#5a7a2a');for(let k=1;k<4-t*2;k++){P(px+Math.sin(a)*k,py+k,'#74b844');P(px-Math.sin(a)*k*.5,py+k*.8,'#4c9640')}}}
+  for(const [dx,dy] of [[-2,3],[1,4],[3,2]]){for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++)if(i*i+j*j<=4)P(cx+dx+i,cy+dy+j,(i<0&&j<0)?'#9ab04a':'#6a7a2a')}}
+coconut(188,104);label(180,100,'အုန်းပင်');
+/* ---- bamboo clump ---- */
+function bamboo(x,y){SH(x+8,y+2,16,4,.3);for(const [dx,h,lean] of [[0,64,-6],[5,74,-2],[10,58,3],[15,70,6],[20,52,9]]){for(let k=0;k<h;k++){const cx=x+dx+lean*(k/h)**2;R(cx-1,y-k,4,1,LVO);R(cx,y-k,2,1,k%9===0?'#2c6638':'#6ab04a');P(cx,y-k,k%9===0?'#2c6638':'#b8e07a')}}
+  for(let i=0;i<46;i++){const lx=x-4+rnd()*32,ly=y-70+rnd()*52;leaf(lx,ly,rnd()<.5?-.25:-2.9,5+rnd()*2,1,G,{shape:'lance'})}}
+bamboo(222,104);label(216,100,'ဝါးရုံ');
+/* ---- banana plant ---- */
+function banana(x,y){SH(x,y+2,14,3,.3);R(x-2,y-24,5,25,OUT);R(x-1,y-24,3,24,'#6a9a3a');R(x-1,y-24,1,24,'#a8d070');for(let k=3;k<24;k+=5)R(x-1,y-k,3,1,'#4a7a2a');
+  for(const [a,l] of [[-2.7,20],[-0.45,20],[-2.1,17],[-1.0,17],[-1.6,13]])leaf(x,y-24,a,l,4.2,G,{curl:a<-1.57?-.25:.25,rib:'#c8e8a0'});
+  for(let i=0;i<5;i++){R(x+3+i,y-20+i*1.2,3,2,'#b8c84a');P(x+3+i,y-20+i*1.2,OUT)}for(let j=0;j<5;j++)for(let i=0;i<3;i++)P(x+9+i,y-14+j,(i+j)%2?'#7a2a3a':'#a83a4a')}
+banana(290,104);label(272,100,'ငှက်ပျောပင်');
+/* ================== props ================== */
+function wheel(cx,cy,r){for(let a=0;a<6.28;a+=.05){P(cx+Math.cos(a)*r,cy+Math.sin(a)*r,OUT);P(cx+Math.cos(a)*(r-1),cy+Math.sin(a)*(r-1),a>2.5&&a<5.5?'#c88a50':'#8a5630')}for(let k=0;k<8;k++){const a=k*Math.PI/4;for(let t=1;t<r-1;t++)P(cx+Math.cos(a)*t,cy+Math.sin(a)*t,'#6a4226')}R(cx-1,cy-1,3,3,OUT);P(cx,cy,'#c88a50')}
+function cart(x,y){SH(x+18,y+2,22,3,.3);
+  // bed with woven bamboo sides and curved roof
+  R(x,y-14,34,4,OUT);R(x+1,y-13,32,2,'#a8703e');R(x+1,y-13,32,1,'#d4985a');
+  for(let j=0;j<8;j++)for(let i=0;i<32;i++)P(x+1+i,y-22+j,((i+j)>>1)%2?'#dcbc7c':'#c4a060');R(x,y-23,34,1,OUT);
+  for(let i=0;i<36;i++){const yy=y-24-Math.sin(i/35*Math.PI)*8;R(x-1+i,yy,1,2,'#c89a40');P(x-1+i,yy-1,OUT)}
+  // shaft (yoke pole)
+  for(let i=0;i<20;i++)P(x-i,y-12+i*.25,i===19?OUT:'#8a5630');R(x-22,y-8,6,2,OUT);
+  wheel(x+18,y-4,8)}
+cart(36,166);label(8,170,'နွားလှည်း');
+function haystack(x,y){SH(x,y+2,16,3,.3);for(let j=0;j<30;j++){const w=Math.min(14,(30-j)*.7+2+(j<6?j*.6:0));for(let i=-w;i<=w;i++){const n=h2(i+40,j);const t=(i+w)/(2*w);P(x+i,y-j,Math.abs(i)>w-1?'#6a4410':t<.3?(n>.5?'#f8e098':'#ecc868'):t<.7?(n>.5?'#d4a440':'#ecc868'):(n>.5?'#b07e2a':'#8a5e1a'))}}
+  R(x-1,y-34,2,6,'#6a4226');for(let i=0;i<7;i++)P(x-3+i,y-29+(i%2),'#8a5e1a')}
+haystack(84,170);label(70,170,'ကောက်ရိုးပုံ');
+function bambooFence(x,y,w){for(let i=0;i<w;i+=2){const h=14+((i>>1)%3===0?2:0);R(x+i,y-h,2,h,OUT);P(x+i,y-h,'#e8cc8a');R(x+i,y-h+1,1,h-1,(i>>1)%2?'#d8b878':'#c4a060')}
+  for(const yy of [y-10,y-4]){R(x-1,yy,w+2,2,OUT);R(x-1,yy,w+2,1,'#a8703e')}SH(x+w/2,y+1,w/2,1.5,.25)}
+bambooFence(108,170,40);label(108,170,'ဝါးခြံစည်းရိုး');
+function sacks(x,y){for(const [dx,dy] of [[0,0],[11,0],[5,-8]]){const sx=x+dx,sy=y+dy;SH(sx+5,sy+1,6,1.5,.25);for(let j=-8;j<=0;j++)for(let i=0;i<10;i++){const e=i===0||i===9||j===-8||j===0;P(sx+i,sy+j,e?'#5a4a30':(i<4?'#f0e4c4':'#d8c8a0'))}R(sx+2,sy-5,6,2,'#3a6ac8');P(sx+4,sy-9,'#5a4a30');P(sx+5,sy-9,'#5a4a30')}}
+sacks(160,170);label(154,170,'ဆန်အိတ်');
+function boat(x,y){R(x-4,y-6,60,14,'#5a9ac8');for(let i=0;i<40;i++)P(x-4+rnd()*60,y-6+rnd()*14,rnd()<.5?'#8ac0e8':'#4a8ab8');
+  for(let j=0;j<6;j++){const ext=j*1.6;R(x+2+ext,y-4+j,46-ext*2,1,j===0?OUT:j<2?'#c88a50':'#8a5630')}P(x+1,y-5,OUT);P(x+49,y-5,OUT);
+  for(let i=0;i<14;i++){const yy=y-5-Math.sin(i/13*Math.PI)*5;P(x+18+i,yy,'#c89a40');P(x+18+i,yy-1,OUT)}
+  for(let i=0;i<16;i++)P(x+36+i*.4,y-6-i,i>12?OUT:'#8a5630')}
+boat(196,170);label(190,170,'သမ္ဗာန်');
+function pots(x,y){for(const [dx,r,col] of [[0,5,'#b8603a'],[11,4,'#a85030'],[20,3,'#c8784a']]){SH(x+dx,y+1,r+1,1.4,.25);for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){const d=(i/r)**2+(j/(r*1.1))**2;if(d<=1)P(x+dx+i,y-r+j,d>.8?'#4a1e10':(i<0&&j<0)?'#e8a070':col)}R(x+dx-r*.5,y-2*r-1,r+1,1,OUT);R(x+dx-r*.5,y-2*r,r+1,1,'#8a3a1e')}}
+pots(272,170);label(262,170,'မြေအိုးများ');
+/* ================== people ================== */
+function person(x,y,o){SH(x,y+1,6,1.6,.3);
+  const skin=o.skin||'#d8a070',skinD='#b8804e';
+  // longyi / htamein with check pattern
+  for(let j=0;j<10;j++)for(let i=-3;i<=3;i++){const e=Math.abs(i)===3;P(x+i,y-j,e?OUT:o.check?(((i+j)>>1)%2?o.low:o.low2):(i<0?o.low2:o.low))}
+  R(x-2,y,2,1,OUT);R(x+1,y,2,1,OUT);
+  // top
+  for(let j=10;j<18;j++)for(let i=-4;i<=4;i++){const e=Math.abs(i)===4||j===17;P(x+i,y-j,e?OUT:i<-1?o.topL:o.top)}
+  if(o.robe){for(let j=0;j<18;j++)for(let i=-4;i<=4;i++){const e=Math.abs(i)===4;if(j<10&&Math.abs(i)>3)continue;P(x+i,y-j,e?OUT:(i+j)%5===0?'#6a1a14':i<0?'#c84a2a':'#a83a22')}for(let k=0;k<8;k++)P(x-3+k,y-16+k,'#6a1a14')}
+  // arms
+  R(x-5,y-16,1,6,OUT);R(x+5,y-16,1,6,OUT);R(x-5,y-10,1,1,skin);R(x+5,y-10,1,1,skin);
+  // head
+  for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const d=i*i+j*j;if(d<=17)P(x+i,y-22+j,d>12?OUT:i<-1&&j<0?'#ecc08a':skin)}
+  P(x-2,y-22,OUT);P(x+2,y-22,OUT);P(x-1,y-19,'#a85a3a');P(x,y-19,'#a85a3a');
+  if(o.thanaka){P(x-3,y-21,'#f6e4b0');P(x-3,y-20,'#f6e4b0');P(x+3,y-21,'#f6e4b0');P(x+3,y-20,'#f6e4b0')}
+  // hair / hat
+  if(o.hair){for(let i=-4;i<=4;i++)for(let j=-6;j<=-3;j++)if(i*i+(j+3)*(j+3)<=18)P(x+i,y-22+j,j===-6?OUT:'#1e130b');if(o.bun){for(let j=-2;j<=2;j++)for(let i=-2;i<=2;i++)if(i*i+j*j<=4)P(x+4+i,y-26+j,i*i+j*j>2?OUT:'#2a1a10');P(x+4,y-27,'#e8508a')}}
+  if(o.bald){for(let i=-4;i<=4;i++)P(x+i,y-26,OUT);P(x-2,y-25,'#e8c098')}
+  if(o.hat){R(x-8,y-26,17,2,OUT);R(x-7,y-26,15,1,'#e0b860');for(let j=0;j<4;j++)R(x-4+j,y-30+j,9-j*2+j*2-j,1,j===0?OUT:'#e8c470');R(x-3,y-27,7,1,'#c8433a')}
+  if(o.gaung){for(let i=-5;i<=5;i++)P(x+i,y-26,OUT);R(x-4,y-28,9,3,'#f4f0e6');R(x-4,y-28,9,1,OUT);R(x+3,y-30,3,3,'#f4f0e6');P(x+5,y-31,OUT)}
+  if(o.bowl){for(let i=-3;i<=3;i++)P(x+i+1,y-11,OUT);R(x-2,y-13,7,2,'#2a1a10');R(x-1,y-13,5,1,'#6a4a3a')}
+  if(o.basket){R(x+5,y-12,7,5,OUT);for(let i=0;i<5;i++)for(let j=0;j<3;j++)P(x+6+i,y-11+j,(i+j)%2?'#d8b878':'#b8985a');R(x+6,y-13,5,1,'#e2402f')}}
+person(24,232,{hat:1,top:'#f6f2e8',topL:'#ffffff',low:'#2f6a4a',low2:'#4f9a6a',check:1});label(4,234,'ကိုယ်');
+person(60,232,{hair:1,bun:1,thanaka:1,top:'#f4d8e8',topL:'#fff0f6',low:'#8a2a5a',low2:'#c84a7a',check:0,basket:1});label(44,234,'ရွာသူ');
+person(96,232,{gaung:1,top:'#f4f0e6',topL:'#ffffff',low:'#4a3a6a',low2:'#6a5a8a',check:1,skin:'#c8905e'});label(80,234,'ရွာလူကြီး');
+person(132,232,{bald:1,robe:1,top:'#a83a22',topL:'#c84a2a',low:'#a83a22',low2:'#c84a2a',bowl:1,skin:'#c8905e'});label(118,234,'ဦးဇင်း');
+/* flowers: jasmine, bougainvillea, marigold, lotus in a pot */
+function jasmine(x,y){blob(scallop(x,y-5,7,6,2.6),LV,LVO);for(let i=0;i<10;i++){const px=x-6+h2(i,1)*12,py=y-10+h2(1,i)*9;P(px,py,'#ffffff');P(px+1,py,'#ffffff');P(px,py-1,'#ffffff');P(px,py,'#f6e6a0')}}
+function bougain(x,y){blob(scallop(x,y-6,8,7,2.6),LV,LVO);for(let i=0;i<22;i++){const px=x-7+h2(i,3)*14,py=y-12+h2(3,i)*10;P(px,py,'#e8308a');P(px+1,py,'#f86aa8');if(i%3===0)P(px,py+1,'#b81a6a')}}
+function marigold(x,y){for(let k=0;k<4;k++){const fx=x-5+k*3.3,fy=y-6-(k%2)*2;stem(fx,y,fx,fy,'#4a8a3a');for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++)P(fx+i,fy+j,(i+j)%2?'#f8a020':'#f8c030');P(fx,fy,'#e86a10')}}
+function lotus(x,y){R(x-6,y-4,13,5,OUT);R(x-5,y-3,11,4,'#7a8aa0');R(x-5,y-3,11,1,'#a8b8d0');for(const a of [-2.4,-1.57,-0.7])leaf(x,y-5,a,4,1.6,['#8a2a4a','#e86a9a','#f8a8c8','#fff0f6'],{});P(x,y-8,'#f6d84a')}
+jasmine(186,232);bougain(216,232);marigold(244,232);lotus(272,232);label(178,234,'ပန်းပင်များ (စံပယ်၊ စက္ကူပန်း၊ ဂျာနီ၊ ကြာ)');
+</script></body></html>

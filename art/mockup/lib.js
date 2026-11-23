@@ -1,0 +1,115 @@
+let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+const h2=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%1000/1000;
+const P=(x,y,col)=>{c.fillStyle=col;c.fillRect(Math.floor(x),Math.floor(y),1,1)};
+const R=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.floor(x),Math.floor(y),Math.round(w),Math.round(h))};
+const inPoly=(pts,x,y)=>{let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,yi]=pts[i],[xj,yj]=pts[j];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))ins=!ins}return ins};
+function poly(pts,fn){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  for(let y=Math.floor(y0);y<=y1;y++)for(let x=Math.floor(x0);x<=x1;x++)if(inPoly(pts,x+.5,y+.5)){const col=fn(x,y);if(col)P(x,y,col)}}
+function polyOutline(pts,col){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  for(let y=Math.floor(y0)-1;y<=y1+1;y++)for(let x=Math.floor(x0)-1;x<=x1+1;x++){const i=inPoly(pts,x+.5,y+.5);if(!i&&(inPoly(pts,x+1.5,y+.5)||inPoly(pts,x-.5,y+.5)||inPoly(pts,x+.5,y+1.5)||inPoly(pts,x+.5,y-.5)))P(x,y,col)}}
+const SH=(cx,cy,rx,ry,a=.25)=>{c.fillStyle=`rgba(40,50,60,${a})`;for(let y=Math.floor(cy-ry);y<=cy+ry;y++)for(let x=Math.floor(cx-rx);x<=cx+rx;x++)if(((x+.5-cx)/rx)**2+((y+.5-cy)/ry)**2<=1)c.fillRect(x,y,1,1)};
+// shaded union of circles: light from top-left, leafy noise, scalloped edge
+function blob(cl,pal,out,leafy=true){
+  const inside=(x,y)=>cl.some(([cx,cy,r])=>(x+.5-cx)**2+(y+.5-cy)**2<=r*r);
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;cl.forEach(([cx,cy,r])=>{x0=Math.min(x0,cx-r-2);x1=Math.max(x1,cx+r+2);y0=Math.min(y0,cy-r-2);y1=Math.max(y1,cy+r+2)});
+  const val=(x,y)=>{let best=-9;for(const [cx,cy,r] of cl){const dx=(x+.5-cx)/r,dy=(y+.5-cy)/r;if(dx*dx+dy*dy<=1){const l=-(dx*.7+dy*.9)*.8+(1-(dx*dx+dy*dy))*.25;if(l>best)best=l}}return best};
+  for(let y=Math.floor(y0);y<=y1;y++)for(let x=Math.floor(x0);x<=x1;x++){
+    if(!inside(x,y)){if(inside(x+1,y)||inside(x-1,y)||inside(x,y+1)||inside(x,y-1))P(x,y,out);continue}
+    let v=val(x,y);
+    if(leafy){ // leaf clusters: each 5x4 cell is a little leaf mound, lit on top, dark underside
+      const row=Math.floor(y/5),ox=(row%2)*3,cx=Math.floor((x+ox)/6),lx=(x+ox)-cx*6,ly=y-row*5;
+      const dx=lx-2.5,dy=ly-1.6,m=dx*dx/7+dy*dy/3.2;const j=h2(cx,row);
+      if(m<.35)v+=.38;else if(m<1)v+=.1;else v-=.38;v+=(j-.5)*.3}
+    P(x,y,v>.62?pal[4]:v>.28?pal[3]:v>-.08?pal[2]:v>-.42?pal[1]:pal[0]);}
+}
+const LEAF=['#24503a','#33733e','#4c9640','#74b844','#a8dc5c'],LEAFO='#163428';
+function scallop(cx,cy,rx,ry,step=3){const cl=[[cx,cy,Math.min(rx,ry)-1.2]];for(let a=0;a<6.28;a+=step*1.25/Math.max(rx,ry)){cl.push([cx+Math.cos(a)*(rx-1.4),cy+Math.sin(a)*(ry-1.4),2.5])}
+  // interior lumps
+  for(let i=0;i<6;i++){const a=rnd()*6.28,d=rnd()*.5;cl.push([cx+Math.cos(a)*rx*d,cy+Math.sin(a)*ry*d,Math.min(rx,ry)*.55])}return cl}
+
+/* ---------- leaf primitive: tapered, two-tone halves, midrib, optional serration ---------- */
+// pal: [outline, dark, mid, light]
+function leaf(x,y,ang,len,W,pal,o={}){const ser=o.ser||0,curl=o.curl||0,shape=o.shape||'lance';
+  const pts=[];const steps=Math.ceil(len*2);
+  for(let i=0;i<=steps;i++){const t=i/steps;let w;
+    if(shape==='heart')w=W*Math.sin(Math.PI*Math.pow(t,0.55))*(t<.15?1.2:1);
+    else if(shape==='arrow')w=W*(t<.25?0.9+t:Math.max(0,1.2-(t-.25)*1.6));
+    else if(shape==='strap')w=W*(t<.1?t*10:1-t*.85);
+    else w=W*Math.sin(Math.PI*Math.pow(t,0.7));
+    if(ser)w*=1+Math.sin(t*ser*Math.PI*2)*.18;
+    const a=ang+curl*t*t;const cx=x+Math.cos(a)*len*t,cy=y+Math.sin(a)*len*t;pts.push([cx,cy,w,a])}
+  // fill
+  const map=new Map();
+  for(const [cx,cy,w,a] of pts){const nx=-Math.sin(a),ny=Math.cos(a);for(let k=-w;k<=w;k+=.35){const px=Math.floor(cx+nx*k),py=Math.floor(cy+ny*k);const key=px+','+py;const side=k*(ny>0?1:-1);const prev=map.get(key);const v={side,edge:Math.abs(k)>w-.8};if(!prev||v.edge<prev.edge)map.set(key,v)}}
+  for(const [k,v] of map){const [px,py]=k.split(',').map(Number);P(px,py,v.side<0?pal[3]:pal[2])}
+  // outline
+  for(const [k] of map){const [px,py]=k.split(',').map(Number);for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){if(!map.has((px+dx)+','+(py+dy)))P(px+dx,py+dy,pal[0])}}
+  // underside shade + midrib
+  for(const [cx,cy,w,a] of pts){const nx=-Math.sin(a),ny=Math.cos(a);P(cx+nx*w*.55*(ny>0?1:-1),cy+ny*w*.55*(ny>0?1:-1),pal[1])}
+  for(let i=1;i<pts.length-2;i+=2){const [cx,cy]=pts[i];P(cx,cy,o.rib||pal[1])}
+}
+function stem(x0,y0,x1,y1,col,hi,w=1){const L=Math.max(1,Math.hypot(x1-x0,y1-y0));for(let i=0;i<=L;i++){const t=i/L;R(x0+(x1-x0)*t,y0+(y1-y0)*t,w,1,col);if(hi)P(x0+(x1-x0)*t,y0+(y1-y0)*t,hi)}}
+const G=['#2f5a2a','#4a8a3a','#6cb24a','#9ad86a'];         // vivid leaf
+const GS=['#3a6a3a','#5a9a52','#82c46a','#b4e48e'];        // soft leaf
+/* =================== soft grass ground =================== */
+const GR={base:'#b8e6a0',lite:'#c6edae',dark:'#a8dc92',blade:'#8ccb76',bladeD:'#72b268',tip:'#b0e290'};
+function grassField(x,y,w,h){R(x,y,w,h,GR.base);
+  for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++){const n=h2(xx>>2,yy>>2)*.6+h2(xx>>1,yy>>1)*.4;if(n>.8)P(xx,yy,GR.lite);else if(n<.1&&((xx+yy)%2===0))P(xx,yy,GR.dark)}
+  // tiny blades everywhere
+  for(let i=0;i<w*h/30;i++){const px=x+rnd()*w,py=y+2+rnd()*(h-2);const hgt=1+(rnd()*2|0);for(let k=0;k<hgt;k++)P(px,py-k,k===hgt-1?GR.tip:GR.blade);if(rnd()<.4)P(px+1,py,GR.bladeD)}
+  // tufts
+  for(let i=0;i<w*h/150;i++)tuft(x+4+rnd()*(w-8),y+6+rnd()*(h-6),rnd()<.3?'tall':'small');
+  // clover
+  for(let i=0;i<w*h/400;i++){const px=x+6+rnd()*(w-12),py=y+6+rnd()*(h-10);for(const [dx,dy] of [[0,-1],[-1,0],[1,0]]){P(px+dx,py+dy,'#8ccc78');}P(px,py,'#6aa860');P(px,py-1,'#b8e8a0')}
+  // tiny flowers
+  for(let i=0;i<w*h/260;i++){const px=x+4+rnd()*(w-8),py=y+4+rnd()*(h-6);const col=['#ffffff','#fff4a0','#ffd0e8','#d8ccff'][i%4];P(px,py,col);P(px+1,py,col);P(px,py-1,col);P(px-1,py,col);P(px,py+1,col);P(px,py,'#f6c829');P(px,py+2,GR.bladeD)}
+}
+function tuft(x,y,kind){const n=kind==='tall'?7:5,H=kind==='tall'?10:6;
+  for(let i=0;i<n;i++){const off=(i-(n-1)/2),hh=H*(0.55+h2(x|0,i+3)*0.55),lean=off*.5;
+    for(let k=0;k<hh;k++){const t=k/hh,px=x+off*.9+lean*t*t*2.6,py=y-k;P(px,py,t>.72?'#c8efa8':t>.35?'#8ccb76':'#64a65e');if(t<.3)P(px+(off>0?-1:1),py,'#7cbe6c')}}
+  for(let i=-3;i<=3;i++)P(x+i,y+1,'rgba(70,110,60,.25)')}
+;
+function soil(x,y,w,h,wet){for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const f=yy%6;let col=f===0?'#c49a70':f===1?'#a87c56':f>=5?'#6a4632':h2(xx>>1,yy)>.75?'#8e6446':'#80583a';if(wet)col=f===0?'#906a4c':f===1?'#7a5840':f>=5?'#4a3022':h2(xx>>1,yy)>.75?'#684832':'#5c402c';P(x+xx,y+yy,col)}
+  for(let i=0;i<w*h/30;i++)P(x+rnd()*w,y+rnd()*h,wet?'#3e2a1e':'#d4ac80')}
+function sprout(x,y,pal=GS){stem(x,y,x,y-4,pal[1],pal[2]);leaf(x,y-4,-2.6,4,1.4,pal);leaf(x,y-4,-.55,4,1.4,pal)}
+const K=1.75;
+const CROPS={
+ kangkong(x,y,s){ if(s===0)return sprout(x,y);
+   const n=[0,3,5,7][s];for(let i=0;i<n;i++){const a=-1.57+(i-(n-1)/2)*.36,L=(4+s*3+(i%2)*2)*K;const ex=x+Math.cos(a)*L,ey=y+Math.sin(a)*L;stem(x,y,ex,ey,'#7ab84e','#a8dc78');leaf(ex,ey,a+(i%2?.55:-.55),(3+s)*K*.9,(1.2+s*.3)*K*.8,G,{shape:'arrow'})}},
+ tomato(x,y,s){ R(x+5,y-36,2,37,'#5a3a22');R(x+5,y-36,1,37,'#a87a4a');R(x+4,y-37,4,1,'#c8a070');
+   if(s===0)return sprout(x,y,G);
+   const h=[0,10,22,32][s];stem(x,y,x+3,y-h,'#4a8a3a','#7ac04a');
+   for(let j=0;j<s*2+1;j++){const yy=y-3-j*(h/(s*2+1)),side=j%2?1:-1;leaf(x+2,yy,side>0?-.35:-2.8,6+s,1.9,G,{ser:3,curl:.5*side})}
+   for(let j=0;j<s;j++)R(x+3,y-8-j*9,3,1,'#e8dcb8');
+   if(s===2)for(const [dx,dy] of [[-3,-16],[6,-20],[-2,-24]]){P(x+dx,y+dy,'#f6d84a');P(x+dx+1,y+dy,'#f6d84a');P(x+dx,y+dy-1,'#f6d84a');P(x+dx,y+dy+1,'#c8a020')}
+   if(s===3)for(const [dx,dy,r] of [[-3,-10,2.6],[6,-14,2.4],[-2,-20,2.8],[5,-25,2.2],[0,-29,2]]){const cx=x+dx,cy=y+dy;for(let j=-3;j<=3;j++)for(let i=-3;i<=3;i++){const d=(i*i+j*j)/(r*r);if(d<=1)P(cx+i,cy+j,d>.7?'#8a1a14':(i<0&&j<0)?'#ff7a5a':'#d8382a')}P(cx-1,cy-1,'#ffd8c8');P(cx,cy-r-1,'#4a8a3a');P(cx-1,cy-r,'#7ac04a');P(cx+1,cy-r,'#7ac04a')}},
+ corn(x,y,s){ if(s===0)return sprout(x,y,G);
+   const h=[0,12,26,38][s];R(x,y-h,3,h,'#3a7a30');R(x+1,y-h,1,h,'#8ac85a');for(let k=5;k<h;k+=6)R(x,y-k,3,1,'#2a5a24');
+   for(let j=0;j<s+1;j++){const yy=y-4-j*(h/(s+1.4));leaf(x+1,yy,j%2?-.45:-2.7,(6+s*2.6)*1.2,1.8,G,{shape:'strap',curl:j%2?.9:-.9})}
+   if(s>=2){for(let i=-3;i<=3;i++)stem(x+1,y-h,x+1+i*1.6,y-h-6+Math.abs(i),'#c8b060','#f2e2a0')}
+   if(s===3){const cx=x+4,cy=y-22;for(let j=0;j<10;j++)for(let i=0;i<4;i++)P(cx+i,cy+j,i===0||i===3?'#9a8a30':(i+j)%2?'#f8d84a':'#e8b830');
+     leaf(cx,cy+10,-1.85,9,1.6,G,{shape:'strap'});leaf(cx+3,cy+10,-1.25,9,1.6,G,{shape:'strap'});for(let k=0;k<4;k++)P(cx+1+k*.4,cy-1-k,'#b8783a')}},
+ rice(x,y,s){ if(s===0){for(const d of [-1,0,1])stem(x+d,y,x+d*1.8,y-4,'#6cb24a','#9ad86a');return}
+   const H=[0,12,20,24][s];const col=s===3?['#8a6a1a','#c8a238','#f2dc7a']:['#2f6a32','#5aa444','#a8e07a'];
+   for(let i=-7;i<=7;i++){const a=-1.57+i*.05,L=H*(1-Math.abs(i)*.03)*(.85+h2(i+9,s)*.3),bend=i*.006;
+     for(let k=0;k<L;k++){const t=k/L,px=x+i*.35+Math.cos(a)*k+bend*k*k*.6,py=y+Math.sin(a)*k;P(px,py,t>.7?col[2]:t>.25?col[1]:col[0]);if(t<.5)P(px+1,py,col[0])}}
+   if(s>=2)for(const i of [-6,-2,2,6]){const a=-1.57+i*.05,L=H*(1-Math.abs(i)*.03);const tx=x+i*.35+Math.cos(a)*L+i*.006*L*L*.6,ty=y+Math.sin(a)*L;
+     for(let k=0;k<9;k++){const gx=tx+(i>=0?1:-1)*k*.55,gy=ty+k*1.1;P(gx,gy,s===3?'#f2d468':'#c8e080');if(k%2)P(gx+(i>=0?1:-1),gy-1,s===3?'#b8882a':'#8ab850')}}},
+ okra(x,y,s){ if(s===0)return sprout(x,y,G);
+   const h=[0,10,20,28][s];stem(x,y,x,y-h,'#4a7a3a','#7aaa52');R(x+1,y-h,1,h,'#8a3a3a');
+   for(let j=0;j<s+1;j++){const yy=y-3-j*(h/(s+1.2)),side=j%2?1:-1;const lx=x+side*7,ly=yy-3;stem(x,yy,lx,ly,'#5a8a3a');for(const a of [-1.57-.75,-1.57,-1.57+.75])leaf(lx,ly,a+(side>0?.3:-.3),6+s,2.1,G,{ser:2})}
+   if(s===2){for(const [dx,dy] of [[3,-20],[-4,-14]]){P(x+dx,y+dy,'#fff4c8');P(x+dx+1,y+dy,'#fff4c8');P(x+dx,y+dy-1,'#fff4c8');P(x+dx,y+dy+1,'#fff4c8');P(x+dx,y+dy,'#a83a5a')}}
+   if(s===3)for(const [dx,dy] of [[-3,-10],[3,-14],[-2,-20]]){for(let k=0;k<8;k++){P(x+dx,y+dy-k,k>6?'#b8e88a':'#6ab04a');P(x+dx+1,y+dy-k,k>5?'#7ac04a':'#3a7a30')}}},
+ melon(x,y,s){ if(s===0)return sprout(x,y,G);
+   const L=[0,14,24,30][s];for(let i=0;i<L;i++){P(x-L/2+i,y-1+Math.sin(i*.6),'#4a8a3a');if(i%5===0)for(let k=0;k<3;k++)P(x-L/2+i+k,y-2-k+Math.sin(i),'#8ac85a')}
+   for(let j=0;j<s+2;j++){const lx=x-L/2+j*(L/(s+1.5)),ly=y-2;leaf(lx,ly,-1.57+(j%2?.6:-.6),(4+s*1.6)*1.1,2.6+s*.4,G,{shape:'heart',ser:2})}
+   if(s===2)for(const dx of [-6,4])for(const [a,b] of [[0,-1],[-1,0],[1,0],[0,1]])P(x+dx+a,y-7+b,'#f6d84a');
+   if(s===3){const cx=x+3,cy=y+1;SH(cx,cy+4,10,2,.3);for(let j=-5;j<=5;j++)for(let i=-8;i<=8;i++){const d=(i/8)**2+(j/5.5)**2;if(d<=1){const stripe=Math.floor((i+8+Math.sin(j*.7)*1.5)/2.2)%2;P(cx+i,cy+j,d>.84?'#1f4a24':stripe?'#2a6a2a':(j<-1&&i<-1?'#a8e07a':'#5aa040'))}}P(cx-4,cy-3,'#e0fcc8');P(cx-3,cy-3,'#e0fcc8');P(cx+8,cy-3,'#4a8a3a')}},
+ turnip(x,y,s){ if(s===0)return sprout(x,y,G);
+   const n=[0,3,5,7][s];for(let i=0;i<n;i++){const a=-1.57+(i-(n-1)/2)*.34;stem(x,y-1,x+Math.cos(a)*4,y-1+Math.sin(a)*4,'#a058c8');leaf(x+Math.cos(a)*3,y-1+Math.sin(a)*3,a,(3+s*2.4)*1.3,(1.2+s*.35)*1.3,G,{ser:3})}
+   if(s>=2){const r=s===3?5:3;for(let j=0;j<=r;j++)for(let i=-r;i<=r;i++){const d=(i/r)**2+(j/(r*.85))**2;if(d<=1)P(x+i,y+j-1,d>.8?'#5a2a6a':j<r*.45?(i<0?'#c070e8':'#9a48c0'):(i<0?'#fbf6ff':'#dcd0e8'))}P(x,y+r,'#c8b8d0');P(x-r+1,y,'#e8b0ff')}},
+ cabbage(x,y,s){ if(s===0)return sprout(x,y,GS);
+   const n=[0,5,7,9][s],L=(3+s*2.2)*1.35;for(let i=0;i<n;i++){const a=Math.PI*1.02+i*(Math.PI*.96/(n-1));leaf(x,y-1,a,L,(1.6+s*.55)*1.3,GS,{shape:'heart',rib:'#e0f6cc'})}
+   if(s>=2){const r=s===3?7:4.5;for(let j=-r;j<=r*.6;j++)for(let i=-r;i<=r;i++){const d=(i/r)**2+(j/r)**2;if(d<=1){const lay=Math.floor(Math.sqrt(d)*3);P(x+i,y-3+j,d>.86?'#3a6a3a':lay===2?(i<0?'#9ad47a':'#7ab862'):lay===1?(i<0?'#c8eaa4':'#a8d888'):'#eefbe0')}}
+     for(let k=0;k<r;k++){P(x-k*.8,y-3-k*.45,'#ffffff');P(x+k*.85,y-2-k*.55,'#6aa858')}for(let k=0;k<r*.8;k++)P(x+r*.3-k*.3,y-3+k*.5,'#7ab862')}},
+};
