@@ -1,0 +1,171 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#000}canvas{width:1280px;height:720px;image-rendering:pixelated;display:block}</style></head><body>
+<canvas id="cv" width="320" height="180"></canvas>
+<script>
+const c=document.getElementById('cv').getContext('2d');
+let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
+const h2=(x,y)=>(((x*73856093)^(y*19349663))>>>0)%1000/1000;
+const P=(x,y,col)=>{c.fillStyle=col;c.fillRect(Math.floor(x),Math.floor(y),1,1)};
+const R=(x,y,w,h,col)=>{c.fillStyle=col;c.fillRect(Math.floor(x),Math.floor(y),Math.round(w),Math.round(h))};
+const inPoly=(pts,x,y)=>{let ins=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,yi]=pts[i],[xj,yj]=pts[j];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))ins=!ins}return ins};
+function poly(pts,fn){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  for(let y=Math.floor(y0);y<=y1;y++)for(let x=Math.floor(x0);x<=x1;x++)if(inPoly(pts,x+.5,y+.5)){const col=fn(x,y);if(col)P(x,y,col)}}
+function polyOutline(pts,col){let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;pts.forEach(([x,y])=>{x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y)});
+  for(let y=Math.floor(y0)-1;y<=y1+1;y++)for(let x=Math.floor(x0)-1;x<=x1+1;x++){const i=inPoly(pts,x+.5,y+.5);if(!i&&(inPoly(pts,x+1.5,y+.5)||inPoly(pts,x-.5,y+.5)||inPoly(pts,x+.5,y+1.5)||inPoly(pts,x+.5,y-.5)))P(x,y,col)}}
+const SH=(cx,cy,rx,ry,a=.25)=>{c.fillStyle=`rgba(40,50,60,${a})`;for(let y=Math.floor(cy-ry);y<=cy+ry;y++)for(let x=Math.floor(cx-rx);x<=cx+rx;x++)if(((x+.5-cx)/rx)**2+((y+.5-cy)/ry)**2<=1)c.fillRect(x,y,1,1)};
+// shaded union of circles: light from top-left, leafy noise, scalloped edge
+function blob(cl,pal,out,leafy=true){
+  const inside=(x,y)=>cl.some(([cx,cy,r])=>(x+.5-cx)**2+(y+.5-cy)**2<=r*r);
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;cl.forEach(([cx,cy,r])=>{x0=Math.min(x0,cx-r-2);x1=Math.max(x1,cx+r+2);y0=Math.min(y0,cy-r-2);y1=Math.max(y1,cy+r+2)});
+  const val=(x,y)=>{let best=-9;for(const [cx,cy,r] of cl){const dx=(x+.5-cx)/r,dy=(y+.5-cy)/r;if(dx*dx+dy*dy<=1){const l=-(dx*.7+dy*.9)*.8+(1-(dx*dx+dy*dy))*.25;if(l>best)best=l}}return best};
+  for(let y=Math.floor(y0);y<=y1;y++)for(let x=Math.floor(x0);x<=x1;x++){
+    if(!inside(x,y)){if(inside(x+1,y)||inside(x-1,y)||inside(x,y+1)||inside(x,y-1))P(x,y,out);continue}
+    let v=val(x,y);
+    if(leafy){ // leaf clusters: each 5x4 cell is a little leaf mound, lit on top, dark underside
+      const row=Math.floor(y/5),ox=(row%2)*3,cx=Math.floor((x+ox)/6),lx=(x+ox)-cx*6,ly=y-row*5;
+      const dx=lx-2.5,dy=ly-1.6,m=dx*dx/7+dy*dy/3.2;const j=h2(cx,row);
+      if(m<.35)v+=.38;else if(m<1)v+=.1;else v-=.38;v+=(j-.5)*.3}
+    P(x,y,v>.62?pal[4]:v>.28?pal[3]:v>-.08?pal[2]:v>-.42?pal[1]:pal[0]);}
+}
+const LEAF=['#24503a','#33733e','#4c9640','#74b844','#a8dc5c'],LEAFO='#163428';
+function scallop(cx,cy,rx,ry,step=3){const cl=[[cx,cy,Math.min(rx,ry)-1.2]];for(let a=0;a<6.28;a+=step*1.25/Math.max(rx,ry)){cl.push([cx+Math.cos(a)*(rx-1.4),cy+Math.sin(a)*(ry-1.4),2.5])}
+  // interior lumps
+  for(let i=0;i<6;i++){const a=rnd()*6.28,d=rnd()*.5;cl.push([cx+Math.cos(a)*rx*d,cy+Math.sin(a)*ry*d,Math.min(rx,ry)*.55])}return cl}
+/* ======================= background ======================= */
+R(0,0,320,180,'#bcccc4');
+/* ======================= house (Myanmar brick + teak, clay-tile roof) ======================= */
+function house(X,Y){
+  SH(X+40,Y+76,40,4,.3);
+  // --- lower floor: brick wall
+  const bw=[[X+4,Y+52],[X+60,Y+52],[X+60,Y+76],[X+4,Y+76]];
+  poly(bw,(x,y)=>{const row=(y-Y-52)>>2,off=row%2?3:0,bx=((x-X+off)%7),by=(y-Y-52)%4;if(by===3||bx===6)return '#6a3e34';const n=h2((x-X+off)/7|0,row);return by===0?'#d88a6a':n>.6?'#b86048':n>.3?'#c46e52':'#a85640'});
+  // side wall (receding)
+  poly([[X+60,Y+52],[X+78,Y+42],[X+78,Y+66],[X+60,Y+76]],(x,y)=>{const by=(y-Y)%4,bx=(x-X)%7;return (by===3||bx===6)?'#4a2a2a':h2(x/7|0,y>>2)>.5?'#8a4a3a':'#7a4034'});
+  polyOutline([[X+4,Y+52],[X+60,Y+52],[X+78,Y+42],[X+78,Y+66],[X+60,Y+76],[X+4,Y+76]],'#3a2222');
+  // plinth
+  R(X+3,Y+75,58,2,'#e8e0d0');R(X+3,Y+77,58,1,'#9a9088');
+  // --- upper floor: teak planks
+  const tw=[[X+4,Y+30],[X+60,Y+30],[X+60,Y+52],[X+4,Y+52]];
+  poly(tw,(x,y)=>{const bx=(x-X)%5;if(bx===4)return '#5a3420';const g=h2(x>>2,y);return (y-Y)%7===0&&g>.5?'#8a5434':g>.85?'#c8864e':g>.4?'#a86a3e':'#9a5e36'});
+  poly([[X+60,Y+30],[X+78,Y+20],[X+78,Y+42],[X+60,Y+52]],(x,y)=>((x-X)%5===4)?'#3a2418':h2(x>>2,y)>.5?'#7a4a2e':'#6a3e26');
+  R(X+4,Y+51,56,2,'#3a2418');R(X+4,Y+50,56,1,'#c8864e'); // floor beam
+  // balcony rail
+  for(let x=X+6;x<X+58;x+=4){R(x,Y+44,2,7,'#3a2418');R(x,Y+44,1,7,'#e0a868')}R(X+5,Y+43,54,2,'#3a2418');R(X+5,Y+43,54,1,'#e0a868');
+  // windows (upper): wooden shutters + blue glass
+  for(const wx of [10,40]){R(X+wx,Y+32,12,10,'#2a1a14');R(X+wx+1,Y+33,10,8,'#5a7ac8');R(X+wx+1,Y+33,10,3,'#9ab8f0');R(X+wx+6,Y+33,1,8,'#2a1a14');R(X+wx+1,Y+37,10,1,'#2a1a14');P(X+wx+2,Y+34,'#ffffff');
+    R(X+wx-3,Y+32,3,10,'#2a1a14');R(X+wx-2,Y+33,2,8,'#3e8a6a');R(X+wx+12,Y+32,3,10,'#2a1a14');R(X+wx+12,Y+33,2,8,'#3e8a6a');P(X+wx-2,Y+33,'#6ab890');P(X+wx+12,Y+33,'#6ab890')}
+  // windows (lower) + arched door
+  for(const wx of [9,25]){R(X+wx,Y+57,9,9,'#2a1a14');R(X+wx+1,Y+58,7,7,'#5a7ac8');R(X+wx+1,Y+58,7,2,'#9ab8f0');R(X+wx+4,Y+58,1,7,'#2a1a14');R(X+wx+1,Y+61,7,1,'#2a1a14');R(X+wx-1,Y+66,11,2,'#e8e0d0')}
+  const dx=X+42,dy=Y+56;for(let y=0;y<20;y++)for(let x=0;x<13;x++){const ex=x-6,ey=y-6;if(y>=6||ex*ex+ey*ey<=40){const edge=(y>=6?(x===0||x===12):ex*ex+ey*ey>28);P(dx+x,dy+y,edge?'#2a1a14':x%3===0?'#8a4a26':h2(x,y)>.5?'#b8703a':'#a8602e')}}
+  P(dx+9,dy+12,'#f2d07a');R(dx-1,dy+20,15,1,'#9a9088');
+  // --- roof: front gable band + side plane with clay tiles
+  const g0=[X+32,Y-6];// ridge apex
+  const front=[[X-2,Y+31],[g0[0],g0[1]],[X+66,Y+31],[X+60,Y+31],[g0[0],Y+2],[X+4,Y+31]];
+  // gable wall (cream plaster with wooden frame)
+  poly([[X+4,Y+31],[g0[0],Y+2],[X+60,Y+31]],(x,y)=>h2(x>>1,y>>1)>.85?'#e8dcc0':'#f4ead4');
+  R(X+31,Y+6,2,25,'#5a3420');for(const [a,b] of [[X+16,Y+31],[X+48,Y+31]]){for(let i=0;i<14;i++)P(a+(g0[0]-a)*i/30,b-i*0.9,'#7a4a2e')}
+  R(X+28,Y+16,8,7,'#2a1a14');R(X+29,Y+17,6,5,'#5a7ac8');R(X+29,Y+17,6,2,'#9ab8f0');R(X+31,Y+17,1,5,'#2a1a14');
+  // side roof plane (parallelogram) with tile rows
+  const side=[[g0[0],g0[1]],[g0[0]+20,g0[1]-11],[X+86,Y+20],[X+66,Y+31]];
+  poly(side,(x,y)=>{// tiles: rows along the slope
+    const u=(x-g0[0])-(y-g0[1])*0.95, v=(y-g0[1])+(x-g0[0])*0.55; const row=Math.floor(v/4),col=Math.floor((u+(row%2)*2)/4);
+    const fy=v-row*4,fx=(u+(row%2)*2)-col*4;
+    if(fy>3.2)return '#6a1e18'; if(fx<0.8)return '#8a2e22';
+    const n=h2(col,row);return fy<1.1?'#f08a5a':n>.75?'#c8402c':n>.35?'#d2503a':'#b83a28'});
+  polyOutline(side,'#4a1612');
+  // front gable roof bands (left & right slopes, thick tiled edge)
+  const band=(ax,ay,bx,by,w)=>{const L=Math.hypot(bx-ax,by-ay);for(let i=0;i<=L;i++){const t=i/L,px=ax+(bx-ax)*t,py=ay+(by-ay)*t;for(let k=0;k<w;k++){const col=k===0?'#f08a5a':k===w-1?'#6a1e18':((i>>2)+k)%3===0?'#a83426':(i%4===0?'#8a2e22':'#d2503a');P(px,py+k,col)}}};
+  band(X-3,Y+31,g0[0],g0[1],6);band(g0[0],g0[1],X+67,Y+31,6);
+  for(let i=0;i<5;i++)P(g0[0],g0[1]-1+i,'#f6a070');
+  // chimney with smoke
+  R(X+56,Y-6,9,16,'#3a2222');R(X+57,Y-5,7,15,'#8a8a92');for(let y=0;y<15;y+=3)for(let x=0;x<7;x+=4)R(X+57+x+((y/3)%2)*2,Y-5+y,3,1,'#6a6a74');R(X+55,Y-8,11,3,'#3a2222');R(X+56,Y-7,9,1,'#b8b8c0');
+  for(let i=0;i<4;i++){const r=2+i*.8;for(let a=0;a<6.28;a+=.4){P(X+60+i*3+Math.cos(a)*r,Y-14-i*5+Math.sin(a)*r*.8,`rgba(90,90,100,${.75-i*.15})`)}}
+  // flower boxes + plants at base
+  for(const [fx,fy] of [[X+7,Y+66],[X+23,Y+66]]){}
+  // potted plant by door
+  R(X+36,Y+70,5,5,'#3a2222');R(X+37,Y+71,3,4,'#c46e52');blob([[X+38,Y+66,3.5],[X+36,Y+68,2.5],[X+40,Y+68,2.5]],LEAF,LEAFO)
+}
+house(8,22);
+/* ======================= bushes (leafy, scalloped) ======================= */
+function bush(x,y,rx,ry,flowers){SH(x,y+ry-1,rx,3,.25);blob(scallop(x,y,rx,ry),LEAF,LEAFO);if(flowers)for(let i=0;i<9;i++){const a=rnd()*6.28,d=rnd()*.7;const px=x+Math.cos(a)*rx*d,py=y+Math.sin(a)*ry*d-1;P(px,py,flowers);P(px+1,py,flowers);P(px,py-1,'#fff6d0');P(px,py+1,'#c84a6a')}}
+bush(118,24,11,10);bush(118,52,11,10,'#ff9ac0');
+// grass patch tiles (square with leafy border)
+function grassTile(x,y){R(x,y,20,20,'#5a9e40');for(let i=0;i<60;i++){const px=x+rnd()*20,py=y+rnd()*20;P(px,py,'#80c24a');P(px,py+1,'#3d7a3e')}
+  for(let i=0;i<20;i+=3){blob([[x+i+1,y,2.4]],LEAF,LEAFO,false);blob([[x+i+1,y+20,2.4]],LEAF,LEAFO,false)}}
+// big tree
+function tree(x,y){SH(x,y+2,18,4,.3);
+  // trunk with roots
+  poly([[x-4,y],[x-3,y-16],[x+3,y-16],[x+4,y],[x+8,y+2],[x-8,y+2]],(px,py)=>{const g=h2(px,py>>1);return px<x-1?'#8a5a3a':px>x+2?'#4a2e20':g>.6?'#7a4a2e':'#6a3e26'});
+  polyOutline([[x-4,y],[x-3,y-16],[x+3,y-16],[x+4,y],[x+8,y+2],[x-8,y+2]],'#2a1a14');
+  blob([...scallop(x,y-30,17,14,3.4),[x-10,y-22,8],[x+11,y-22,8]],LEAF,LEAFO);
+  for(let i=0;i<14;i++){const a=rnd()*6.28,d=rnd()*.8;const px=x+Math.cos(a)*15*d,py=y-30+Math.sin(a)*12*d;P(px,py,'#f6c829');P(px+1,py,'#fff07a');P(px,py+1,'#d89a18')}}
+tree(160,64);
+/* ======================= path: cobblestones ======================= */
+function cobble(x,y,w,h){R(x,y,w,h,'#a89880');const pts=[];for(let yy=2;yy<h;yy+=5)for(let xx=2+((yy/5|0)%2)*3;xx<w;xx+=6)pts.push([x+xx+(rnd()-.5)*1.6,y+yy+(rnd()-.5)*1.2,2.3+rnd()*.9,1.7+rnd()*.6]);
+  for(const [cx,cy,rx,ry] of pts){for(let j=-3;j<=3;j++)for(let i=-4;i<=4;i++){const d=(i/rx)**2+(j/ry)**2;if(d>1)continue;const px=cx+i,py=cy+j;if(px<x||py<y||px>=x+w||py>=y+h)continue;
+    const l=-(i/rx*.6+j/ry*.9);P(px,py,d>.7&&l<0?'#b8a688':l>.45?'#fffaf0':l>.05?'#f2e6d2':'#e2d2b8')}
+    if(cy+ry+1<y+h)P(cx,cy+ry+1,'#7a6a58')}}
+R(8,104,40,30,'#c8b8a0');cobble(8,104,40,30);
+R(56,104,22,34,'#c8b8a0');cobble(56,104,22,34);
+/* ======================= wooden fence ======================= */
+function fence(x,y,n){for(let i=0;i<n;i++){const px=x+i*8;SH(px+2,y+16,3,1);R(px,y,5,17,'#3a2418');R(px+1,y+1,3,15,'#a8703e');R(px+1,y+1,1,15,'#d4985a');R(px+1,y,3,1,'#e8b070');P(px+2,y+4,'#4a3a3a');P(px+2,y+11,'#4a3a3a')}
+  for(const yy of [y+4,y+10]){R(x,yy,n*8-3,4,'#3a2418');R(x,yy+1,n*8-3,2,'#8a5634');R(x,yy+1,n*8-3,1,'#b87a48');for(let i=0;i<n;i++){R(x+i*8,yy,5,4,'#3a2418');R(x+i*8+1,yy+1,3,2,'#a8703e')}}}
+fence(90,108,5);
+/* ======================= stone well ======================= */
+function well(x,y){SH(x+12,y+24,15,3.5,.3);
+  // stone wall (front of the cylinder)
+  for(let yy=0;yy<12;yy++)for(let xx=-13;xx<=13;xx++){const top=y+9+Math.sqrt(Math.max(0,1-(xx/13)**2))*5;const py=top+yy;const row=Math.floor(yy/4),off=row%2?3:0,bx=(xx+13+off)%6;
+    const edge=(yy%4===3)||bx===5;const lit=xx<-4;P(x+12+xx,py,edge?'#3a3e4a':lit?(h2(xx>>2,row)>.5?'#a8aeb8':'#9aa0aa'):(h2(xx>>2,row)>.5?'#7a808c':'#6a707c'))}
+  for(let xx=-13;xx<=13;xx++){const b=y+9+Math.sqrt(Math.max(0,1-(xx/13)**2))*5+12;P(x+12+xx,b,'#2a2e3a')}
+  // rim (top ellipse)
+  for(let yy=-6;yy<=6;yy++)for(let xx=-14;xx<=14;xx++){const d=(xx/14)**2+(yy/6)**2;if(d<=1){const inner=(xx/10.5)**2+(yy/4)**2<=1;P(x+12+xx,y+9+yy,inner?(yy<0?'#1a2433':'#244060'):(yy<0?'#c8ccd4':'#9aa0aa'))}}
+  for(let xx=-9;xx<=9;xx+=3)P(x+12+xx,y+9-5.2,'#7a808c');P(x+9,y+10,'#7ab0d8');P(x+10,y+10,'#7ab0d8');
+  // moss
+  for(let i=0;i<12;i++){const a=rnd()*3.14,px=x+12+Math.cos(a)*13,py=y+12+Math.sin(a)*6;P(px,py,'#4c9640');P(px+1,py,'#74b844')}
+  // wooden frame + small roof
+  R(x-1,y-12,3,24,'#2a1a14');R(x+23,y-12,3,24,'#2a1a14');R(x,y-11,1,22,'#c88a50');R(x+24,y-11,1,22,'#c88a50');
+  R(x-1,y-6,27,2,'#2a1a14');R(x,y-6,25,1,'#a8703e');
+  for(let i=0;i<8;i++){R(x+12-i*2.2,y-20+i,i*4.4+1,1,'#2a1a14');if(i>0)R(x+13-i*2.2,y-20+i,i*4.4-1,1,i%2?'#d2503a':'#b83a28')}R(x-5,y-12,35,2,'#4a1612');R(x-4,y-12,33,1,'#f08a5a');
+  R(x+12,y-4,1,7,'#d8c098');R(x+10,y+2,5,4,'#2a1a14');R(x+11,y+3,3,2,'#8a5634')}
+well(140,104);
+/* ======================= stumps, log, rocks ======================= */
+function grassAround(x,y,w){for(let i=0;i<w;i+=2){const h=2+(h2(x+i,y)*3|0);R(x+i,y-h,1,h,'#3d7a3e');P(x+i,y-h,'#80c24a');if(h2(i,y)>.6)P(x+i+1,y-h+1,'#5a9e40')}}
+function stump(x,y,r){SH(x,y+4,r+5,2.5,.3);
+  // roots
+  for(const s of [-1,1]){R(x+s*(r+1)-(s<0?3:0),y+1,4,3,'#3a2418');R(x+s*(r+1)-(s<0?2:1),y+1,2,2,'#8a5634')}
+  for(let yy=-2;yy<=3;yy++)for(let xx=-r;xx<=r;xx++){P(x+xx,y+yy,xx<-r+2?'#8a5634':xx>r-2?'#4a2e20':h2(xx,yy>>1)>.5?'#6a4228':'#7a4a2e')}
+  for(let yy=-4;yy<=4;yy++)for(let xx=-r-1;xx<=r+1;xx++){const d=(xx/(r+.5))**2+(yy/3.2)**2;if(d<=1){const ring=Math.floor(Math.sqrt(d)*4);P(x+xx,y-3+yy*.6,ring===3?'#8a5634':ring%2?'#e8c48a':'#d4a870')}}
+  P(x,y-3,'#8a5634');grassAround(x-r-3,y+4,2*r+7)}
+stump(14,160,8);stump(46,162,5);
+function log(x,y){SH(x+10,y+4,13,2.5,.3);R(x,y-3,20,7,'#3a2418');R(x+1,y-2,18,5,'#7a4a2e');R(x+1,y-2,18,1,'#a8703e');for(let i=2;i<18;i+=5)R(x+i,y,3,1,'#5a3420');
+  for(let yy=-3;yy<=3;yy++)for(let xx=-2;xx<=2;xx++)if((xx/2.5)**2+(yy/3.5)**2<=1)P(x+20+xx,y+yy,Math.abs(yy)>2||Math.abs(xx)>1.5?'#8a5634':'#e8c48a');
+  blob([[x+4,y-4,2.5],[x+8,y-5,2]],LEAF,LEAFO,false);grassAround(x-2,y+5,26)}
+log(56,160);
+function rock(x,y,s,moss){SH(x,y+s*.6,s+2,2,.3);const cl=[[x,y,s],[x+s*.7,y+1,s*.7],[x-s*.6,y+1,s*.6]];
+  blob(cl,['#4a4a52','#5e5e68','#7a7a84','#9a9aa4','#c0c0c8'],'#2a2a32',false);
+  if(moss)for(let i=0;i<s*3;i++){const a=-1.6+rnd()*1.6,d=rnd()*s;P(x+Math.cos(a)*d,y-s*.5+Math.sin(a)*d*.4,rnd()<.5?'#80c24a':'#5a9e40')}}
+rock(96,160,5,true);rock(114,162,4,true);rock(128,163,2.5);rock(136,160,2);rock(142,164,2.5,true);
+/* ======================= flowers & sprouts ======================= */
+function flower(x,y,col,hi){R(x,y-3,1,4,'#3d7a3e');P(x-1,y-1,'#5a9e40');P(x+1,y-2,'#5a9e40');P(x,y-5,col);P(x-1,y-4,col);P(x+1,y-4,col);P(x,y-3,col);P(x,y-4,hi)}
+[['#f6c829','#fff6a0'],['#ff8ac0','#fff0f6'],['#e2402f','#ffd0b0'],['#ffffff','#f6e070'],['#b07ae0','#f0e0ff'],['#f08a3a','#ffe0a0']].forEach(([a,b],i)=>flower(190+i*7,170,a,b));
+for(let i=0;i<5;i++){const x=240+i*9,y=170;R(x,y-2-i,1,3+i,'#3d7a3e');for(let k=0;k<=i;k++){P(x-1-k*.5,y-3-k,'#80c24a');P(x+1+k*.5,y-4-k,'#b6e06a')}}
+/* ======================= crop rows (detailed) ======================= */
+function soil(x,y,w,h){R(x,y,w,h,'#5a3420');for(let yy=0;yy<h;yy++)for(let xx=0;xx<w;xx++){const f=yy%5;P(x+xx,y+yy,f===0?'#9a6440':f===4?'#4a2a18':h2(xx>>1,yy)>.7?'#7a4a2e':'#6a3e26')}}
+soil(188,96,124,56);
+function tomato(x,y,s){R(x+3,y-16,1,17,'#5a3420');P(x+3,y-16,'#c8905a');
+  const h=4+s*3;R(x,y-h,1,h,'#2d5a3a');for(let j=0;j<=s;j++)blob([[x-2,y-3-j*3.4,2],[x+3,y-4-j*3.4,2]],LEAF,LEAFO,false);
+  if(s>=2)for(const [dx,dy] of [[0,-4],[3,-8],[-2,-10],[2,-12]].slice(0,s)){const red=s===3;blob([[x+dx,y+dy,1.8]],red?['#7a1a14','#a8281e','#d8402c','#f2703a','#ffc0a0']:['#3a6a24','#5a8e2e','#8ac04a','#b8e070','#e0f8b0'],'#3a1410',false);P(x+dx,y+dy-2,'#3d7a3e')}}
+function corn(x,y,s){const h=6+s*6;R(x,y-h,2,h,'#2d5a3a');R(x,y-h,1,h,'#80c24a');for(let j=0;j<=s;j++){const yy=y-4-j*5;for(let i=0;i<6;i++){P(x+2+i,yy-i*.6+(i*i)*.12,'#5a9e40');P(x-1-i,yy-2-i*.6+(i*i)*.12,'#80c24a')}}
+  if(s===3){blob([[x+3,y-12,2.2],[x+3,y-10,2.2]],['#8a6a1a','#c8a028','#e8c83a','#f8e070','#fff4b0'],'#5a3a10',false);for(let i=0;i<3;i++)P(x+2+i,y-15,'#c8a058');R(x-1,y-h-3,4,3,'#d8b870')}}
+function cabbage(x,y,s){const r=2.2+s*1.5;SH(x,y+1,r+2,1.6);
+  for(const [dx,dy,rr] of [[-r*.8,-r*.2,r*.7],[r*.8,-r*.2,r*.7],[0,-r*.1,r*.75]])blob([[x+dx,y+dy,rr]],['#24503a','#3a7a3e','#5a9e48','#8cc468','#b8e08a'],'#163428',false);
+  blob([[x,y-r*.75,r*.72]],['#4a8a44','#7ab860','#a8d888','#cdecac','#eefbe0'],'#24503a',false);
+  if(s>=1){R(x,y-r*.75-r*.6,1,r*.9,'#e8f8d8');P(x-1,y-r*.6,'#7ab860');P(x+1,y-r*.5,'#7ab860')}}
+for(let s=0;s<4;s++){tomato(194+s*10,118,s);tomato(194+s*10,146,s)}
+for(let s=0;s<4;s++){corn(238+s*10,118,s);corn(238+s*10,146,s)}
+for(let s=0;s<4;s++){cabbage(282+s*8,114,s);cabbage(282+s*8,130,s);cabbage(282+s*8,146,s)}
+/* bush squares like the reference (grass patch with leafy border) */
+bush(210,30,12,11);bush(242,30,10,9,'#ffffff');bush(270,30,11,10,'#f6c829');
+blob([...scallop(300,30,9,12,3)],LEAF,LEAFO);
+/* pebble path stones */
+for(const [x,y] of [[200,62],[212,66],[224,62],[236,66]]){SH(x+3,y+4,5,1.4);blob([[x+3,y+1,3.4]],['#b8a890','#d4c4a8','#e8dcc4','#f6eedc','#fffaf0'],'#7a6a58',false)}
+</script></body></html>
